@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="之前，通过ReentrantLock的示例，分析了AQS的独占功能。本文将以CountDownLatch为例，分析AQS的共享功能。CountDownLatch，是J.U.C中的一个同步器类，可作为倒数计数器使用。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="juc_locks框架#5-AQS共享的实现">
+<meta property="og:url" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="之前，通过ReentrantLock的示例，分析了AQS的独占功能。本文将以CountDownLatch为例，分析AQS的共享功能。CountDownLatch，是J.U.C中的一个同步器类，可作为倒数计数器使用。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913202244357.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913202758719.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913205256445.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913203938788.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204028229.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204104010.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204119422.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200922105541142.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204158788.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204227341.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204339687.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204433910.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204542957.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204634061.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204719913.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204819278.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204849904.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204859960.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204926387.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913204944776.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913205002303.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913205037207.png">
+<meta property="article:published_time" content="2020-08-17T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:00:01.519Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="深入并发">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913202244357.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>juc_locks框架#5-AQS共享的实现 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          juc_locks框架#5-AQS共享的实现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-17 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-17T09:34:33+08:00">2020-08-17</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>之前，通过ReentrantLock的示例，分析了AQS的独占功能。<br>本文将以<code>CountDownLatch</code>为例，分析AQS的共享功能。CountDownLatch，是J.U.C中的一个同步器类，可作为倒数计数器使用。</p>
+<span id="more"></span>
+
+<blockquote>
+<p>CountDownLatch示例<br>假设现在有3个线程，ThreadA、ThreadB、mainThread，CountDownLatch初始计数为1：<br><code>CountDownLatch switcher = new CountDownLatch(1);</code></p>
+</blockquote>
+<p>线程的调用时序如下：</p>
+<pre><code class="java">//ThreadA调用await()方法等待
+
+//ThreadB调用await()方法等待
+
+//主线程main调用countDown()放行
+</code></pre>
+<h1 id="AQS共享功能的原理"><a href="#AQS共享功能的原理" class="headerlink" title="AQS共享功能的原理"></a>AQS共享功能的原理</h1><h2 id="创建CountDownLatch"><a href="#创建CountDownLatch" class="headerlink" title="创建CountDownLatch"></a>创建CountDownLatch</h2><p>CountDownLatch的创建没什么特殊，调用唯一的构造器，传入一个初始计数值，内部实例化一个AQS子类：</p>
+<pre><code class="java">CountDownLatch switcher = new CountDownLatch(1);
+</code></pre>
+<p><img src="image-20200913202244357.png" alt="image-20200913202244357"></p>
+<p>可以看到，初始计数值count其实就是同步状态值，在CountDownLatch中，同步状态State表示CountDownLatch的计数器的初始大小。</p>
+<h2 id="ThreadA调用await-方法等待"><a href="#ThreadA调用await-方法等待" class="headerlink" title="ThreadA调用await()方法等待"></a>ThreadA调用await()方法等待</h2><p>CountDownLatch的<strong>await</strong>方法是响应中断的，该方法其实是调用了AQS的<strong>acquireSharedInterruptibly</strong>方法：<br><img src="image-20200913202758719.png" alt="image-20200913202758719"></p>
+<p>注意<strong>tryAcquireShared</strong>方法，该方法尝试获取锁，由AQS子类实现，其返回值的含义如下：</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>资源的定义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>小于0</td>
+<td>表示获取失败</td>
+</tr>
+<tr>
+<td>0</td>
+<td>表示获取成功</td>
+</tr>
+<tr>
+<td>大于0</td>
+<td>表示获取成功，且后继争用线程可能成功</td>
+</tr>
+</tbody></table>
+<p>CountDownLatch中的<strong>tryAcquireShared</strong>实现相当简单，当State值为0时，永远返回成功：<br><img src="image-20200913205256445.png" alt="image-20200913205256445"></p>
+<blockquote>
+<p>我们之前说了在CountDownLatch中，同步状态State表示CountDownLatch的计数器的初始值，当<code>State==0</code>时，表示无锁状态，且一旦State变为0，就永远处于无锁状态了，此时所有线程在await上等待的线程都可以继续执行。<br>而在ReentrantLock中，<code>State==0</code>时，虽然也表示无锁状态，但是只有一个线程可以重置State的值。这就是<strong>共享锁</strong>的含义。</p>
+</blockquote>
+<p>好了，继续向下执行，ThreadA尝试获取锁失败后，会调用<strong>doAcquireSharedInterruptibly</strong>：<br><img src="image-20200913203938788.png" alt="image-20200913203938788"></p>
+<p>首先通过<strong>addWaiter</strong>方法，将ThreadA包装成共享结点，插入等待队列，插入完成后队列结构如下：<br><img src="image-20200913204028229.png" alt="image-20200913204028229"></p>
+<p>然后会进入自旋操作，先尝试获取一次锁，显然此时是获取失败的（主线程main还未调用countDown，同步状态State还是1）。<br>然后判断是否要进入阻塞（<strong>shouldParkAfterFailedAcquire</strong>）：<br><img src="image-20200913204104010.png" alt="image-20200913204104010"></p>
+<p>好了，至此，ThreadA进入阻塞态，最终队列结构如下：<br><img src="image-20200913204119422.png" alt="image-20200913204119422"></p>
+<h2 id="ThreadB调用await-方法等待"><a href="#ThreadB调用await-方法等待" class="headerlink" title="ThreadB调用await()方法等待"></a>ThreadB调用await()方法等待</h2><p>流程和步骤2完全相同，调用后ThreadB也被加入到等待队列中：<br><img src="image-20200922105541142.png" alt="image-20200922105541142"></p>
+<h2 id="主线程main调用countDown-放行"><a href="#主线程main调用countDown-放行" class="headerlink" title="主线程main调用countDown()放行"></a>主线程main调用countDown()放行</h2><p>ThreadA和ThreadB调用了<code>await()</code>方法后都在等待了，现在主线程main开始调用<code>countDown()</code>方法，该方法调用后，ThreadA和ThreadB都会被唤醒，并继续往下执行，达到类似门栓的作用。</p>
+<p>来看下<strong>countDown</strong>方法的内部：<br><img src="image-20200913204158788.png" alt="image-20200913204158788"></p>
+<p>该方法内部调用了AQS的<strong>releaseShared</strong>方法，先尝试一次释放锁，<strong>tryReleaseShared</strong>方法是一个钩子方法，由<strong>CountDownLatch</strong>实现，当同步State状态值首次变为0时，会返回true：<br><img src="image-20200913204227341.png" alt="image-20200913204227341"></p>
+<p>先调用<strong>compareAndSetWaitStatus</strong>将头结点的等待状态置为0，表示将唤醒后续结点（ThreadA），成功后的等待队列结构如下：<br><img src="image-20200913204339687.png" alt="image-20200913204339687"></p>
+<p>然后调用<strong>unparkSuccessor</strong>唤醒后继结点（ThreadA被唤醒后会从原阻塞处继续往下执行，这个在步骤5再讲）：<br><img src="image-20200913204433910.png" alt="image-20200913204433910"></p>
+<p>此时，等待队列结构如下：<br><img src="image-20200913204542957.png" alt="image-20200913204542957"></p>
+<h2 id="ThreadA从原阻塞处继续向下执行"><a href="#ThreadA从原阻塞处继续向下执行" class="headerlink" title="ThreadA从原阻塞处继续向下执行"></a>ThreadA从原阻塞处继续向下执行</h2><p>ThreadA被唤醒后，会从原来的阻塞处继续向下执行：<br>由于是一个自旋操作，ThreadA会再次尝试获取锁，由于此时State同步状态值为0（无锁状态），所以获取成功。然后调用<strong>setHeadAndPropagate</strong>方法：<br><img src="image-20200913204634061.png" alt="image-20200913204634061"></p>
+<p><strong>setHeadAndPropagate</strong>方法把ThreadA结点变为头结点，并根据传播状态判断是否要唤醒并释放后继结点：<br><img src="image-20200913204719913.png" alt="image-20200913204719913"></p>
+<p>①将ThreadA变成头结点<br><img src="image-20200913204819278.png" alt="image-20200913204819278"></p>
+<p>②调用<strong>doReleaseShared</strong>方法，释放并唤醒ThreadB结点<br><img src="image-20200913204849904.png" alt="image-20200913204849904"></p>
+<p><img src="image-20200913204859960.png" alt="image-20200913204859960"></p>
+<h2 id="ThreadB从原阻塞处继续向下执行"><a href="#ThreadB从原阻塞处继续向下执行" class="headerlink" title="ThreadB从原阻塞处继续向下执行"></a>ThreadB从原阻塞处继续向下执行</h2><p>ThreadB被唤醒后，从原阻塞处继续向下执行，这个过程和（ThreadA唤醒后继续执行）完全一样。</p>
+<p><strong>setHeadAndPropagate</strong>方法把ThreadB结点变为头结点，并根据传播状态判断是否要唤醒并释放后继结点：<br><img src="image-20200913204926387.png" alt="image-20200913204926387"></p>
+<p>①将ThreadB变成头结点<br><img src="image-20200913204944776.png" alt="image-20200913204944776"></p>
+<p>②调用<strong>doReleaseShared</strong>方法，释放并唤醒后继结点（此时没有后继结点了，则直接break）：<br><img src="image-20200913205002303.png" alt="image-20200913205002303"></p>
+<p>最终队列状态如下：<br><img src="image-20200913205037207.png" alt="image-20200913205037207"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>AQS的共享功能，通过钩子方法<strong>tryAcquireShared</strong>暴露，与独占功能最主要的区别就是：</p>
+<p>共享功能的结点，一旦被唤醒，会向队列后部传播（Propagate）状态，以实现共享结点的连续唤醒。这也是共享的含义，当锁被释放时，所有持有该锁的共享线程都会被唤醒，并从等待队列移除。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+              <a href="/tags/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" rel="tag"># 深入并发</a>
+              <a href="/tags/juc/" rel="tag"># juc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/16/juc_locks%E6%A1%86%E6%9E%B6-4-AQS_condition%E7%AD%89%E5%BE%85/" rel="prev" title="juc_locks框架#4-AQS_condition等待">
+      <i class="fa fa-chevron-left"></i> juc_locks框架#4-AQS_condition等待
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/" rel="next" title="juc_locks框架#6-AQS_读写锁">
+      juc_locks框架#6-AQS_读写锁 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#AQS%E5%85%B1%E4%BA%AB%E5%8A%9F%E8%83%BD%E7%9A%84%E5%8E%9F%E7%90%86"><span class="nav-text">AQS共享功能的原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BACountDownLatch"><span class="nav-text">创建CountDownLatch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadA%E8%B0%83%E7%94%A8await-%E6%96%B9%E6%B3%95%E7%AD%89%E5%BE%85"><span class="nav-text">ThreadA调用await()方法等待</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadB%E8%B0%83%E7%94%A8await-%E6%96%B9%E6%B3%95%E7%AD%89%E5%BE%85"><span class="nav-text">ThreadB调用await()方法等待</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E7%A8%8Bmain%E8%B0%83%E7%94%A8countDown-%E6%94%BE%E8%A1%8C"><span class="nav-text">主线程main调用countDown()放行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadA%E4%BB%8E%E5%8E%9F%E9%98%BB%E5%A1%9E%E5%A4%84%E7%BB%A7%E7%BB%AD%E5%90%91%E4%B8%8B%E6%89%A7%E8%A1%8C"><span class="nav-text">ThreadA从原阻塞处继续向下执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadB%E4%BB%8E%E5%8E%9F%E9%98%BB%E5%A1%9E%E5%A4%84%E7%BB%A7%E7%BB%AD%E5%90%91%E4%B8%8B%E6%89%A7%E8%A1%8C"><span class="nav-text">ThreadB从原阻塞处继续向下执行</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

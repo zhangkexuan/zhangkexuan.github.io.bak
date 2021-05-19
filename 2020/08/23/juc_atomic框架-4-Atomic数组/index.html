@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Atomic数组，顾名思义，就是能以原子的方式，操作数组中的元素。 JDK提供了三种类型的原子数组：AtomicIntegerArray、AtomicLongArray、AtomicReferenceArray。 这三种类型大同小异，AtomicIntegerArray对应AtomicInteger，AtomicLongArray对应AtomicLong，AtomicReferenceArray对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="juc_atomic框架#4-Atomic数组">
+<meta property="og:url" content="http://yoursite.com/2020/08/23/juc_atomic%E6%A1%86%E6%9E%B6-4-Atomic%E6%95%B0%E7%BB%84/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="Atomic数组，顾名思义，就是能以原子的方式，操作数组中的元素。 JDK提供了三种类型的原子数组：AtomicIntegerArray、AtomicLongArray、AtomicReferenceArray。 这三种类型大同小异，AtomicIntegerArray对应AtomicInteger，AtomicLongArray对应AtomicLong，AtomicReferenceArray对">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/23/juc_atomic%E6%A1%86%E6%9E%B6-4-Atomic%E6%95%B0%E7%BB%84/image-20200923105538062.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/23/juc_atomic%E6%A1%86%E6%9E%B6-4-Atomic%E6%95%B0%E7%BB%84/image-20200923105639160.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/23/juc_atomic%E6%A1%86%E6%9E%B6-4-Atomic%E6%95%B0%E7%BB%84/image-20200923105655021.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/23/juc_atomic%E6%A1%86%E6%9E%B6-4-Atomic%E6%95%B0%E7%BB%84/image-20200923105730854.png">
+<meta property="article:published_time" content="2020-08-23T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T01:57:45.834Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="深入并发">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/23/juc_atomic%E6%A1%86%E6%9E%B6-4-Atomic%E6%95%B0%E7%BB%84/image-20200923105538062.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/23/juc_atomic%E6%A1%86%E6%9E%B6-4-Atomic%E6%95%B0%E7%BB%84/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>juc_atomic框架#4-Atomic数组 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/23/juc_atomic%E6%A1%86%E6%9E%B6-4-Atomic%E6%95%B0%E7%BB%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          juc_atomic框架#4-Atomic数组
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-23 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-23T09:34:33+08:00">2020-08-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Atomic数组，顾名思义，就是能以原子的方式，操作数组中的元素。</p>
+<p>JDK提供了三种类型的原子数组：<code>AtomicIntegerArray</code>、<code>AtomicLongArray</code>、<code>AtomicReferenceArray</code>。</p>
+<p>这三种类型大同小异，AtomicIntegerArray对应AtomicInteger，AtomicLongArray对应AtomicLong，AtomicReferenceArray对应AtomicReference。</p>
+<span id="more"></span>
+
+<h2 id="一、Atomic数组简介"><a href="#一、Atomic数组简介" class="headerlink" title="一、Atomic数组简介"></a>一、Atomic数组简介</h2><p>其实阅读源码也可以发现，这些数组原子类与对应的普通原子类相比，只是多了通过索引找到内存中元素地址的操作而已。</p>
+<blockquote>
+<p>注意：原子数组并不是说可以让线程以原子方式一次性地操作数组中所有元素的数组。<br>而是指对于数组中的每个元素，可以以原子方式进行操作。</p>
+</blockquote>
+<p>说得简单点，<strong>原子数组类型</strong>其实可以看成<strong>原子类型组成的数组</strong>。</p>
+<p>比如：</p>
+<pre><code class="java">AtomicIntegerArray array = new AtomicIntegerArray(10);
+array.getAndIncrement(0);   // 将第0个元素原子地增加1
+</code></pre>
+<p>等同于</p>
+<pre><code class="java">AtomicInteger[]  array = new AtomicInteger[10];
+array[0].getAndIncrement();  // 将第0个元素原子地增加1
+</code></pre>
+<h2 id="二、AtomicIntegerArray原理"><a href="#二、AtomicIntegerArray原理" class="headerlink" title="二、AtomicIntegerArray原理"></a>二、AtomicIntegerArray原理</h2><p>本节将以<strong>AtomicIntegerArray</strong>为例，介绍下原子数组的原理，<strong>AtomicLongArray</strong>和<strong>AtomicReferenceArray</strong>的使用和源码与<strong>AtomicIntegerArray</strong>大同小异，读者可以自己查看<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/">Oracle官方文档</a>和源码。</p>
+<p><strong>AtomicIntegerArray</strong>其实和其它原子类区别并不大，只不过构造的时候传入的是一个<strong>int[]<strong>数组，然后底层通过</strong>Unsafe</strong>类操作数组：<br><img src="image-20200923105538062.png" alt="image-20200923105538062"></p>
+<p>可以看到，<strong>AtomicIntegerArray</strong>提供了两种构造器，本质都是内部利用<strong>array</strong>变量保存一个**int[]**数组引用。</p>
+<p>另外，<strong>AtomicIntegerArray</strong>利用<strong>Unsafe</strong>类直接操作**int[]**对象的内存地址，以达到操作数组元素的目的，几个关键的变量解释如下：</p>
+<p><code>int base = unsafe.arrayBaseOffset(int[].class);</code><br>Unsafe类的<strong>arraBaseOffset</strong>方法：返回指定类型数组的第一个元素地址相对于数组起始地址的偏移值。</p>
+<p><code>int scale = unsafe.arrayIndexScale(int[].class);</code><br>Unsafe类的<strong>arrayIndexScale</strong>方法：返回指定类型数组的元素所占用的字节数。比如int[]数组中的每个int元素占用4个字节，就返回4。</p>
+<p>那么，通过<code>base + i * sacle</code> 其实就可以知道 索引<strong>i</strong>的元素在数组中的内存起始地址。<br>但是，观察<strong>AtomicIntegerArray</strong>的<strong>byteOffset</strong>方法，是通过<code>i &lt;&lt; shift + base</code> 的公式计算元素的起始地址的：<br><img src="image-20200923105639160.png" alt="image-20200923105639160"></p>
+<p>这里，<img src="image-20200923105655021.png" alt="image-20200923105655021">其实就等于<strong>scale</strong>。</p>
+<p><code>shift = 31 - Integer.numberOfLeadingZeros(scale)</code>，<code>Integer.numberOfLeadingZeros(scale)</code>是将<strong>scale</strong>转换为2进制，然后从左往右数连续0的个数。</p>
+<p>读者可以自己计算下：<br><code>shift = 31 - Integer.numberOfLeadingZeros(4) = 31 - 29 =2</code></p>
+<p>之所以要这么绕一圈，其实是处于性能的考虑，通过移位计算乘法的效率往往更高。</p>
+<h2 id="三、AtomicIntegerArray接口声明"><a href="#三、AtomicIntegerArray接口声明" class="headerlink" title="三、AtomicIntegerArray接口声明"></a>三、AtomicIntegerArray接口声明</h2><p><img src="image-20200923105730854.png" alt="image-20200923105730854"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+              <a href="/tags/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" rel="tag"># 深入并发</a>
+              <a href="/tags/juc/" rel="tag"># juc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/22/juc_atomic%E6%A1%86%E6%9E%B6-3-AtomicReference/" rel="prev" title="juc_atomic框架#3-AtomicReference">
+      <i class="fa fa-chevron-left"></i> juc_atomic框架#3-AtomicReference
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/24/juc_atomic%E6%A1%86%E6%9E%B6-5-FieldUpdater/" rel="next" title="juc_atomic框架#5-FieldUpdater">
+      juc_atomic框架#5-FieldUpdater <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81Atomic%E6%95%B0%E7%BB%84%E7%AE%80%E4%BB%8B"><span class="nav-text">一、Atomic数组简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81AtomicIntegerArray%E5%8E%9F%E7%90%86"><span class="nav-text">二、AtomicIntegerArray原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81AtomicIntegerArray%E6%8E%A5%E5%8F%A3%E5%A3%B0%E6%98%8E"><span class="nav-text">三、AtomicIntegerArray接口声明</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="我选择的linux版本是MANJARO，pacman的软件管理包比apt、dpkg这些都好太多太多。aur的社区维护也让软件安装依赖环境的安装变得非常简单。本文针对安装linux的一些注意和坑，进行介绍。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux#1-安装与注意">
+<meta property="og:url" content="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="我选择的linux版本是MANJARO，pacman的软件管理包比apt、dpkg这些都好太多太多。aur的社区维护也让软件安装依赖环境的安装变得非常简单。本文针对安装linux的一些注意和坑，进行介绍。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/GRUB%E8%8F%9C%E5%8D%95.gif">
+<meta property="og:image" content="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/GRUB%E7%BC%96%E8%BE%91.gif">
+<meta property="og:image" content="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/GRUB%E5%8D%95%E7%94%A8%E6%88%B7%E8%A1%8C.gif">
+<meta property="og:image" content="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/%E5%8D%95%E7%94%A8%E6%88%B7%E5%91%BD%E4%BB%A4.gif">
+<meta property="og:image" content="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/%E5%8D%95%E7%94%A8%E6%88%B7%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81.gif">
+<meta property="og:image" content="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/%E5%AF%86%E7%A0%81%E5%AE%89%E5%85%A8.jpg">
+<meta property="article:published_time" content="2019-12-10T11:22:32.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:13:50.317Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/GRUB%E8%8F%9C%E5%8D%95.gif">
+
+<link rel="canonical" href="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>linux#1-安装与注意 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/10/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          linux#1-安装与注意
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-12-10 19:22:32" itemprop="dateCreated datePublished" datetime="2019-12-10T19:22:32+08:00">2019-12-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">其他技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>我选择的linux版本是MANJARO，pacman的软件管理包比apt、dpkg这些都好太多太多。aur的社区维护也让软件安装依赖环境的安装变得非常简单。本文针对安装linux的一些注意和坑，进行介绍。</p>
+<span id="more"></span>
+
+<h1 id="先安装windows再安装linux"><a href="#先安装windows再安装linux" class="headerlink" title="先安装windows再安装linux"></a>先安装windows再安装linux</h1><p>Linux 在安装的时候，你可以选择将开机管理程序安装在 MBR 或者各分区的启动扇区， 而且linux 的开机管理程序可以自己设定启动项（所以开机管理程序是安装多系统的关键），所以你可以在 Linux 的boot loader 里面加入 Windows 启动的选项;</p>
+<p>Windows 在安装的时候，他的安装程序会主动覆盖掉 MBR 以及自己所在的主分区的启动扇区，你没有选择的机会， 而且他没有让我们自己选择启动项的功能。</p>
+<p>因此，如果先安装 Linux 再安装 Windows 的话，Windows的开机管理程序就会覆盖MBR中linux开机管理程序，他没有让我们自己选择启动项的功能。 那需要重新 安装 Linux 一次吗?当然不需要，你需要用尽各种方法来处理 MBR 的内容即可。</p>
+<p>重新安装 GRUB 的过程已经讲过了，但是重新安装 GRUB 的命令需要在 rescue 模式中执行。我们重新写一遍覆盖安装 GRUB 的过程，如下：</p>
+<pre><code class="bash">#放入光盘重启，进入 rescue 模式
+sh-4.1#grub
+#启动GRUB交互界面。注意到了吗？提示符不一样了，那是因为从光盘启动了系统，所以环境变量配件文件没有生效
+gmb&gt; root (hd0.0)
+#设置GRUB的主目录
+grub&gt;setup (hd0)
+#因为直接把GRUB安装到MBR中，所以不需要指定分区
+grub&gt; quit
+#退出
+</code></pre>
+<p>这样GRUB覆盖安装的实验才算完成了。</p>
+<p>这里需要对BIOS和MBR作一些介绍：</p>
+<ul>
+<li><p>BIOS:是一组固化到计算机内主板上一个ROM芯片上的程序，它保存着计算机最重要的基本输入输出的程序、开机后自检程序和系统自启动程序，它可从CMOS中读写系统设置的具体信息。</p>
+</li>
+<li><p>UEFI:全称“统一的可扩展固件接口”(Unified Extensible Firmware Interface)， 是一种详细描述类型接口的标准。这种接口用于操作系统自动从预启动的操作环境，加载到一种操作系统上。</p>
+</li>
+<li><p>MBR:即主引导记录，是对IBM兼容机的硬盘或者可移动磁盘分区时，在驱动器最前端的一段引导扇区。MBR描述了逻辑分区的信息，包含文件系统以及组织方式。此外，MBR还包含计算机在启动的第二阶段加载操作系统的可执行代码或连接每个分区的引导记录（VBR）。这个MBR代码通常被称为引导程序。</p>
+</li>
+<li><p>GPT:是GUID磁碟分割表（GUIDPartition Table）的缩写，是一个实体硬盘的分区表的结构布局的标准。它是可扩展固件接口（EFI）标准（被Intel用于替代个人计算机的BIOS）的一部分，被用于替代BIOS系统中的一32bits来存储逻辑块地址和大小信息的主开机纪录（MBR）分区表。</p>
+</li>
+</ul>
+<p>简单的讲就是：</p>
+<p><strong>电脑开机进入主板BIOS或者UEFI读取硬盘MBR或者GPT记录进入相应分区引导进入下一层引导</strong></p>
+<p>这里关于引导不细讲，有时间再写一篇关于引导的文章。</p>
+<h1 id="重要系统文件丢失，导致系统无法启动"><a href="#重要系统文件丢失，导致系统无法启动" class="headerlink" title="重要系统文件丢失，导致系统无法启动"></a>重要系统文件丢失，导致系统无法启动</h1><p>如果系统中的重要系统文件丢失，则会导致系统无法正常启动，这时也可以利用 rescue 模式来进行修复。我们假设 /etc/inittab 文件丟失了，通过系统启动过程知道这个文件是于定义系统默认运行级别的，如果丟失了这个文件，那么系统当然不能正常启动，这时就需要进入 rescue 模式中，然后执行 chroot 命令。命令格式如下：</p>
+<pre><code class="bash">[root@localhost ~]#chroot 目录名
+</code></pre>
+<p>chroot 命令的作用是改变系统根目录，也就是可以把根目录暂时移动到某个目录当中。我们是通过光盘启动的 rescue 模式，所以我们现在所在的根目录并不是真正的系统根目录，而是光盘的模拟根目录，真正的系统根目录被当成外来设备放在了 /mnt/sysimage/ 目录中。</p>
+<p>这时，就需要使用 chroot 命令把我们现在所在的根目录改成真正的系统根目录。命令如下：</p>
+<pre><code class="bash">bash-4.1# chroot /mnt/sysimage
+</code></pre>
+<p>执行这条命令之后，当前的根目录就是真正的系统根目录了。如果系统有任何错误，则可以直接修复。比如 /etc/inittab 文件丟失了。这时如果我们备份过系统重要文件，那么只需要把备份文件复制到 /etc/ 目录下即可。如果没有备份的文件，就需要从 RPM 包中提取 inittab 文件，然后复制。具体命令如下：</p>
+<pre><code class="bash">bash-4.1# chroot /mnt/sysimage
+#改变主目录
+sh-4.1#cd/root
+#进入root目录。因为默认进入的是/目录，所以如果不进入root目录，那么一会提取的inittab文件会报错
+sh-4.1# rpm -qf /etc/inittab
+initscripts-9.03.31-2.el6.centos.i686
+#查询一下/etc/inittab文件属于哪个包。如果系统中文件丢失不能查询，则需要通过其他Linux系统查询
+sh-4.1# mkdir /mnt/cdrom
+#建立挂载点
+sh-4.1# mount /dev/sr0 /mnt/cdrom
+#挂载光盘
+sh-4.1# rpm2cpio /mnt/cdrom/Packages/initscripts-9.03.31-2.el6.centos.i686.rpm|cpio -idv ./etc/inittab
+#提取inittab文件到当前目录
+sh-4.1# cp etc/inittab /etc/inittab
+#复制inittab文件到指定位置
+</code></pre>
+<p>注意，在执行此命令时不能将文件直接恢复到 /etc/ 目录，只能提取到当前目录，且恢复的文件名称所在路径要写完整的绝对路径。提取文件成功后，将其复制到根分区所在的 /mnt/sysimage/ 目录下的相应位置即可。</p>
+<h1 id="root密码忘记了怎么办？"><a href="#root密码忘记了怎么办？" class="headerlink" title="root密码忘记了怎么办？"></a>root密码忘记了怎么办？</h1><p>很多新手当面对“忘记 root 账户密码导致无法登陆系统”这个问题时，直接选择重新系统。其实大可不必，我只需要进入 emergency mode（单用户模式）更新 root 账户的密码即可。</p>
+<p>linux的单用户模式有些类似 Windows 的安全模式，只启动最少的程序用于系统修复。在单用户模式（运行级别为 1）中，Linux 引导进入根shell，网络被禁用，只有少数进程运行。</p>
+<p>单用户模式可以用来修改文件系统损坏、还原配置文件、移动用户数据等。</p>
+<p>现在，我们假设系统出现了问题，已经不能正常登录了。那么，如何进入单用户模式呢？</p>
+<p>首先需要重启服务器，在 GRUB 读秒界面按任意键，进入 GRUB 菜单界面。</p>
+<p><img src="GRUB%E8%8F%9C%E5%8D%95.gif" alt="GRUB菜单界面"><br>图 1 GRUB菜单界面</p>
+<p>在想要进入单用户模式的 Linux 菜单上按”e”键，就会进入 GRUB 编辑界面，如图 2 所示。</p>
+<p><img src="GRUB%E7%BC%96%E8%BE%91.gif" alt="GRUB编辑界面"><br>图 2 GRUB编辑界面</p>
+<p>在 GRUB 编辑界面中，移动光标到第二行 kernel 行，然后继续按”e”键，进入行编辑界面。在此行最后输入”空格 single”，代表启动进入单用户模式（注意：空格必须存在），如图 3 所示。</p>
+<p><img src="GRUB%E5%8D%95%E7%94%A8%E6%88%B7%E8%A1%8C.gif" alt="GRUB行编辑界面"><br>图 3 GRUB行编辑界面</p>
+<p>然后按回车键，就会回到上一个界面，如图 2 所示。再按”b”键（启动），就会启动进入单用户模式。单用户模式是不需要输入用户名和密码就能直接进入提示符界面的，如图 4 所示。</p>
+<p><img src="%E5%8D%95%E7%94%A8%E6%88%B7%E5%91%BD%E4%BB%A4.gif" alt="单用户模式提示符界面"><br>图 4 单用户模式提示符界面</p>
+<p>我们已经登录了 Linux 系统的单用户模式，而且是不需要输入用户名和密码就可以直接进入的。这时如果有系统问题，就可以在单用户模式中进行修复了。</p>
+<p>这是管理员最容易犯的错误，应该如何修复呢？当然是使用单用户模式进行修复了，因为进入单用户模式的最大特点就是不需要输入用户名和密码。既然已经登录了单用户模式，那么直接给 root 用户设定新密码即可。 命令如下：</p>
+<pre><code class="bash">[root@localhost /]# passwd root
+</code></pre>
+<p>运行效果如图 5 所示。</p>
+<p><img src="%E5%8D%95%E7%94%A8%E6%88%B7%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81.gif" alt="单用户模式修改 root 密码"><br>图 5 单用户模式修改 root 密码</p>
+<h1 id="linux密码破解好容易，linux真的安全吗？"><a href="#linux密码破解好容易，linux真的安全吗？" class="headerlink" title="linux密码破解好容易，linux真的安全吗？"></a>linux密码破解好容易，linux真的安全吗？</h1><p>很多人看到系统修复模式这节内容时，都会有所感慨：linux的密码破解太容易了，这样的操作系统还安全吗？Linux 不是以安全性著称的吗？</p>
+<p><img src="%E5%AF%86%E7%A0%81%E5%AE%89%E5%85%A8.jpg" alt="img"></p>
+<p>本节，我们结合上图解释一下类似的问题。</p>
+<p>我们一开始始为了安全，给用户设定密码，但是这样密码可以很容易地被单用户模式破解。我们又想到，进入单用户模式，需要在 GRUB 启动界面上按”e”键，那么我们就给 GRUB 加密，必须输入正确的 GRUB 密码，才能进入 GRUB 的编辑界面，这样就保证了用户密码的安全。</p>
+<p>不过，GRUB 加密是可以通过进入光盘修复模式，直接删除 GRUB 配置文件中的 password 行而被破解的。接着我们又想到，进入光盘修复模式，是需要通过光盘启动系统的，那么我们给 BIOS 加密，这样就必须输入正确的 BIOS 密码，才能修改光盘的启动顺序。但是 BIOS 加密是可以通过拔除主板电池而删除的。那我们只能把服务器机箱锁起来，但只是一把锁而已，完全可以被螺丝刀撬开！</p>
+<p>其实，这里是大家对概念的理解有误。任何一个需要密码的设备，不论是 Windows、Linux、交换机、路由器，还是一个需要密码的软件，都必须留有破解密码的漏洞。如果我们的计算机没有破解密码的方法，那么万一忘记了计算机的密码，难道要重新买一台吗（如果忘记了 BIOS 密码，又不能破解，当然不能重新安装系统了）？</p>
+<p>当然不能是这样的，所以这些漏洞是必须预留的。这些漏洞是不会影响系统安全的，因为我们可以拿到计算机本身。如果我们能够拿到计算机，就认为我们对这台计算机拥有所有权。我们所说的安全性主要是指在对计算机没有所有权时要保证绝对安全。</p>
+<p>而且大家要注意，如果 root 没有密码，那么本机登录是没有任何问题的，但是不可能远程登录。所以我们所说的安全性主要针对的是网络安全。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/12/09/%E6%90%AD%E5%BB%BAhexo%E7%8E%AF%E5%A2%83/" rel="prev" title="搭建hexo环境">
+      <i class="fa fa-chevron-left"></i> 搭建hexo环境
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/12/11/manjaro-1-PGP%E7%AD%BE%E5%90%8D/" rel="next" title="manjaro#1-PGP签名">
+      manjaro#1-PGP签名 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%88%E5%AE%89%E8%A3%85windows%E5%86%8D%E5%AE%89%E8%A3%85linux"><span class="nav-text">先安装windows再安装linux</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%87%8D%E8%A6%81%E7%B3%BB%E7%BB%9F%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%EF%BC%8C%E5%AF%BC%E8%87%B4%E7%B3%BB%E7%BB%9F%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8"><span class="nav-text">重要系统文件丢失，导致系统无法启动</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#root%E5%AF%86%E7%A0%81%E5%BF%98%E8%AE%B0%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="nav-text">root密码忘记了怎么办？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#linux%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3%E5%A5%BD%E5%AE%B9%E6%98%93%EF%BC%8Clinux%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%90%97%EF%BC%9F"><span class="nav-text">linux密码破解好容易，linux真的安全吗？</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="了解系统架构的演变  了解RPC与Http的区别  知道什么是SpringCloud">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringCloud概述">
+<meta property="og:url" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="了解系统架构的演变  了解RPC与Http的区别  知道什么是SpringCloud">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1525529091749.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1525529671801.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1525530657919.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1525530804753.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1526860071166.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1534812923451.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1525573702492.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1525575656796.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528263985902.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528263942152.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528266515225.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528266803455.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528266923967.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528267588935.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528267665004.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528267830854.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1535671376231.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528272537927.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528272829384.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528272875502.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1528273029361.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1540643087305.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1535587919022.png">
+<meta property="article:published_time" content="2020-05-10T13:17:03.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:21:26.726Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="SpringCloud">
+<meta property="article:tag" content="微服务">
+<meta property="article:tag" content="SOA">
+<meta property="article:tag" content="RPC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/1525529091749.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SpringCloud概述 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/10/SpringCloud%E6%A6%82%E8%BF%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SpringCloud概述
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-10 21:17:03" itemprop="dateCreated datePublished" datetime="2020-05-10T21:17:03+08:00">2020-05-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" itemprop="url" rel="index"><span itemprop="name">微服务</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ul>
+<li><p>了解系统架构的演变</p>
+</li>
+<li><p>了解RPC与Http的区别</p>
+</li>
+<li><p>知道什么是SpringCloud</p>
+</li>
+</ul>
+<span id="more"></span>
+
+
+
+<h1 id="1-系统架构演变"><a href="#1-系统架构演变" class="headerlink" title="1.系统架构演变"></a>1.系统架构演变</h1><p>随着互联网的发展，网站应用的规模不断扩大。需求的激增，带来的是技术上的压力。系统架构也因此不断的演进、升级、迭代。从单一应用，到垂直拆分，到分布式服务，到SOA，以及现在火热的微服务架构，还有在Google带领下来势汹涌的Service Mesh。我们到底是该乘坐微服务的船只驶向远方，还是偏安一隅得过且过？</p>
+<p>其实生活不止眼前的苟且，还有诗和远方。所以我们今天就回顾历史，看一看系统架构演变的历程；把握现在，学习现在最火的技术架构；展望未来，争取成为一名优秀的Java工程师。</p>
+<h2 id="1-1-集中式架构"><a href="#1-1-集中式架构" class="headerlink" title="1.1.集中式架构"></a>1.1.集中式架构</h2><p>当网站流量很小时，只需一个应用，将所有功能都部署在一起，以减少部署节点和成本。此时，用于简化增删改查工作量的数据访问框架(ORM)是影响项目开发的关键。</p>
+<p> <img src="1525529091749.png" alt="1525529091749"></p>
+<p>存在的问题：</p>
+<ul>
+<li>代码耦合，开发维护困难</li>
+<li>无法针对不同模块进行针对性优化</li>
+<li>无法水平扩展</li>
+<li>单点容错率低，并发能力差</li>
+</ul>
+<h2 id="1-2-垂直拆分"><a href="#1-2-垂直拆分" class="headerlink" title="1.2.垂直拆分"></a>1.2.垂直拆分</h2><p>当访问量逐渐增大，单一应用无法满足需求，此时为了应对更高的并发和业务需求，我们根据业务功能对系统进行拆分：</p>
+<p> <img src="1525529671801.png" alt="1525529671801"></p>
+<p>优点：</p>
+<ul>
+<li>系统拆分实现了流量分担，解决了并发问题</li>
+<li>可以针对不同模块进行优化</li>
+<li>方便水平扩展，负载均衡，容错率提高</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>系统间相互独立，会有很多重复开发工作，影响开发效率</li>
+</ul>
+<h2 id="1-3-分布式服务"><a href="#1-3-分布式服务" class="headerlink" title="1.3.分布式服务"></a>1.3.分布式服务</h2><p>当垂直应用越来越多，应用之间交互不可避免，将核心业务抽取出来，作为独立的服务，逐渐形成稳定的服务中心，使前端应用能更快速的响应多变的市场需求。此时，用于提高业务复用及整合的分布式调用是关键。</p>
+<p> <img src="1525530657919.png" alt="1525530657919"></p>
+<p>优点：</p>
+<ul>
+<li>将基础服务进行了抽取，系统间相互调用，提高了代码复用和开发效率</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>系统间耦合度变高，调用关系错综复杂，难以维护</li>
+</ul>
+<h2 id="1-4-流动计算架构（SOA）"><a href="#1-4-流动计算架构（SOA）" class="headerlink" title="1.4.流动计算架构（SOA）"></a>1.4.流动计算架构（SOA）</h2><p>SOA ：面向服务的架构</p>
+<p>当服务越来越多，容量的评估，小服务资源的浪费等问题逐渐显现，此时需增加一个调度中心基于访问压力实时管理集群容量，提高集群利用率。此时，用于提高机器利用率的资源调度和治理中心(SOA)是关键</p>
+<p><img src="1525530804753.png" alt="1525530804753"></p>
+<p>以前出现了什么问题？</p>
+<ul>
+<li>服务越来越多，需要管理每个服务的地址</li>
+<li>调用关系错综复杂，难以理清依赖关系</li>
+<li>服务过多，服务状态难以管理，无法根据服务情况动态管理</li>
+</ul>
+<p>服务治理要做什么？</p>
+<ul>
+<li>服务注册中心，实现服务自动注册和发现，无需人为记录服务地址</li>
+<li>服务自动订阅，服务列表自动推送，服务调用透明化，无需关心依赖关系</li>
+<li>动态监控服务状态监控报告，人为控制服务状态</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>服务间会有依赖关系，一旦某个环节出错会影响较大</li>
+<li>服务关系复杂，运维、测试部署困难，不符合DevOps思想</li>
+</ul>
+<h2 id="1-5-微服务"><a href="#1-5-微服务" class="headerlink" title="1.5.微服务"></a>1.5.微服务</h2><p>前面说的SOA，英文翻译过来是面向服务。微服务，似乎也是服务，都是对系统进行拆分。因此两者非常容易混淆，但其实却有一些差别：</p>
+<p>微服务的特点：</p>
+<ul>
+<li>单一职责：微服务中每一个服务都对应唯一的业务能力，做到单一职责</li>
+<li>微：微服务的服务拆分粒度很小，例如一个用户管理就可以作为一个服务。每个服务虽小，但“五脏俱全”。</li>
+<li>面向服务：面向服务是说每个服务都要对外暴露Rest风格服务接口API。并不关心服务的技术实现，做到与平台和语言无关，也不限定用什么技术实现，只要提供Rest的接口即可。</li>
+<li>自治：自治是说服务间互相独立，互不干扰<ul>
+<li>团队独立：每个服务都是一个独立的开发团队，人数不能过多。</li>
+<li>技术独立：因为是面向服务，提供Rest接口，使用什么技术没有别人干涉</li>
+<li>前后端分离：采用前后端分离开发，提供统一Rest接口，后端不用再为PC、移动段开发不同接口</li>
+<li>数据库分离：每个服务都使用自己的数据源</li>
+<li>部署独立，服务间虽然有调用，但要做到服务重启不影响其它服务。有利于持续集成和持续交付。每个服务都是独立的组件，可复用，可替换，降低耦合，易维护</li>
+</ul>
+</li>
+</ul>
+<p>微服务结构图：</p>
+<p><img src="1526860071166.png" alt="1526860071166"></p>
+<h1 id="2-服务调用方式"><a href="#2-服务调用方式" class="headerlink" title="2.服务调用方式"></a>2.服务调用方式</h1><h2 id="2-1-RPC和HTTP"><a href="#2-1-RPC和HTTP" class="headerlink" title="2.1.RPC和HTTP"></a>2.1.RPC和HTTP</h2><p>无论是微服务还是SOA，都面临着服务间的远程调用。那么服务间的远程调用方式有哪些呢？</p>
+<p>常见的远程调用方式有以下2种：</p>
+<ul>
+<li><p>RPC：Remote Produce Call远程过程调用，类似的还有RMI。自定义数据格式，基于原生TCP通信，速度快，效率高。早期的webservice，现在热门的dubbo，都是RPC的典型代表</p>
+</li>
+<li><p>Http：http其实是一种网络传输协议，基于TCP，规定了数据传输的格式。现在客户端浏览器与服务端通信基本都是采用Http协议，也可以用来进行远程服务调用。缺点是消息封装臃肿，优势是对服务的提供和调用方没有任何技术限定，自由灵活，更符合微服务理念。</p>
+<p>现在热门的Rest风格，就可以通过http协议来实现。</p>
+</li>
+</ul>
+<p>如果你们公司全部采用Java技术栈，那么使用Dubbo作为微服务架构是一个不错的选择。</p>
+<p>相反，如果公司的技术栈多样化，而且你更青睐Spring家族，那么SpringCloud搭建微服务是不二之选。在我们的项目中，我们会选择SpringCloud套件，因此我们会使用Http方式来实现服务间调用。</p>
+<h2 id="2-2-Http客户端工具"><a href="#2-2-Http客户端工具" class="headerlink" title="2.2.Http客户端工具"></a>2.2.Http客户端工具</h2><p>既然微服务选择了Http，那么我们就需要考虑自己来实现对请求和响应的处理。不过开源世界已经有很多的http客户端工具，能够帮助我们做这些事情，例如：</p>
+<ul>
+<li>HttpClient</li>
+<li>OKHttp</li>
+<li>URLConnection</li>
+</ul>
+<p>接下来，不过这些不同的客户端，API各不相同</p>
+<h2 id="2-3-Spring的RestTemplate"><a href="#2-3-Spring的RestTemplate" class="headerlink" title="2.3.Spring的RestTemplate"></a>2.3.Spring的RestTemplate</h2><p>Spring提供了一个RestTemplate模板工具类，对基于Http的客户端进行了封装，并且实现了对象与json的序列化和反序列化，非常方便。RestTemplate并没有限定Http的客户端类型，而是进行了抽象，目前常用的3种都有支持：</p>
+<ul>
+<li>HttpClient</li>
+<li>OkHttp</li>
+<li>JDK原生的URLConnection（默认的）</li>
+</ul>
+<p>我们导入课前资料提供的demo工程：</p>
+<p><img src="1534812923451.png" alt="1534812923451"></p>
+<p>首先在项目中注册一个<code>RestTemplate</code>对象，可以在启动类位置注册：</p>
+<pre><code class="java">@SpringBootApplication
+public class HttpDemoApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(HttpDemoApplication.class, args);
+    &#125;
+
+    @Bean
+    public RestTemplate restTemplate() &#123;
+   
+        return new RestTemplate();
+    &#125;
+&#125;
+</code></pre>
+<p>在测试类中直接<code>@Autowired</code>注入：</p>
+<pre><code class="java">@RunWith(SpringRunner.class)
+@SpringBootTest(classes = HttpDemoApplication.class)
+public class HttpDemoApplicationTests &#123;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Test
+    public void httpGet() &#123;
+        // 调用springboot案例中的rest接口
+        User user = this.restTemplate.getForObject(&quot;http://localhost/user/1&quot;, User.class);
+        System.out.println(user);
+    &#125;
+&#125;
+</code></pre>
+<ul>
+<li>通过RestTemplate的getForObject()方法，传递url地址及实体类的字节码，RestTemplate会自动发起请求，接收响应，并且帮我们对响应结果进行反序列化。</li>
+</ul>
+<p><img src="1525573702492.png" alt="1525573702492"></p>
+<p>学习完了Http客户端工具，接下来就可以正式学习微服务了。</p>
+<h1 id="3-初识SpringCloud"><a href="#3-初识SpringCloud" class="headerlink" title="3.初识SpringCloud"></a>3.初识SpringCloud</h1><p>微服务是一种架构方式，最终肯定需要技术架构去实施。</p>
+<p>微服务的实现方式很多，但是最火的莫过于Spring Cloud了。为什么？</p>
+<ul>
+<li>后台硬：作为Spring家族的一员，有整个Spring全家桶靠山，背景十分强大。</li>
+<li>技术强：Spring作为Java领域的前辈，可以说是功力深厚。有强力的技术团队支撑，一般人还真比不了</li>
+<li>群众基础好：可以说大多数程序员的成长都伴随着Spring框架，试问：现在有几家公司开发不用Spring？SpringCloud与Spring的各个框架无缝整合，对大家来说一切都是熟悉的配方，熟悉的味道。</li>
+<li>使用方便：相信大家都体会到了SpringBoot给我们开发带来的便利，而SpringCloud完全支持SpringBoot的开发，用很少的配置就能完成微服务框架的搭建</li>
+</ul>
+<h2 id="3-1-简介"><a href="#3-1-简介" class="headerlink" title="3.1.简介"></a>3.1.简介</h2><p>SpringCloud是Spring旗下的项目之一，<a target="_blank" rel="noopener" href="http://projects.spring.io/spring-cloud/">官网地址：http://projects.spring.io/spring-cloud/</a></p>
+<p>Spring最擅长的就是集成，把世界上最好的框架拿过来，集成到自己的项目中。</p>
+<p>SpringCloud也是一样，它将现在非常流行的一些技术整合到一起，实现了诸如：配置管理，服务发现，智能路由，负载均衡，熔断器，控制总线，集群状态等等功能。其主要涉及的组件包括：</p>
+<ul>
+<li>Eureka：服务治理组件，包含服务注册中心，服务注册与发现机制的实现。（服务治理，服务注册/发现） </li>
+<li>Zuul：网关组件，提供智能路由，访问过滤功能 </li>
+<li>Ribbon：客户端负载均衡的服务调用组件（客户端负载） </li>
+<li>Feign：服务调用，给予Ribbon和Hystrix的声明式服务调用组件 （声明式服务调用） </li>
+<li>Hystrix：容错管理组件，实现断路器模式，帮助服务依赖中出现的延迟和为故障提供强大的容错能力。(熔断、断路器，容错) </li>
+</ul>
+<p>架构图：</p>
+<p> <img src="1525575656796.png" alt="1525575656796"></p>
+<p>以上只是其中一部分。</p>
+<h2 id="3-2-版本"><a href="#3-2-版本" class="headerlink" title="3.2.版本"></a>3.2.版本</h2><p>因为Spring Cloud不同其他独立项目，它拥有很多子项目的大项目。所以它的版本是版本名+版本号 （如Angel.SR6）。  </p>
+<p>版本名：是伦敦的地铁名  </p>
+<p>版本号：SR（Service Releases）是固定的 ,大概意思是稳定版本。后面会有一个递增的数字。 </p>
+<p>所以 Edgware.SR3就是Edgware的第3个Release版本。  </p>
+<p> <img src="1528263985902.png" alt="1528263985902"></p>
+<p>我们在项目中，会是以Finchley的版本。</p>
+<p>其中包含的组件，也都有各自的版本，如下表：</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Edgware.SR3</th>
+<th>Finchley.RC1</th>
+<th>Finchley.BUILD-SNAPSHOT</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>spring-cloud-aws</td>
+<td>1.2.2.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-bus</td>
+<td>1.3.2.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-cli</td>
+<td>1.4.1.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-commons</td>
+<td>1.3.3.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-contract</td>
+<td>1.2.4.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-config</td>
+<td>1.4.3.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-netflix</td>
+<td>1.4.4.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-security</td>
+<td>1.2.2.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-cloudfoundry</td>
+<td>1.1.1.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-consul</td>
+<td>1.3.3.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-sleuth</td>
+<td>1.3.3.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-stream</td>
+<td>Ditmars.SR3</td>
+<td>Elmhurst.RELEASE</td>
+<td>Elmhurst.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-zookeeper</td>
+<td>1.2.1.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-boot</td>
+<td>1.5.10.RELEASE</td>
+<td>2.0.1.RELEASE</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-task</td>
+<td>1.2.2.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.RELEASE</td>
+</tr>
+<tr>
+<td>spring-cloud-vault</td>
+<td>1.1.0.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-gateway</td>
+<td>1.0.1.RELEASE</td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+<tr>
+<td>spring-cloud-openfeign</td>
+<td></td>
+<td>2.0.0.RC1</td>
+<td>2.0.0.BUILD-SNAPSHOT</td>
+</tr>
+</tbody></table>
+<p><img src="1528263942152.png" alt="1528263942152"></p>
+<p>接下来，我们就一一学习SpringCloud中的重要组件。</p>
+<h1 id="4-微服务场景模拟"><a href="#4-微服务场景模拟" class="headerlink" title="4.微服务场景模拟"></a>4.微服务场景模拟</h1><p>首先，我们需要模拟一个服务调用的场景，搭建两个工程：zhangkx-service-provider（服务提供方）和zhangkx-service-consumer（服务调用方）。方便后面学习微服务架构</p>
+<p>服务提供方：使用mybatis操作数据库，实现对数据的增删改查；并对外提供rest接口服务。</p>
+<p>服务消费方：使用restTemplate远程调用服务提供方的rest接口服务，获取数据。</p>
+<h2 id="4-1-服务提供者"><a href="#4-1-服务提供者" class="headerlink" title="4.1.服务提供者"></a>4.1.服务提供者</h2><p>我们新建一个项目：zhangkx-service-provider，对外提供根据id查询用户的服务。</p>
+<h3 id="4-1-1-Spring脚手架创建工程"><a href="#4-1-1-Spring脚手架创建工程" class="headerlink" title="4.1.1.Spring脚手架创建工程"></a>4.1.1.Spring脚手架创建工程</h3><p>借助于Spring提供的快速搭建工具：</p>
+<p><img src="1528266515225.png" alt="1528266515225"></p>
+<p>next–&gt;填写项目信息：</p>
+<p><img src="1528266803455.png" alt="1528266803455"></p>
+<p>next –&gt;  添加web依赖：</p>
+<p><img src="1528266923967.png" alt="1528266923967"></p>
+<p>添加mybatis依赖：</p>
+<p><img src="1528267588935.png" alt="1528267588935"></p>
+<p>Next –&gt;  填写项目位置：</p>
+<p><img src="1528267665004.png" alt="1528267665004"></p>
+<p>生成的项目结构，已经包含了引导类（zhangkxServiceProviderApplication）：</p>
+<p> <img src="1528267830854.png" alt="1528267830854"></p>
+<p>依赖也已经全部自动引入：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;uestc.zhangkx.service&lt;/groupId&gt;
+    &lt;artifactId&gt;zhangkx-service-provider&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
+
+    &lt;name&gt;zhangkx-service-provider&lt;/name&gt;
+    &lt;description&gt;Demo project for Spring Boot&lt;/description&gt;
+
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;2.0.6.RELEASE&lt;/version&gt;
+        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+    &lt;/parent&gt;
+
+    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;1.3.2&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;mysql&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;!-- 需要手动引入通用mapper的启动器，spring没有收录该依赖 --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;tk.mybatis&lt;/groupId&gt;
+            &lt;artifactId&gt;mapper-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;2.0.4&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+
+&lt;/project&gt;
+</code></pre>
+<p>当然，因为要使用通用mapper，所以我们<strong>需要手动加一条依赖</strong>：</p>
+<pre><code class="xml">&lt;dependency&gt;
+    &lt;groupId&gt;tk.mybatis&lt;/groupId&gt;
+    &lt;artifactId&gt;mapper-spring-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;2.0.4&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>非常快捷啊！</p>
+<h3 id="4-1-2-编写代码"><a href="#4-1-2-编写代码" class="headerlink" title="4.1.2.编写代码"></a>4.1.2.编写代码</h3><p> <img src="1535671376231.png" alt="1535671376231"></p>
+<h4 id="4-1-2-1-配置"><a href="#4-1-2-1-配置" class="headerlink" title="4.1.2.1.配置"></a>4.1.2.1.配置</h4><p>属性文件,这里我们采用了yaml语法，而不是properties：</p>
+<pre><code class="yaml">server:
+  port: 8081
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mybatis #你学习mybatis时，使用的数据库地址
+    username: root
+    password: root
+mybatis:
+  type-aliases-package: uestc.zhangkx.service.pojo
+</code></pre>
+<h4 id="4-1-2-2-实体类"><a href="#4-1-2-2-实体类" class="headerlink" title="4.1.2.2.实体类"></a>4.1.2.2.实体类</h4><pre><code class="java">@Table(name = &quot;tb_user&quot;)
+public class User implements Serializable &#123;
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // 用户名
+    private String userName;
+
+    // 密码
+    private String password;
+
+    // 姓名
+    private String name;
+
+    // 年龄
+    private Integer age;
+
+    // 性别，1男性，2女性
+    private Integer sex;
+
+    // 出生日期
+    private Date birthday;
+
+    // 创建时间
+    private Date created;
+
+    // 更新时间
+    private Date updated;
+
+    public Long getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Long id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getUserName() &#123;
+        return userName;
+    &#125;
+
+    public void setUserName(String userName) &#123;
+        this.userName = userName;
+    &#125;
+
+    public String getPassword() &#123;
+        return password;
+    &#125;
+
+    public void setPassword(String password) &#123;
+        this.password = password;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+
+    public Integer getAge() &#123;
+        return age;
+    &#125;
+
+    public void setAge(Integer age) &#123;
+        this.age = age;
+    &#125;
+
+    public Integer getSex() &#123;
+        return sex;
+    &#125;
+
+    public void setSex(Integer sex) &#123;
+        this.sex = sex;
+    &#125;
+
+    public Date getBirthday() &#123;
+        return birthday;
+    &#125;
+
+    public void setBirthday(Date birthday) &#123;
+        this.birthday = birthday;
+    &#125;
+
+    public Date getCreated() &#123;
+        return created;
+    &#125;
+
+    public void setCreated(Date created) &#123;
+        this.created = created;
+    &#125;
+
+    public Date getUpdated() &#123;
+        return updated;
+    &#125;
+
+    public void setUpdated(Date updated) &#123;
+        this.updated = updated;
+    &#125;
+&#125;
+</code></pre>
+<h4 id="4-1-2-3-UserMapper"><a href="#4-1-2-3-UserMapper" class="headerlink" title="4.1.2.3.UserMapper"></a>4.1.2.3.UserMapper</h4><pre><code class="java">@Mapper
+public interface UserMapper extends tk.mybatis.mapper.common.Mapper&lt;User&gt;&#123;
+&#125;
+</code></pre>
+<h4 id="4-1-2-4-UserService"><a href="#4-1-2-4-UserService" class="headerlink" title="4.1.2.4.UserService"></a>4.1.2.4.UserService</h4><pre><code class="java">@Service
+public class UserService &#123;
+
+    @Autowired
+    private UserMapper userMapper;
+
+    public User queryById(Long id) &#123;
+        return this.userMapper.selectByPrimaryKey(id);
+    &#125;
+&#125;
+</code></pre>
+<h4 id="4-1-2-5-UserController"><a href="#4-1-2-5-UserController" class="headerlink" title="4.1.2.5.UserController"></a>4.1.2.5.UserController</h4><p>添加一个对外查询的接口：</p>
+<pre><code class="java">@RestController
+@RequestMapping(&quot;user&quot;)
+public class UserController &#123;
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping(&quot;&#123;id&#125;&quot;)
+    public User queryById(@PathVariable(&quot;id&quot;) Long id) &#123;
+        return this.userService.queryById(id);
+    &#125;
+&#125;
+</code></pre>
+<h3 id="4-1-3-启动并测试"><a href="#4-1-3-启动并测试" class="headerlink" title="4.1.3.启动并测试"></a>4.1.3.启动并测试</h3><p>启动项目，访问接口：<a target="_blank" rel="noopener" href="http://localhost:8081/user/1">http://localhost:8081/user/1</a></p>
+<p><img src="1528272537927.png" alt="1528272537927"></p>
+<h2 id="4-2-服务调用者"><a href="#4-2-服务调用者" class="headerlink" title="4.2.服务调用者"></a>4.2.服务调用者</h2><p>搭建zhangkx-service-consumer服务消费方工程。</p>
+<h3 id="4-2-1-创建工程"><a href="#4-2-1-创建工程" class="headerlink" title="4.2.1.创建工程"></a>4.2.1.创建工程</h3><p>与上面类似，这里不再赘述，需要注意的是，我们调用zhangkx-service-provider的解耦获取数据，因此不需要mybatis相关依赖了。</p>
+<p><img src="1528272829384.png" alt="1528272829384"></p>
+<p><img src="1528272875502.png" alt="1528272875502"></p>
+<p><img src="1528273029361.png" alt="1528273029361"></p>
+<p>pom：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;uestc.zhangkx.service&lt;/groupId&gt;
+    &lt;artifactId&gt;zhangkx-service-consumer&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
+
+    &lt;name&gt;zhangkx-service-consumer&lt;/name&gt;
+    &lt;description&gt;Demo project for Spring Boot&lt;/description&gt;
+
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;2.0.4.RELEASE&lt;/version&gt;
+        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+    &lt;/parent&gt;
+
+    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+
+
+&lt;/project&gt;
+</code></pre>
+<h3 id="4-2-2-编写代码"><a href="#4-2-2-编写代码" class="headerlink" title="4.2.2.编写代码"></a>4.2.2.编写代码</h3><p> <img src="1540643087305.png" alt="1540643087305"></p>
+<p>首先在引导类中注册<code>RestTemplate</code>：</p>
+<pre><code class="java">@SpringBootApplication
+public class zhangkxServiceConsumerApplication &#123;
+
+    @Bean
+    public RestTemplate restTemplate() &#123;
+        return new RestTemplate();
+    &#125;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(zhangkxServiceConsumerApplication.class, args);
+    &#125;
+&#125;
+</code></pre>
+<p>编写配置（application.yml）：</p>
+<pre><code>server:
+  port: 80
+</code></pre>
+<p>编写UserController：</p>
+<pre><code class="java">@Controller
+@RequestMapping(&quot;consumer/user&quot;)
+public class UserController &#123;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @GetMapping
+    @ResponseBody
+    public User queryUserById(@RequestParam(&quot;id&quot;) Long id)&#123;
+        User user = this.restTemplate.getForObject(&quot;http://localhost:8081/user/&quot; + id, User.class);
+        return user;
+    &#125;
+
+&#125;
+</code></pre>
+<p>pojo对象（User）：</p>
+<pre><code class="java">public class User implements Serializable &#123;
+
+    private static final long serialVersionUID = 1L;
+
+    private Long id;
+
+    // 用户名
+    private String userName;
+
+    // 密码
+    private String password;
+
+    // 姓名
+    private String name;
+
+    // 年龄
+    private Integer age;
+
+    // 性别，1男性，2女性
+    private Integer sex;
+
+    // 出生日期
+    private Date birthday;
+
+    // 创建时间
+    private Date created;
+
+    // 更新时间
+    private Date updated;
+
+    public Long getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Long id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getUserName() &#123;
+        return userName;
+    &#125;
+
+    public void setUserName(String userName) &#123;
+        this.userName = userName;
+    &#125;
+
+    public String getPassword() &#123;
+        return password;
+    &#125;
+
+    public void setPassword(String password) &#123;
+        this.password = password;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+
+    public Integer getAge() &#123;
+        return age;
+    &#125;
+
+    public void setAge(Integer age) &#123;
+        this.age = age;
+    &#125;
+
+    public Integer getSex() &#123;
+        return sex;
+    &#125;
+
+    public void setSex(Integer sex) &#123;
+        this.sex = sex;
+    &#125;
+
+    public Date getBirthday() &#123;
+        return birthday;
+    &#125;
+
+    public void setBirthday(Date birthday) &#123;
+        this.birthday = birthday;
+    &#125;
+
+    public Date getCreated() &#123;
+        return created;
+    &#125;
+
+    public void setCreated(Date created) &#123;
+        this.created = created;
+    &#125;
+
+    public Date getUpdated() &#123;
+        return updated;
+    &#125;
+
+    public void setUpdated(Date updated) &#123;
+        this.updated = updated;
+    &#125;
+&#125;
+</code></pre>
+<h3 id="4-2-3-启动测试"><a href="#4-2-3-启动测试" class="headerlink" title="4.2.3.启动测试"></a>4.2.3.启动测试</h3><p>因为我们没有配置端口，那么默认就是8080，我们访问：<a target="_blank" rel="noopener" href="http://localhost/consumer/user?id=1">http://localhost/consumer/user?id=1</a></p>
+<p><img src="1535587919022.png" alt="1535587919022"></p>
+<p>一个简单的远程服务调用案例就实现了。</p>
+<h2 id="4-3-有没有问题？"><a href="#4-3-有没有问题？" class="headerlink" title="4.3.有没有问题？"></a>4.3.有没有问题？</h2><p>简单回顾一下，刚才我们写了什么：</p>
+<ul>
+<li>zhangkx-service-provider：一个提供根据id查询用户的微服务。</li>
+<li>zhangkx-service-consumer：一个服务调用者，通过RestTemplate远程调用zhangkx-service-provider。</li>
+</ul>
+<p>存在什么问题？</p>
+<ul>
+<li>在consumer中，我们把url地址硬编码到了代码中，不方便后期维护</li>
+<li>consumer需要记忆provider的地址，如果出现变更，可能得不到通知，地址将失效</li>
+<li>consumer不清楚provider的状态，服务宕机也不知道</li>
+<li>provider只有1台服务，不具备高可用性</li>
+<li>即便provider形成集群，consumer还需自己实现负载均衡</li>
+</ul>
+<p>其实上面说的问题，概括一下就是分布式服务必然要面临的问题：</p>
+<ul>
+<li>服务管理<ul>
+<li>如何自动注册和发现</li>
+<li>如何实现状态监管</li>
+<li>如何实现动态路由</li>
+</ul>
+</li>
+<li>服务如何实现负载均衡</li>
+<li>服务如何解决容灾问题</li>
+<li>服务如何实现统一配置</li>
+</ul>
+<p>以上的问题，我们都将在SpringCloud中得到答案。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/SpringCloud/" rel="tag"># SpringCloud</a>
+              <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag"># 微服务</a>
+              <a href="/tags/SOA/" rel="tag"># SOA</a>
+              <a href="/tags/RPC/" rel="tag"># RPC</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/09/Thymeleaf-1-%E4%BB%8B%E7%BB%8D%E5%85%A5%E9%97%A8/" rel="prev" title="Thymeleaf#1-介绍入门">
+      <i class="fa fa-chevron-left"></i> Thymeleaf#1-介绍入门
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/11/Eureka%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" rel="next" title="Eureka-服务治理">
+      Eureka-服务治理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E6%BC%94%E5%8F%98"><span class="nav-text">1.系统架构演变</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-%E9%9B%86%E4%B8%AD%E5%BC%8F%E6%9E%B6%E6%9E%84"><span class="nav-text">1.1.集中式架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-%E5%9E%82%E7%9B%B4%E6%8B%86%E5%88%86"><span class="nav-text">1.2.垂直拆分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-%E5%88%86%E5%B8%83%E5%BC%8F%E6%9C%8D%E5%8A%A1"><span class="nav-text">1.3.分布式服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-4-%E6%B5%81%E5%8A%A8%E8%AE%A1%E7%AE%97%E6%9E%B6%E6%9E%84%EF%BC%88SOA%EF%BC%89"><span class="nav-text">1.4.流动计算架构（SOA）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-5-%E5%BE%AE%E6%9C%8D%E5%8A%A1"><span class="nav-text">1.5.微服务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%9C%8D%E5%8A%A1%E8%B0%83%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="nav-text">2.服务调用方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-RPC%E5%92%8CHTTP"><span class="nav-text">2.1.RPC和HTTP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-Http%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%B7%A5%E5%85%B7"><span class="nav-text">2.2.Http客户端工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-Spring%E7%9A%84RestTemplate"><span class="nav-text">2.3.Spring的RestTemplate</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%88%9D%E8%AF%86SpringCloud"><span class="nav-text">3.初识SpringCloud</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E7%AE%80%E4%BB%8B"><span class="nav-text">3.1.简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-%E7%89%88%E6%9C%AC"><span class="nav-text">3.2.版本</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%9C%BA%E6%99%AF%E6%A8%A1%E6%8B%9F"><span class="nav-text">4.微服务场景模拟</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E6%9C%8D%E5%8A%A1%E6%8F%90%E4%BE%9B%E8%80%85"><span class="nav-text">4.1.服务提供者</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-1-Spring%E8%84%9A%E6%89%8B%E6%9E%B6%E5%88%9B%E5%BB%BA%E5%B7%A5%E7%A8%8B"><span class="nav-text">4.1.1.Spring脚手架创建工程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-2-%E7%BC%96%E5%86%99%E4%BB%A3%E7%A0%81"><span class="nav-text">4.1.2.编写代码</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-2-1-%E9%85%8D%E7%BD%AE"><span class="nav-text">4.1.2.1.配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-2-2-%E5%AE%9E%E4%BD%93%E7%B1%BB"><span class="nav-text">4.1.2.2.实体类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-2-3-UserMapper"><span class="nav-text">4.1.2.3.UserMapper</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-2-4-UserService"><span class="nav-text">4.1.2.4.UserService</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-2-5-UserController"><span class="nav-text">4.1.2.5.UserController</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-3-%E5%90%AF%E5%8A%A8%E5%B9%B6%E6%B5%8B%E8%AF%95"><span class="nav-text">4.1.3.启动并测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E6%9C%8D%E5%8A%A1%E8%B0%83%E7%94%A8%E8%80%85"><span class="nav-text">4.2.服务调用者</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-1-%E5%88%9B%E5%BB%BA%E5%B7%A5%E7%A8%8B"><span class="nav-text">4.2.1.创建工程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-2-%E7%BC%96%E5%86%99%E4%BB%A3%E7%A0%81"><span class="nav-text">4.2.2.编写代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-3-%E5%90%AF%E5%8A%A8%E6%B5%8B%E8%AF%95"><span class="nav-text">4.2.3.启动测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E6%9C%89%E6%B2%A1%E6%9C%89%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="nav-text">4.3.有没有问题？</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

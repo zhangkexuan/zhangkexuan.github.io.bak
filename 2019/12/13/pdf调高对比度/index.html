@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="扫描的pdf很多时候对比度不够，看起来真费眼睛，本文使用imageMagick将pdf的对比度提高。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pdf调高对比度">
+<meta property="og:url" content="http://yoursite.com/2019/12/13/pdf%E8%B0%83%E9%AB%98%E5%AF%B9%E6%AF%94%E5%BA%A6/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="扫描的pdf很多时候对比度不够，看起来真费眼睛，本文使用imageMagick将pdf的对比度提高。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2019/12/13/pdf%E8%B0%83%E9%AB%98%E5%AF%B9%E6%AF%94%E5%BA%A6/%E8%BD%AC%E6%8D%A2%E5%89%8D.png">
+<meta property="og:image" content="http://yoursite.com/2019/12/13/pdf%E8%B0%83%E9%AB%98%E5%AF%B9%E6%AF%94%E5%BA%A6/%E8%BD%AC%E6%8D%A2%E5%90%8E.png">
+<meta property="article:published_time" content="2019-12-13T15:28:38.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:16:33.798Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="图像处理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/12/13/pdf%E8%B0%83%E9%AB%98%E5%AF%B9%E6%AF%94%E5%BA%A6/%E8%BD%AC%E6%8D%A2%E5%89%8D.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/12/13/pdf%E8%B0%83%E9%AB%98%E5%AF%B9%E6%AF%94%E5%BA%A6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>pdf调高对比度 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/13/pdf%E8%B0%83%E9%AB%98%E5%AF%B9%E6%AF%94%E5%BA%A6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pdf调高对比度
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-12-13 23:28:38" itemprop="dateCreated datePublished" datetime="2019-12-13T23:28:38+08:00">2019-12-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">其他技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>扫描的pdf很多时候对比度不够，看起来真费眼睛，本文使用imageMagick将pdf的对比度提高。</p>
+<span id="more"></span>
+
+
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>电子书扫描版跟照片差不多，一个可能的问题是看起来乌突突的，黑的不够黑，白的不够白，像是蒙了一层雾。用picasa的luck功能或者snapseed的automatic功能，都能把图片上的雾去掉。但是同样的功能用在PDF上的软件我没有找到。</p>
+<p>但是如果弄懂了原理–让我想起 倚天屠龙记 里的杨左史，长戟大刀蛾眉刺各种武器的招法都是可以溶入拳法之中的。</p>
+<p>这样，比如说，图片上的每个像素，从最暗到最亮，就对应着从0到255之间的数字。各种图像处理软件中的gamma校正就是用来指定这种对应关系的。这种对应可能是线性的，也可能是非线性的，在非线性的情况下，可能数字变化了很多，而亮度变化非常小–类似于你调洗澡时的冷热水，扭了半天，还是挺凉，突然就热得能烫突鲁皮。你可能觉得，这不是有毛病吗？是的，这种非线性有时会带来麻烦，但是，同时它还有个优点，那就是 识别度 好。</p>
+<p>捕捉到的现实是一回事，如何呈现，是完全不同的另一回事。记得之前有个朋友问我，为什么书里净写些吓人的事情，既然它们很少发生。我说，如果灰姑娘的故事真的完全写实，那么，整个故事里你大部分时间看到的都不是她遇到王子的舞会和红舞鞋，而是灰姑娘成天给她后妈和后姐们做饭做饭做饭做饭做饭做饭做饭……做饭</p>
+<p>所以，提高有雾pdf的对比度，原理就是重新设置黑和白的阀值。以上是原理部分因为调整阀值的同时，也自动调整gamma线，使之更陡峭，所以灰色调子的层次会更鲜明一些。</p>
+<p>原理讲了一大堆，还是只是精浅的介绍，而方法中真正起作用的只是一行命令。所以，这个故事告诉我们，知道怎么干很容易，而知道为什么这么干会成功就难得多。当然，唯其如此，才能把长戟大刀蛾眉刺的功夫用在拳法掌法这些徒手格斗之中。或者，唯其如此，才能把阴影透视和色彩模型应用在画妆上。</p>
+<h2 id="方法步骤"><a href="#方法步骤" class="headerlink" title="方法步骤"></a>方法步骤</h2><h3 id="下载imageMagick并安装"><a href="#下载imageMagick并安装" class="headerlink" title="下载imageMagick并安装"></a>下载imageMagick并安装</h3><p>我是想在linux环境下安装的，但官方给的安装包很久没有维护，依赖关系也没人维护，理论上可以安装，可我无论如何都无法运行，过几天我得学学linux的软件包的结构和维护。</p>
+<p>于是我又试了试windows环境，成功了……</p>
+<p>在安装时记得勾选<code>Install legacy components (convert.exe etc)</code> 这一选项, 因为操作需要而且只用到该命令。</p>
+<h3 id="安装gswin"><a href="#安装gswin" class="headerlink" title="安装gswin"></a>安装<a href="https://link.zhihu.com/?target=https://www.ghostscript.com/download/gsdnld.html">gswin</a></h3><p>如果不安装gswin, 执行convert命令会报错.看了看，imageMagick需要调用gswin的好几个函数。</p>
+<h3 id="将pdf转为图片"><a href="#将pdf转为图片" class="headerlink" title="将pdf转为图片"></a>将pdf转为图片</h3><p>假设原始文件名是origin.pdf, 目标文件名是target.pdf, 下方的convert应替换为实际路径</p>
+<pre><code class="text">convert -density 400 origin.pdf output/%03d.jpg 
+</code></pre>
+<p>上方的density参数指像素密度,数字越高图片质量越高体积越大, 如果pdf带文字,就设置300以上吧. <strong>这是影响最终效果的重要参数,</strong> 如果过低, 那么下方再神操作效果也不会很好, 过高会导致文件体积过大</p>
+<p>该指令将整个pdf按页转为多张图片, %03d.jpg表示命名为001.jpg,002.jpg….(超过1000页就应改为%04d.jpg)</p>
+<p>转换为图片这一步, 是为了获取中间产物进行测试和调整, 通常只需截取一部分页面即可(因为截取一页需要花费数秒时间)</p>
+<pre><code class="text">convert -density 400 origin.pdf[10-20] output/%03d.jpg #截取第11到第21页
+convert -density 400 origin.pdf[9] output/%03d.jpg  #截取第10页
+</code></pre>
+<h3 id="测试转换效果"><a href="#测试转换效果" class="headerlink" title="测试转换效果"></a>测试转换效果</h3><pre><code class="text">convert -level 40,97% -quality 50 output/010.jpg preview010.jpg
+</code></pre>
+<p>上方的level参数是指调整图像通道的级别, 40,97%表示灰度低于40%即为黑点, 高于97%为白点. 这里的40,97需要反复调节到自己认为达到最佳效果, <strong>这是整个过程中最重要的参数,</strong> 通过该参数实现调整对比度</p>
+<p>quality指输出jpg文件质量(压缩比), 1-100数字越高质量越高体积越大, 出于减少pdf文件大小的考虑, 应适当调节该参数(举个例子density 400的jpg文件可能有1.4M, 压缩后为700K, 这样最终的pdf文件大小相差一倍, 而肉眼无法察觉页面效果有何区别)</p>
+<h3 id="转为pdf"><a href="#转为pdf" class="headerlink" title="转为pdf"></a>转为pdf</h3><p>确定了density, level和quality的值之后就可以执行转换了，可以从原始pdf转换</p>
+<pre><code class="text">convert -density 400 origin.pdf -level 40,97% -quality 50 target.pdf
+</code></pre>
+<p>也可以从之前生成的jpg转换</p>
+<pre><code class="text">convert -level 40,97% -quality 50 output/* target.pdf
+</code></pre>
+<h3 id="迁移书签"><a href="#迁移书签" class="headerlink" title="迁移书签"></a>迁移书签</h3><p>原先的pdf文件可能有书签, 可以使用FreePic2Pdf将书签迁入新生成的文件中。</p>
+<p>先从原始文件取书签, 然后往新文件里挂书签即可。</p>
+<h2 id="方法简化"><a href="#方法简化" class="headerlink" title="方法简化"></a>方法简化</h2><h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><pre><code class="test">os:windows 10 -x86
+tool:ImageMagick-7.0.9-8-Q16-x64
+prep:Ghostscript 9.50 for Windows (64 bit)
+shell:powershell 6.0
+</code></pre>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>origin.pdf为源文件，target.pdf为目标文件。level参数是指调整图像通道的级别, 40,97%表示灰度低于40%即为黑点, 高于97%为白点. 这里的40,97需要反复调节到自己认为达到最佳效果.</p>
+<pre><code class="bash"> convert -density 400 origin.pdf -level 40,97% -quality 50 target.pdf
+</code></pre>
+<h2 id="最终效果"><a href="#最终效果" class="headerlink" title="最终效果"></a>最终效果</h2><p>转换前：<br><img src="%E8%BD%AC%E6%8D%A2%E5%89%8D.png" alt="转换前"><br>转换后：<br><img src="%E8%BD%AC%E6%8D%A2%E5%90%8E.png" alt="转换后"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" rel="tag"># 图像处理</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/12/13/linux-4-%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84/" rel="prev" title="linux#4-文件目录结构">
+      <i class="fa fa-chevron-left"></i> linux#4-文件目录结构
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/05/Git%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="next" title="Git的使用">
+      Git的使用 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E6%AD%A5%E9%AA%A4"><span class="nav-text">方法步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BDimageMagick%E5%B9%B6%E5%AE%89%E8%A3%85"><span class="nav-text">下载imageMagick并安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85gswin"><span class="nav-text">安装gswin</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%86pdf%E8%BD%AC%E4%B8%BA%E5%9B%BE%E7%89%87"><span class="nav-text">将pdf转为图片</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E8%BD%AC%E6%8D%A2%E6%95%88%E6%9E%9C"><span class="nav-text">测试转换效果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AC%E4%B8%BApdf"><span class="nav-text">转为pdf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%81%E7%A7%BB%E4%B9%A6%E7%AD%BE"><span class="nav-text">迁移书签</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E7%AE%80%E5%8C%96"><span class="nav-text">方法简化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83"><span class="nav-text">环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-text">使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E7%BB%88%E6%95%88%E6%9E%9C"><span class="nav-text">最终效果</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

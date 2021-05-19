@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="介绍mybatis框架在持久层上的作用，并且构建快速入门的mybatis案例。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mybatis#1-快速入门mybatis">
+<meta property="og:url" content="http://yoursite.com/2020/03/26/mybatis-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8mybatis/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="介绍mybatis框架在持久层上的作用，并且构建快速入门的mybatis案例。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-26T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:14:04.783Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="JDBC">
+<meta property="article:tag" content="mybatis">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/26/mybatis-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8mybatis/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>mybatis#1-快速入门mybatis | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/26/mybatis-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8mybatis/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          mybatis#1-快速入门mybatis
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-26 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-26T09:34:33+08:00">2020-03-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>介绍mybatis框架在持久层上的作用，并且构建快速入门的mybatis案例。</p>
+<span id="more"></span>
+<h1 id="框架"><a href="#框架" class="headerlink" title="框架"></a>框架</h1><h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>它是我们软件开发中的一套解决方案，不同的框架解决的是不同的问题。</p>
+<p><strong>使用框架的好处：</strong>框架封装了很多的细节，使开发者可以使用极简的方式实现功能。大大提高开发效率。</p>
+<h2 id="三层架构"><a href="#三层架构" class="headerlink" title="三层架构"></a>三层架构</h2><p>表现层：<br>        是用于展示数据的<br>业务层：<br>        是处理业务需求<br>持久层：<br>        是和数据库交互的</p>
+<h2 id="持久层技术解决方案"><a href="#持久层技术解决方案" class="headerlink" title="持久层技术解决方案"></a>持久层技术解决方案</h2><p>JDBC技术：<br>        <code>Connection</code><br>        <code>PreparedStatement</code><br>        <code>ResultSet</code><br>Spring的<code>JdbcTemplate</code>：<br>        Spring中对jdbc的简单封装<br>Apache的DBUtils：<br>        它和Spring的<code>JdbcTemplate</code>很像，也是对Jdbc的简单封装</p>
+<p>以上这些都不是框架<br>        JDBC是规范<br>        Spring的JdbcTemplate<code>和Apache的</code>DBUtils`都只是工具类</p>
+<h2 id="mybatis的概述"><a href="#mybatis的概述" class="headerlink" title="mybatis的概述"></a>mybatis的概述</h2><p>mybatis是一个持久层框架，用java编写的。<br>它封装了jdbc操作的很多细节，使开发者只需要关注sql语句本身，而无需关注注册驱动，创建连接等繁杂过程<br>它使用了ORM思想实现了结果集的封装。</p>
+<blockquote>
+<p>ORM：<br>    Object Relational Mappging 对象关系映射<br>    简单的说：<br>    就是把数据库表和实体类及实体类的属性对应起来<br>    让我们可以操作实体类就实现操作数据库表。<br>        user            User<br>        id                userId<br>        user_name        userName</p>
+</blockquote>
+<p>今天我们需要做到<br>    实体类中的属性和数据库表的字段名称保持一致。<br>        user            User<br>        id                id<br>        user_name        user_name</p>
+<h1 id="mybatis的入门"><a href="#mybatis的入门" class="headerlink" title="mybatis的入门"></a>mybatis的入门</h1><h2 id="mybatis的环境搭建"><a href="#mybatis的环境搭建" class="headerlink" title="mybatis的环境搭建"></a>mybatis的环境搭建</h2><p>第一步：创建maven工程并导入坐标<br>第二步：创建实体类和dao的接口<br>第三步：创建Mybatis的主配置文件<br>            <code>SqlMapConifg.xml</code><br>第四步：创建映射配置文件<br>            <code>UserDao.xml</code></p>
+<p><strong>注意事项：</strong></p>
+<p>第一个：创建<code>UserDao.xml</code> 和 <code>UserDao.java</code>时名称是为了和我们之前的知识保持一致。<br>    在Mybatis中它把持久层的操作接口名称和映射文件也叫做：<code>Mapper</code><br>    所以：<code>UserDao</code> 和 <code>UserMapper</code>是一样的<br>第二个：在idea中创建目录的时候，它和包是不一样的<br>    包在创建时：uestc.zhangkx.dao它是三级结构<br>    目录在创建时：uestc.zhangkx.dao是一级目录<br>第三个：mybatis的映射配置文件位置必须和dao接口的包结构相同<br>第四个：映射配置文件的mapper标签<code>namespace</code>属性的取值必须是dao接口的全限定类名<br>第五个：映射配置文件的操作配置（select），id属性的取值必须是dao接口的方法名</p>
+<p><strong>当我们遵从了第三，四，五点之后，我们在开发中就无须再写dao的实现类。</strong></p>
+<h2 id="mybatis基于xml的入门案例"><a href="#mybatis基于xml的入门案例" class="headerlink" title="mybatis基于xml的入门案例"></a>mybatis基于xml的入门案例</h2><p>第一步：读取配置文件<br>第二步：创建<code>SqlSessionFactory</code>工厂<br>第三步：创建<code>SqlSession</code><br>第四步：创建<code>Dao</code>接口的代理对象<br>第五步：执行<code>dao</code>中的方法<br>第六步：释放资源</p>
+<p>注意事项：</p>
+<p>不要忘记在映射配置中告知mybatis要封装到哪个实体类中<br>配置的方式：指定实体类的全限定类名</p>
+<h2 id="mybatis基于注解的入门案例"><a href="#mybatis基于注解的入门案例" class="headerlink" title="mybatis基于注解的入门案例"></a>mybatis基于注解的入门案例</h2><p>把<code>UserDao.xml</code>移除，在dao接口的方法上使用<code>@Select</code>注解，并且指定SQL语句<br>同时需要在<code>SqlMapConfig.xml</code>中的mapper配置时，使用class属性指定dao接口的全限定类名。</p>
+<p><strong>明确：</strong></p>
+<p>我们在实际开发中，都是越简便越好，所以都是采用不写dao实现类的方式。<br>不管使用XML还是注解配置。<br>但是Mybatis它是支持写dao实现类的。</p>
+<h1 id="快速实现"><a href="#快速实现" class="headerlink" title="快速实现"></a>快速实现</h1><p>使用的数据库数据：</p>
+<pre><code class="sql">DROP TABLE IF EXISTS `user`;
+
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL auto_increment,
+  `username` varchar(32) NOT NULL COMMENT &#39;用户名称&#39;,
+  `birthday` datetime default NULL COMMENT &#39;生日&#39;,
+  `sex` char(1) default NULL COMMENT &#39;性别&#39;,
+  `address` varchar(256) default NULL COMMENT &#39;地址&#39;,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+insert  into `user`(`id`,`username`,`birthday`,`sex`,`address`) values (41,&#39;老王&#39;,&#39;2018-02-27 17:47:08&#39;,&#39;男&#39;,&#39;北京&#39;),(42,&#39;小二王&#39;,&#39;2018-03-02 15:09:37&#39;,&#39;女&#39;,&#39;北京金燕龙&#39;),(43,&#39;小二王&#39;,&#39;2018-03-04 11:34:34&#39;,&#39;女&#39;,&#39;北京金燕龙&#39;),(45,&#39;传智播客&#39;,&#39;2018-03-04 12:04:06&#39;,&#39;男&#39;,&#39;北京金燕龙&#39;),(46,&#39;老王&#39;,&#39;2018-03-07 17:37:26&#39;,&#39;男&#39;,&#39;北京&#39;),(48,&#39;小马宝莉&#39;,&#39;2018-03-08 11:44:00&#39;,&#39;女&#39;,&#39;北京修正&#39;);
+</code></pre>
+<p>Maven的pom.xml</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;uestc.zhangkx&lt;/groupId&gt;
+    &lt;artifactId&gt;zkxbatis&lt;/artifactId&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.mybatis&lt;/groupId&gt;
+            &lt;artifactId&gt;mybatis&lt;/artifactId&gt;
+            &lt;version&gt;3.5.4&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;mysql&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+            &lt;version&gt;8.0.19&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;log4j&lt;/groupId&gt;
+            &lt;artifactId&gt;log4j&lt;/artifactId&gt;
+            &lt;version&gt;1.2.12&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;junit&lt;/groupId&gt;
+            &lt;artifactId&gt;junit&lt;/artifactId&gt;
+            &lt;version&gt;4.10&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;dom4j&lt;/groupId&gt;
+            &lt;artifactId&gt;dom4j&lt;/artifactId&gt;
+            &lt;version&gt;1.5.2&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;jaxen&lt;/groupId&gt;
+            &lt;artifactId&gt;jaxen&lt;/artifactId&gt;
+            &lt;version&gt;1.2.0&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+&lt;/project&gt;
+</code></pre>
+<p>domain中User实现：</p>
+<pre><code class="java">package uestc.zhangkx.domain;
+
+import java.io.Serializable;
+import java.util.Date;
+
+public class User implements Serializable&#123;
+
+    private Integer id;
+    private String username;
+    private Date birthday;
+    private String sex;
+    private String address;
+
+    public Integer getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Integer id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getUsername() &#123;
+        return username;
+    &#125;
+
+    public void setUsername(String username) &#123;
+        this.username = username;
+    &#125;
+
+    public Date getBirthday() &#123;
+        return birthday;
+    &#125;
+
+    public void setBirthday(Date birthday) &#123;
+        this.birthday = birthday;
+    &#125;
+
+    public String getSex() &#123;
+        return sex;
+    &#125;
+
+    public void setSex(String sex) &#123;
+        this.sex = sex;
+    &#125;
+
+    public String getAddress() &#123;
+        return address;
+    &#125;
+
+    public void setAddress(String address) &#123;
+        this.address = address;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;User&#123;&quot; +
+                &quot;id=&quot; + id +
+                &quot;, username=&#39;&quot; + username + &#39;\&#39;&#39; +
+                &quot;, birthday=&quot; + birthday +
+                &quot;, sex=&#39;&quot; + sex + &#39;\&#39;&#39; +
+                &quot;, address=&#39;&quot; + address + &#39;\&#39;&#39; +
+                &#39;&#125;&#39;;
+    &#125;
+&#125;
+</code></pre>
+<p>dao的UserDao实现：</p>
+<pre><code class="java">package uestc.zhangkx.dao;
+
+
+import uestc.zhangkx.domain.User;
+
+import java.util.List;
+
+public interface UserDao &#123;
+
+    List&lt;User&gt; findAll();
+&#125;
+</code></pre>
+<p>resource中的sqlmap-config.xml配置：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE configuration
+        PUBLIC &quot;-//mybatis.org//DTD Config 3.0//EN&quot;
+        &quot;http://mybatis.org/dtd/mybatis-3-config.dtd&quot;&gt;
+&lt;!-- mybatis的主配置文件 --&gt;
+&lt;configuration&gt;
+    &lt;!-- 配置环境 --&gt;
+    &lt;environments default=&quot;mysql&quot;&gt;
+        &lt;!-- 配置mysql的环境--&gt;
+        &lt;environment id=&quot;mysql&quot;&gt;
+            &lt;!-- 配置事务的类型--&gt;
+            &lt;transactionManager type=&quot;JDBC&quot;&gt;&lt;/transactionManager&gt;
+            &lt;!-- 配置数据源（连接池） --&gt;
+            &lt;dataSource type=&quot;POOLED&quot;&gt;
+                &lt;!-- 配置连接数据库的4个基本信息 --&gt;
+                &lt;property name=&quot;driver&quot; value=&quot;com.mysql.cj.jdbc.Driver&quot;/&gt;
+                &lt;property name=&quot;url&quot; value=&quot;jdbc:mysql://localhost:3306/mybatis&quot;/&gt;
+                &lt;property name=&quot;username&quot; value=&quot;root&quot;/&gt;
+                &lt;property name=&quot;password&quot; value=&quot;0217&quot;/&gt;
+            &lt;/dataSource&gt;
+        &lt;/environment&gt;
+    &lt;/environments&gt;
+
+    &lt;!-- 指定映射配置文件的位置，映射配置文件指的是每个dao独立的配置文件 --&gt;
+    &lt;mappers&gt;
+        &lt;mapper resource=&quot;UserDao.xml&quot;/&gt;
+    &lt;/mappers&gt;
+&lt;/configuration&gt;
+</code></pre>
+<p>resource中的UserDao.xml配置：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE mapper
+        PUBLIC &quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;
+        &quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;
+&lt;mapper namespace=&quot;uestc.zhangkx.dao.UserDao&quot;&gt;
+    &lt;!--配置查询所有--&gt;
+    &lt;select id=&quot;findAll&quot; resultType=&quot;uestc.zhangkx.domain.User&quot;&gt;
+        select * from user
+    &lt;/select&gt;
+&lt;/mapper&gt;
+</code></pre>
+<p>resource中log4j.properties配置：</p>
+<pre><code class="properties"># Set root category priority to INFO and its only appender to CONSOLE.
+#log4j.rootCategory=INFO, CONSOLE            debug   info   warn error fatal
+log4j.rootCategory=debug, CONSOLE, LOGFILE
+
+# Set the enterprise logger category to FATAL and its only appender to CONSOLE.
+log4j.logger.org.apache.axis.enterprise=FATAL, CONSOLE
+
+# CONSOLE is set to be a ConsoleAppender using a PatternLayout.
+log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender
+log4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout
+log4j.appender.CONSOLE.layout.ConversionPattern=%d&#123;ISO8601&#125; %-6r [%15.15t] %-5p %30.30c %x - %m\n
+
+# LOGFILE is set to be a File appender using a PatternLayout.
+log4j.appender.LOGFILE=org.apache.log4j.FileAppender
+log4j.appender.LOGFILE.File=axis.log
+log4j.appender.LOGFILE.Append=true
+log4j.appender.LOGFILE.layout=org.apache.log4j.PatternLayout
+log4j.appender.LOGFILE.layout.ConversionPattern=%d&#123;ISO8601&#125; %-6r [%15.15t] %-5p %30.30c %x - %m\n
+</code></pre>
+<p>test中测试运行类</p>
+<pre><code class="java">package uestc.zhangkx;
+
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import uestc.zhangkx.dao.UserDao;
+import uestc.zhangkx.domain.User;
+
+import java.io.InputStream;
+import java.util.List;
+
+public class batisTest &#123;
+    public static void main(String[] args)throws Exception &#123;
+        //1.读取配置文件
+        InputStream in = Resources.getResourceAsStream(&quot;sqlmap-config.xml&quot;);
+        //2.创建SqlSessionFactory工厂
+        SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+        SqlSessionFactory factory = builder.build(in);
+        //3.使用工厂生产SqlSession对象
+        SqlSession session = factory.openSession();
+        //4.使用SqlSession创建Dao接口的代理对象
+        UserDao userDao = session.getMapper(UserDao.class);
+        //5.使用代理对象执行方法
+        List&lt;User&gt; users = userDao.findAll();
+        for(User user : users)&#123;
+            System.out.println(user);
+        &#125;
+        //6.释放资源
+        session.close();
+        in.close();
+    &#125;
+&#125;
+</code></pre>
+<p>输出：</p>
+<pre><code class="bash">/usr/lib/jvm/jdk-13.0.2/bin/java -javaagent:/home/zhangkx/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/193.6911.18/lib/idea_rt.jar=34827:/home/zhangkx/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/193.6911.18/bin -Dfile.encoding=UTF-8 -classpath /home/zhangkx/IdeaProjects/zkxbatis/target/test-classes:/home/zhangkx/IdeaProjects/zkxbatis/target/classes:/home/zhangkx/.m2/repository/org/mybatis/mybatis/3.5.4/mybatis-3.5.4.jar:/home/zhangkx/.m2/repository/mysql/mysql-connector-java/8.0.19/mysql-connector-java-8.0.19.jar:/home/zhangkx/.m2/repository/com/google/protobuf/protobuf-java/3.6.1/protobuf-java-3.6.1.jar:/home/zhangkx/.m2/repository/log4j/log4j/1.2.12/log4j-1.2.12.jar:/home/zhangkx/.m2/repository/junit/junit/4.10/junit-4.10.jar:/home/zhangkx/.m2/repository/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1.jar:/home/zhangkx/.m2/repository/dom4j/dom4j/1.5.2/dom4j-1.5.2.jar:/home/zhangkx/.m2/repository/jaxme/jaxme-api/0.3/jaxme-api-0.3.jar:/home/zhangkx/.m2/repository/msv/xsdlib/20030807/xsdlib-20030807.jar:/home/zhangkx/.m2/repository/msv/relaxngDatatype/20030807/relaxngDatatype-20030807.jar:/home/zhangkx/.m2/repository/pull-parser/pull-parser/2/pull-parser-2.jar:/home/zhangkx/.m2/repository/xpp3/xpp3/1.1.3.3/xpp3-1.1.3.3.jar:/home/zhangkx/.m2/repository/stax/stax-api/1.0/stax-api-1.0.jar:/home/zhangkx/.m2/repository/xml-apis/xml-apis/1.0.b2/xml-apis-1.0.b2.jar:/home/zhangkx/.m2/repository/jaxen/jaxen/1.2.0/jaxen-1.2.0.jar uestc.zhangkx.batisTest
+2020-04-01 17:48:40,529 1      [           main] DEBUG ache.ibatis.logging.LogFactory  - Logging initialized using &#39;class org.apache.ibatis.logging.log4j.Log4jImpl&#39; adapter.
+2020-04-01 17:48:40,574 46     [           main] DEBUG source.pooled.PooledDataSource  - PooledDataSource forcefully closed/removed all connections.
+2020-04-01 17:48:40,574 46     [           main] DEBUG source.pooled.PooledDataSource  - PooledDataSource forcefully closed/removed all connections.
+2020-04-01 17:48:40,575 47     [           main] DEBUG source.pooled.PooledDataSource  - PooledDataSource forcefully closed/removed all connections.
+2020-04-01 17:48:40,575 47     [           main] DEBUG source.pooled.PooledDataSource  - PooledDataSource forcefully closed/removed all connections.
+2020-04-01 17:48:40,757 229    [           main] DEBUG ansaction.jdbc.JdbcTransaction  - Opening JDBC Connection
+2020-04-01 17:48:41,673 1145   [           main] DEBUG source.pooled.PooledDataSource  - Created connection 2003147568.
+2020-04-01 17:48:41,674 1146   [           main] DEBUG ansaction.jdbc.JdbcTransaction  - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@77659b30]
+2020-04-01 17:48:41,681 1153   [           main] DEBUG tc.zhangkx.dao.UserDao.findAll  - ==&gt;  Preparing: select * from user 
+2020-04-01 17:48:41,772 1244   [           main] DEBUG tc.zhangkx.dao.UserDao.findAll  - ==&gt; Parameters: 
+2020-04-01 17:48:41,872 1344   [           main] DEBUG tc.zhangkx.dao.UserDao.findAll  - &lt;==      Total: 6
+User&#123;id=41, username=&#39;老王&#39;, birthday=Wed Feb 28 07:47:08 CST 2018, sex=&#39;男&#39;, address=&#39;北京&#39;&#125;
+User&#123;id=42, username=&#39;小二王&#39;, birthday=Sat Mar 03 05:09:37 CST 2018, sex=&#39;女&#39;, address=&#39;北京金燕龙&#39;&#125;
+User&#123;id=43, username=&#39;小二王&#39;, birthday=Mon Mar 05 01:34:34 CST 2018, sex=&#39;女&#39;, address=&#39;北京金燕龙&#39;&#125;
+User&#123;id=45, username=&#39;传智播客&#39;, birthday=Mon Mar 05 02:04:06 CST 2018, sex=&#39;男&#39;, address=&#39;北京金燕龙&#39;&#125;
+User&#123;id=46, username=&#39;老王&#39;, birthday=Thu Mar 08 07:37:26 CST 2018, sex=&#39;男&#39;, address=&#39;北京&#39;&#125;
+User&#123;id=48, username=&#39;小马宝莉&#39;, birthday=Fri Mar 09 01:44:00 CST 2018, sex=&#39;女&#39;, address=&#39;北京修正&#39;&#125;
+2020-04-01 17:48:41,901 1373   [           main] DEBUG ansaction.jdbc.JdbcTransaction  - Resetting autocommit to true on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@77659b30]
+2020-04-01 17:48:41,904 1376   [           main] DEBUG ansaction.jdbc.JdbcTransaction  - Closing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@77659b30]
+2020-04-01 17:48:41,907 1379   [           main] DEBUG source.pooled.PooledDataSource  - Returned connection 2003147568 to pool.
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/JDBC/" rel="tag"># JDBC</a>
+              <a href="/tags/mybatis/" rel="tag"># mybatis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/" rel="prev" title="设计模式之抽象工厂模式">
+      <i class="fa fa-chevron-left"></i> 设计模式之抽象工厂模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/27/mybatis-2-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E3%80%81%E8%87%AA%E5%AE%9A%E4%B9%89mybatis/" rel="next" title="mybatis#2-源码分析、自定义mybatis">
+      mybatis#2-源码分析、自定义mybatis <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A1%86%E6%9E%B6"><span class="nav-text">框架</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-text">定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E5%B1%82%E6%9E%B6%E6%9E%84"><span class="nav-text">三层架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8C%81%E4%B9%85%E5%B1%82%E6%8A%80%E6%9C%AF%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text">持久层技术解决方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mybatis%E7%9A%84%E6%A6%82%E8%BF%B0"><span class="nav-text">mybatis的概述</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mybatis%E7%9A%84%E5%85%A5%E9%97%A8"><span class="nav-text">mybatis的入门</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mybatis%E7%9A%84%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">mybatis的环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mybatis%E5%9F%BA%E4%BA%8Exml%E7%9A%84%E5%85%A5%E9%97%A8%E6%A1%88%E4%BE%8B"><span class="nav-text">mybatis基于xml的入门案例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mybatis%E5%9F%BA%E4%BA%8E%E6%B3%A8%E8%A7%A3%E7%9A%84%E5%85%A5%E9%97%A8%E6%A1%88%E4%BE%8B"><span class="nav-text">mybatis基于注解的入门案例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BF%AB%E9%80%9F%E5%AE%9E%E7%8E%B0"><span class="nav-text">快速实现</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

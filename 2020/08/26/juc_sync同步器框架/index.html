@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="这里的juc-sync同步器框架，是指java.util.concurrent包下一些辅助同步器类，每个类都有自己适合的使用场景：    同步器名称 作用    CountDownLatch 倒数计数器，构造时设定计数值，当计数值归零后，所有阻塞线程恢复执行；其内部实现了AQS框架   CyclicBarrier 循环栅栏，构造时设定等待线程数，当所有线程都到达栅栏后，栅栏放行；其内部通过Reen">
+<meta property="og:type" content="article">
+<meta property="og:title" content="juc_sync同步器框架">
+<meta property="og:url" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="这里的juc-sync同步器框架，是指java.util.concurrent包下一些辅助同步器类，每个类都有自己适合的使用场景：    同步器名称 作用    CountDownLatch 倒数计数器，构造时设定计数值，当计数值归零后，所有阻塞线程恢复执行；其内部实现了AQS框架   CyclicBarrier 循环栅栏，构造时设定等待线程数，当所有线程都到达栅栏后，栅栏放行；其内部通过Reen">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925135655512.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925135725505.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925135752658.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925140701281.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925140723924.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925140749655.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925141758541.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925141937084.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925142030054.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925142109968.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925142206513.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925142221386.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925143741944.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925143755323.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925143808726.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144018256.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144255624.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144305337.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144322229.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144443041.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144458259.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144603175.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144615040.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144636795.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144648976.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144700073.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144721964.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144739176.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144750924.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144803819.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144814792.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144843791.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144852896.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144903822.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144913047.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144923847.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144940260.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925144949705.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145000376.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145013788.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145030882.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145039662.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145049196.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145057361.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145107973.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145115725.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145125515.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145137948.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145149049.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145200766.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145210146.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145349597.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145412624.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145427115.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145513314.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145527354.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145601211.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145650539.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145827529.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145921244.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925145934366.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925150002131.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925150031243.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925150249312.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925150301280.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925150449373.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925150512093.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925150540244.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925150557894.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925151053494.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153418766.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153428670.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153505797.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153522049.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153532019.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153550592.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153602739.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153616534.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153652702.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153704082.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153716461.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153739345.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153807167.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153830497.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153840498.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925153907225.png">
+<meta property="article:published_time" content="2020-08-26T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:02:40.167Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="深入并发">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/image-20200925135655512.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>juc_sync同步器框架 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          juc_sync同步器框架
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-26 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-26T09:34:33+08:00">2020-08-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>这里的juc-sync同步器框架，是指<code>java.util.concurrent</code>包下一些辅助同步器类，每个类都有自己适合的使用场景：</p>
+<table>
+<thead>
+<tr>
+<th>同步器名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CountDownLatch</td>
+<td>倒数计数器，构造时设定计数值，当计数值归零后，所有阻塞线程恢复执行；其内部实现了AQS框架</td>
+</tr>
+<tr>
+<td>CyclicBarrier</td>
+<td>循环栅栏，构造时设定等待线程数，当所有线程都到达栅栏后，栅栏放行；其内部通过ReentrantLock和Condition实现同步</td>
+</tr>
+<tr>
+<td>Semaphore</td>
+<td>信号量，类似于“令牌”，用于控制共享资源的访问数量；其内部实现了AQS框架</td>
+</tr>
+<tr>
+<td>Exchanger</td>
+<td>交换器，类似于双向栅栏，用于线程之间的配对和数据交换；其内部根据并发情况有“单槽交换”和“多槽交换”之分</td>
+</tr>
+<tr>
+<td>Phaser</td>
+<td>多阶段栅栏，相当于CyclicBarrier的升级版，可用于分阶段任务的并发控制执行；其内部比较复杂，支持树形结构，以减少并发带来的竞争</td>
+</tr>
+</tbody></table>
+<span id="more"></span>
+
+<h1 id="一、CountDownLatch"><a href="#一、CountDownLatch" class="headerlink" title="一、CountDownLatch"></a>一、CountDownLatch</h1><h2 id="1-1-简介"><a href="#1-1-简介" class="headerlink" title="1.1 简介"></a>1.1 简介</h2><p><code>CountDownLatch</code>是一个辅助同步器类，用来作计数使用，它的作用有点类似于生活中的倒数计数器，先设定一个计数初始值，当计数降到0时，将会触发一些事件，如火箭的倒数计时。</p>
+<p>初始计数值在构造CountDownLatch对象时传入，每调用一次 <strong>countDown()</strong> 方法，计数值就会减1。</p>
+<p>线程可以调用CountDownLatch的<strong>await</strong>方法进入阻塞，当计数值降到0时，所有之前调用<strong>await</strong>阻塞的线程都会释放。</p>
+<blockquote>
+<p><strong>注意：</strong>CountDownLatch的初始计数值一旦降到0，无法重置。如果需要重置，可以考虑使用CyclicBarrier。</p>
+</blockquote>
+<h2 id="1-2-使用示例"><a href="#1-2-使用示例" class="headerlink" title="1.2 使用示例"></a>1.2 使用示例</h2><p>ContDownLatch一般有以下几种用法：</p>
+<h3 id="1-2-1-作为一个开关-入口"><a href="#1-2-1-作为一个开关-入口" class="headerlink" title="1.2.1 作为一个开关/入口"></a>1.2.1 作为一个开关/入口</h3><p>将初始计数值为1的 CountDownLatch 作为一个的开关或入口：<br>在调用 <strong>countDown()</strong> 的线程打开入口前，所有调用 <strong>await</strong> 的线程都一直在入口处等待。</p>
+<pre><code class="java">public class Driver &#123;
+    private static final int N = 10;
+ 
+    public static void main() throws InterruptedException &#123;
+        CountDownLatch switcher = new CountDownLatch(1);
+ 
+        for (int i = 0; i &lt; N; ++i) &#123;
+            new Thread(new Worker(switcher)).start();
+        &#125;
+ 
+        doSomething();
+        switcher.countDown();       // 主线程开启开关
+ 
+    &#125;
+ 
+    public static void doSomething() &#123;
+    &#125;
+&#125;
+ 
+class Worker implements Runnable &#123;
+    private final CountDownLatch startSignal;
+ 
+    Worker(CountDownLatch startSignal) &#123;
+        this.startSignal = startSignal;
+    &#125;
+ 
+    public void run() &#123;
+        try &#123;
+            startSignal.await();    //所有执行线程在此处等待开关开启
+            doWork();
+        &#125; catch (InterruptedException ex) &#123;
+        &#125;
+    &#125;
+    void doWork() &#123; ...&#125;
+&#125;
+</code></pre>
+<h3 id="1-2-2-作为一个完成信号"><a href="#1-2-2-作为一个完成信号" class="headerlink" title="1.2.2 作为一个完成信号"></a>1.2.2 作为一个完成信号</h3><p>将初始计数值为N的 CountDownLatch作为一个完成信号点：使某个线程在其它N个线程完成某项操作之前一直等待。</p>
+<pre><code class="java">public class Driver &#123;
+    private static final int N = 10;
+ 
+    public static void main() throws InterruptedException &#123;
+        CountDownLatch compsignal = new CountDownLatch(N);
+ 
+        for (int i = 0; i &lt; N; ++i) &#123;
+            new Thread(new Worker(compsignal)).start();
+        &#125;
+ 
+        compsignal.await();       // 主线程等待其它N个线程完成
+        doSomething();
+    &#125;
+ 
+    public static void doSomething() &#123;
+    &#125;
+&#125;
+ 
+class Worker implements Runnable &#123;
+    private final CountDownLatch compSignal;
+ 
+    Worker(CountDownLatch compSignal) &#123;
+        this.compSignal = compSignal;
+    &#125;
+ 
+    public void run() &#123;
+        try &#123;
+            doWork();
+            compSignal.countDown(); //每个线程做完自己的事情后，就将计数器减去1
+        &#125; catch (InterruptedException ex) &#123;
+        &#125;
+    &#125;
+ 
+    void doWork() &#123; ...&#125;
+&#125;
+</code></pre>
+<h2 id="1-3-类-接口声明"><a href="#1-3-类-接口声明" class="headerlink" title="1.3 类/接口声明"></a>1.3 类/接口声明</h2><p><strong>类声明：</strong><br><img src="image-20200925135655512.png" alt="image-20200925135655512"></p>
+<p><strong>构造器：</strong><br><img src="image-20200925135725505.png" alt="image-20200925135725505"></p>
+<p><strong>接口：</strong><br><img src="image-20200925135752658.png" alt="image-20200925135752658"></p>
+<h2 id="1-4-原理"><a href="#1-4-原理" class="headerlink" title="1.4 原理"></a>1.4 原理</h2><p>它的底层是使用的AQS,细节原理可见之前博文—&gt;J.U.C_locks框架：AQS共享功能</p>
+<h1 id="二、CyclicBarrier"><a href="#二、CyclicBarrier" class="headerlink" title="二、CyclicBarrier"></a>二、CyclicBarrier</h1><h2 id="2-1-简介"><a href="#2-1-简介" class="headerlink" title="2.1 简介"></a>2.1 简介</h2><p><code>CyclicBarrier</code>是一个辅助同步器类，在JDK1.5时随着J.U.C一起引入。</p>
+<p>这个类的功能和我们之前介绍的CountDownLatch有些类似。我们知道，<code>CountDownLatch</code>是一个倒数计数器，在计数器不为0时，所有调用await的线程都会等待，当计数器降为0，线程才会继续执行，且计数器一旦变为0，就不能再重置了。</p>
+<p><code>CyclicBarrier</code>可以认为是一个栅栏，栅栏的作用是什么？就是阻挡前行。<br>顾名思义，CyclicBarrier是一个可以循环使用的栅栏，它做的事情就是：<br><strong>让线程到达栅栏时被阻塞(调用await方法)，直到到达栅栏的线程数满足指定数量要求时，栅栏才会打开放行。</strong></p>
+<blockquote>
+<p>这其实有点像军训报数，报数总人数满足教官认为的总数时，教官才会安排后面的训练。</p>
+</blockquote>
+<p>可以看下面这个图来理解下:<br>一共4个线程A、B、C、D，它们到达栅栏的顺序可能各不相同。当A、B、C到达栅栏后，由于没有满足总数【4】的要求，所以会一直等待，当线程D到达后，栅栏才会放行。<br><img src="image-20200925140701281.png" alt="image-20200925140701281"></p>
+<p>从CyclicBarrier的构造器，我们也可以看出关于这个类的一些端倪，CyclicBarrier有两个构造器：</p>
+<p><strong>构造器一：</strong></p>
+<p><img src="image-20200925140723924.png" alt="image-20200925140723924"><br>这个构造器的参数<code>parties</code>就是之前说的需要满足的计数总数。</p>
+<p><strong>构造器二：</strong><br><img src="image-20200925140749655.png" alt="image-20200925140749655"><br>这个构造器稍微特殊一些，除了指定了计数总数外，传入了一个<code>Runnable</code>任务。</p>
+<p>Runnable任务其实就是当最后一个线程到达栅栏时，后续立即要执行的任务。</p>
+<blockquote>
+<p>比如，军训报数完毕后，总人数满足了要求，教官就会开始命令大家执行下一个任务，这个【下一个任务】就是这里的Runnable。</p>
+</blockquote>
+<h2 id="2-2-示例"><a href="#2-2-示例" class="headerlink" title="2.2 示例"></a>2.2 示例</h2><p>我们来看一个CyclicBarrier的示例，来理解下它的功能。</p>
+<blockquote>
+<p><strong>假设现在有这样一个场景：</strong><br>5个运动员准备跑步比赛，运动员在赛跑前会准备一段时间，当裁判发现所有运动员准备完毕后，就举起发令枪，比赛开始。<br>这里的起跑线就是屏障，运动员必须在起跑线等待其他运动员准备完毕。</p>
+</blockquote>
+<pre><code class="java">public class CyclicBarrierTest &#123;
+    public static void main(String[] args) &#123;
+
+        int N = 5;  // 运动员数
+        CyclicBarrier cb = new CyclicBarrier(N, new Runnable() &#123;
+            @Override
+            public void run() &#123;
+                System.out.println(&quot;**** 所有运动员已准备完毕，发令枪：跑！****&quot;);
+            &#125;
+        &#125;);
+
+        for (int i = 0; i &lt; N; i++) &#123;
+            Thread t = new Thread(new PrepareWork(cb), &quot;运动员[&quot; + i + &quot;]&quot;);
+            t.start();
+        &#125;
+
+    &#125;
+
+
+    private static class PrepareWork implements Runnable &#123;
+        private CyclicBarrier cb;
+
+        PrepareWork(CyclicBarrier cb) &#123;
+            this.cb = cb;
+        &#125;
+
+        @Override
+        public void run() &#123;
+
+            try &#123;
+                Thread.sleep(500);
+                System.out.println(Thread.currentThread().getName() + &quot;: 准备完成&quot;);
+                cb.await();          // 在栅栏等待
+            &#125; catch (InterruptedException e) &#123;
+                e.printStackTrace();
+            &#125; catch (BrokenBarrierException e) &#123;
+                e.printStackTrace();
+            &#125;
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>执行上面的程序，可能的输出结果如下：</p>
+<pre><code>运动员[3]: 准备完成
+运动员[1]: 准备完成
+运动员[0]: 准备完成
+运动员[2]: 准备完成
+运动员[4]: 准备完成
+**** 所有运动员已准备完毕，发令枪：跑！****
+</code></pre>
+<p>从输出可以看到，线程到达栅栏时会被阻塞(调用<code>await</code>方法)，直到到达栅栏的线程数满足指定数量要求时，栅栏才会打开放行。</p>
+<h2 id="2-3-对异常的处理"><a href="#2-3-对异常的处理" class="headerlink" title="2.3 对异常的处理"></a>2.3 对异常的处理</h2><p>我们知道，线程在阻塞过程中，可能被中断，那么既然<strong>CyclicBarrier</strong>放行的条件是等待的线程数达到指定数目，万一线程被中断导致最终的等待线程数达不到栅栏的要求怎么办？</p>
+<p>CyclicBarrier一定有考虑到这种异常情况，不然其它所有等待线程都会无限制地等待下去。<br>那么CyclicBarrier是如何处理的呢？</p>
+<p>我们看下CyclicBarrier的<code>await()</code>方法：</p>
+<pre><code>public int await() throws InterruptedException, BrokenBarrierException &#123;
+    //...
+&#125;
+</code></pre>
+<p>可以看到，这个方法除了抛出<strong>InterruptedException</strong>异常外，还会抛出<code>BrokenBarrierException</code>。</p>
+<p><strong>BrokenBarrierException</strong>表示当前的<strong>CyclicBarrier</strong>已经损坏了，可能等不到所有线程都到达栅栏了，所以已经在等待的线程也没必要再等了，可以散伙了。</p>
+<p>出现以下几种情况之一时，当前等待线程会抛出<strong>BrokenBarrierException</strong>异常：</p>
+<ol>
+<li>其它某个正在await等待的线程被中断了</li>
+<li>其它某个正在await等待的线程超时了</li>
+<li>某个线程重置了<strong>CyclicBarrier</strong>(调用了<strong>reset</strong>方法，后面会讲到)</li>
+</ol>
+<p>另外，只要正在Barrier上等待的任一线程抛出了异常，那么Barrier就会认为肯定是凑不齐所有线程了，就会将栅栏置为损坏（Broken）状态，并传播<strong>BrokenBarrierException</strong>给其它所有正在等待（await）的线程。</p>
+<p>我们来对上面的例子做个改造，模拟下异常情况：</p>
+<pre><code class="java">public class CyclicBarrierTest &#123;
+    public static void main(String[] args) throws InterruptedException &#123;
+
+        int N = 5;  // 运动员数
+        CyclicBarrier cb = new CyclicBarrier(N, new Runnable() &#123;
+            @Override
+            public void run() &#123;
+                System.out.println(&quot;**** 所有运动员已准备完毕，发令枪：跑！****&quot;);
+            &#125;
+        &#125;);
+
+        List&lt;Thread&gt; list = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; N; i++) &#123;
+            Thread t = new Thread(new PrepareWork(cb), &quot;运动员[&quot; + i + &quot;]&quot;);
+            list.add(t);
+            t.start();
+            if (i == 3) &#123;
+                t.interrupt();  // 运动员[3]置中断标志位
+            &#125;
+        &#125;
+
+        Thread.sleep(2000);
+        System.out.println(&quot;Barrier是否损坏：&quot; + cb.isBroken());
+    &#125;
+
+
+    private static class PrepareWork implements Runnable &#123;
+        private CyclicBarrier cb;
+
+        PrepareWork(CyclicBarrier cb) &#123;
+            this.cb = cb;
+        &#125;
+
+        @Override
+        public void run() &#123;
+            try &#123;
+                System.out.println(Thread.currentThread().getName() + &quot;: 准备完成&quot;);
+                cb.await();
+            &#125; catch (InterruptedException e) &#123;
+                System.out.println(Thread.currentThread().getName() + &quot;: 被中断&quot;);
+            &#125; catch (BrokenBarrierException e) &#123;
+                System.out.println(Thread.currentThread().getName() + &quot;: 抛出BrokenBarrierException&quot;);
+            &#125;
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>可能的输出结果：</p>
+<pre><code>运动员[0]: 准备完成
+运动员[2]: 准备完成
+运动员[1]: 准备完成
+运动员[3]: 准备完成
+运动员[3]: 被中断
+运动员[4]: 准备完成
+运动员[4]: 抛出BrokenBarrierException
+运动员[0]: 抛出BrokenBarrierException
+运动员[1]: 抛出BrokenBarrierException
+运动员[2]: 抛出BrokenBarrierException
+Barrier是否损坏：true
+</code></pre>
+<p>这段代码，模拟了中断线程3的情况，从输出可以看到，线程0、1、2首先到达Brrier等待。<br>然后线程3到达，由于之前设置了中断标志位，所以线程3抛出中断异常，导致Barrier损坏，此时所有已经在栅栏等待的线程（0、1、2）都会抛出<strong>BrokenBarrierException</strong>异常。<br>此时，即使再有其它线程到达栅栏（线程4），都会抛出<strong>BrokenBarrierException</strong>异常。</p>
+<blockquote>
+<p><strong>注意：</strong>使用<code>CyclicBarrier</code>时，对异常的处理一定要小心，比如线程在到达栅栏前就抛出异常，此时如果没有重试机制，其它已经到达栅栏的线程会一直等待（因为没有还没有满足总数），最终导致程序无法继续向下执行。</p>
+</blockquote>
+<h2 id="2-4-原理"><a href="#2-4-原理" class="headerlink" title="2.4 原理"></a>2.4 原理</h2><h3 id="2-4-1-构造"><a href="#2-4-1-构造" class="headerlink" title="2.4.1 构造"></a>2.4.1 构造</h3><p><strong>CyclicBarrier</strong>有两个构造器：<br><code>CyclicBarrier cb = new CyclicBarrier(10);</code></p>
+<p><img src="image-20200925141758541.png" alt="image-20200925141758541"></p>
+<p>构造器内部的各个字段含义如下：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>parties</td>
+<td>栅栏开启需要的到达线程总数</td>
+</tr>
+<tr>
+<td>count</td>
+<td>剩余未到达的线程总数</td>
+</tr>
+<tr>
+<td>barrierCommand</td>
+<td>最后一个线程到达后执行的任务</td>
+</tr>
+</tbody></table>
+<h3 id="2-4-2-内部结构"><a href="#2-4-2-内部结构" class="headerlink" title="2.4.2 内部结构"></a>2.4.2 内部结构</h3><p><strong>CyclicBarrier</strong> 并没有自己去实现AQS框架的API，而是利用了<code>ReentrantLock</code>和<code>Condition</code>。</p>
+<pre><code class="java">public class CyclicBarrier &#123;
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition trip = lock.newCondition();
+
+    // 栅栏开启需要的到达线程总数
+    private final int parties;
+
+    // 最后一个线程到达后执行的任务
+    private final Runnable barrierCommand;
+
+    // 剩余未到达的线程总数
+    private int count;
+
+    // 当前轮次的运行状态
+    private Generation generation = new Generation();
+
+    // ...
+&#125;
+</code></pre>
+<p>需要注意的是<code>generation</code>这个字段：<br><img src="image-20200925141937084.png" alt="image-20200925141937084"></p>
+<p>我们知道，<strong>CyclicBarrier</strong> 是可以循环复用的，所以<strong>CyclicBarrier</strong> 的每一轮任务都需要对应一个generation 对象。<br>generation 对象内部有个<strong>broken</strong>字段，用来标识当前轮次的<strong>CyclicBarrier</strong> 是否已经损坏。<br><strong>nextGeneration</strong>方法用来创建一个新的generation 对象，并唤醒所有等待线程，重置内部参数。</p>
+<h3 id="2-4-3-核心方法"><a href="#2-4-3-核心方法" class="headerlink" title="2.4.3 核心方法"></a>2.4.3 核心方法</h3><p>我们先来看下<strong>await</strong>方法：<br><img src="image-20200925142030054.png" alt="image-20200925142030054"><br>可以看到，无论有没有超时功能，内部都是调了<strong>dowait</strong>这个方法：<br><img src="image-20200925142109968.png" alt="image-20200925142109968"></p>
+<p><strong>dowait</strong>方法并不复杂，一共有3部分：</p>
+<ol>
+<li>判断栅栏是否已经损坏或当前线程已经被中断，如果是会分别抛出异常；</li>
+<li>如果当前线程是最后一个到达的线程，会尝试执行最终任务（如果构造<strong>CyclicBarrier</strong>对象时有传入<strong>Runnable</strong>的话），执行成功即返回，失败会破坏栅栏；</li>
+<li>对于不是最后一个到达的线程，会在<strong>Condition</strong>队列上等待，为了防止被意外唤醒，这里用了一个自旋操作。</li>
+</ol>
+<p>破坏栅栏用的是<strong>breakBarrier</strong>方法：<br><img src="image-20200925142206513.png" alt="image-20200925142206513"></p>
+<p>再来看下<strong>CyclicBarrier</strong>的<strong>reset</strong>方法：<br><img src="image-20200925142221386.png" alt="image-20200925142221386"></p>
+<p>该方法先破坏栅栏，然后开始下一轮（新建一个generation对象）。</p>
+<h2 id="2-5-接口-类声明"><a href="#2-5-接口-类声明" class="headerlink" title="2.5 接口/类声明"></a>2.5 接口/类声明</h2><p><strong>类声明：</strong><br><img src="image-20200925143741944.png" alt="image-20200925143741944"></p>
+<p><strong>构造器声明：</strong><br><img src="image-20200925143755323.png" alt="image-20200925143755323"></p>
+<p><strong>接口声明：</strong><br><img src="image-20200925143808726.png" alt="image-20200925143808726"></p>
+<h1 id="三、Semaphore"><a href="#三、Semaphore" class="headerlink" title="三、Semaphore"></a>三、Semaphore</h1><h2 id="3-1-简介"><a href="#3-1-简介" class="headerlink" title="3.1 简介"></a>3.1 简介</h2><p><code>Semaphore</code>，又名信号量，这个类的作用有点类似于“许可证”。有时，我们因为一些原因需要控制同时访问共享资源的最大线程数量，比如出于系统性能的考虑需要限流，或者共享资源是稀缺资源，我们需要有一种办法能够协调各个线程，以保证合理的使用公共资源。</p>
+<p>Semaphore维护了一个许可集，其实就是一定数量的“许可证”。<br>当有线程想要访问共享资源时，需要先获取(acquire)的许可；如果许可不够了，线程需要一直等待，直到许可可用。当线程使用完共享资源后，可以归还(release)许可，以供其它需要的线程使用。</p>
+<p>另外，Semaphore支持公平/非公平策略，这和ReentrantLock类似，后面讲Semaphore原理时会看到，它们的实现本身就是类似的。</p>
+<h2 id="3-2-示例"><a href="#3-2-示例" class="headerlink" title="3.2 示例"></a>3.2 示例</h2><p>我们来看下Oracle官方给出的示例：</p>
+<pre><code class="java">class Pool &#123;
+    private static final int MAX_AVAILABLE = 100; // 可同时访问资源的最大线程数
+    private final Semaphore available = new Semaphore(MAX_AVAILABLE, true);
+    protected Object[] items = new Object[MAX_AVAILABLE];   //共享资源
+    protected boolean[] used = new boolean[MAX_AVAILABLE];
+    public Object getItem() throws InterruptedException &#123;
+        available.acquire();
+        return getNextAvailableItem();
+    &#125;
+    public void putItem(Object x) &#123;
+        if (markAsUnused(x))
+            available.release();
+    &#125;
+    private synchronized Object getNextAvailableItem() &#123;
+        for (int i = 0; i &lt; MAX_AVAILABLE; ++i) &#123;
+            if (!used[i]) &#123;
+                used[i] = true;
+                return items[i];
+            &#125;
+        &#125;
+        return null;
+    &#125;
+    private synchronized boolean markAsUnused(Object item) &#123;
+        for (int i = 0; i &lt; MAX_AVAILABLE; ++i) &#123;
+            if (item == items[i]) &#123;
+                if (used[i]) &#123;
+                    used[i] = false;
+                    return true;
+                &#125; else
+                    return false;
+            &#125;
+        &#125;
+        return false;
+    &#125;
+&#125;
+</code></pre>
+<p>items数组可以看成是我们的共享资源，当有线程尝试使用共享资源时，我们要求线程先获得“许可”（调用<strong>Semaphore</strong> 的<strong>acquire</strong>方法），这样线程就拥有了权限，否则就需要等待。当使用完资源后，线程需要调用<strong>Semaphore</strong> 的<strong>release</strong>方法释放许可。</p>
+<blockquote>
+<p><strong>注意：</strong>上述示例中，对于共享资源访问需要由锁来控制，Semaphore仅仅是保证了线程由权限使用共享资源，至于使用过程中是否由并发问题，需要通过锁来保证。</p>
+</blockquote>
+<p><strong>总结一下，许可数 ≤ 0代表共享资源不可用。许可数 ＞ 0，代表共享资源可用，且多个线程可以同时访问共享资源。</strong></p>
+<p><strong>这是不是和CountDownLatch有点像？</strong><br>我们来比较下：</p>
+<table>
+<thead>
+<tr>
+<th>同步器</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CountDownLatch</td>
+<td>同步状态<code>State &gt; 0</code>表示资源不可用，所有线程需要等待；<code>State == 0</code>表示资源可用，所有线程可以同时访问</td>
+</tr>
+<tr>
+<td>Semaphore</td>
+<td><code>剩余许可数 &lt; 0</code>表示资源不可用，所有线程需要等待； <code>许可剩余数 ≥ 0</code>表示资源可用，所有线程可以同时访问</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>如果读者阅读过本系列的AQS相关文章，应该立马可以反应过来，这其实就是对同步状态的定义不同。<br><strong>CountDownLatch</strong>内部实现了AQS的共享功能，那么<strong>Semaphore</strong>是否也一样是利用内部类实现了AQS的共享功能呢？</p>
+</blockquote>
+<h2 id="3-3-原理"><a href="#3-3-原理" class="headerlink" title="3.3 原理"></a>3.3 原理</h2><h3 id="3-3-1-内部结构"><a href="#3-3-1-内部结构" class="headerlink" title="3.3.1 内部结构"></a>3.3.1 内部结构</h3><p>我们先来看下<strong>Semaphore</strong>的内部：</p>
+<p><img src="image-20200925144018256.png" alt="image-20200925144018256"></p>
+<p>可以看到，Semaphore果然是通过内部类实现了AQS框架提供的接口，而且基本结构几乎和ReentrantLock完全一样，通过内部类分别实现了公平/非公平策略。</p>
+<h3 id="3-3-2-对象的构造"><a href="#3-3-2-对象的构造" class="headerlink" title="3.3.2 对象的构造"></a>3.3.2 对象的构造</h3><pre><code>Semaphore sm = new Semaphore (3, true);
+</code></pre>
+<p><strong>Semaphore</strong>有两个构造器：</p>
+<p><strong>构造器1：</strong><br><img src="image-20200925144255624.png" alt="image-20200925144255624"></p>
+<p><strong>构造器2：</strong><br><img src="image-20200925144305337.png" alt="1212"></p>
+<p>构造时需要指定“许可”的数量——<strong>permits</strong>，内部结构如下：</p>
+<p><img src="image-20200925144322229.png" alt="image-20200925144322229"></p>
+<h2 id="3-4-公平策略分析"><a href="#3-4-公平策略分析" class="headerlink" title="3.4 公平策略分析"></a>3.4 公平策略分析</h2><p>我们还是通过示例来分析：</p>
+<blockquote>
+<p>假设现在一共3个线程：<strong>ThreadA</strong>、<strong>ThreadB</strong>、<strong>ThreadC</strong>。一个许可数为2的公平策略的<strong>Semaphore</strong>。线程的调用顺序如下：</p>
+</blockquote>
+<pre><code class="java">Semaphore sm = new Semaphore (2, true);
+
+// ThreadA: sm.acquire()
+
+// ThreadB: sm.acquire(2)
+
+// ThreadC: sm.acquire()
+
+// ThreadA: sm.release()
+
+// ThreadB: sm.release(2)
+</code></pre>
+<h3 id="3-4-1-创建公平策略的Semaphore对象"><a href="#3-4-1-创建公平策略的Semaphore对象" class="headerlink" title="3.4.1 创建公平策略的Semaphore对象"></a>3.4.1 创建公平策略的Semaphore对象</h3><pre><code>Semaphore sm = new Semaphore (2, true);
+</code></pre>
+<p><img src="image-20200925144443041.png" alt="image-20200925144443041"></p>
+<p>可以看到，内部创建了一个<strong>FairSync</strong>对象，并传入许可数<strong>permits</strong>：<br><img src="image-20200925144458259.png" alt="image-20200925144458259"></p>
+<p><strong>Sync</strong>是<strong>Semaphore</strong>的一个内部抽象类，公平策略的<strong>FairSync</strong>和非公平策略的<strong>NonFairSync</strong>都继承该类。<br>可以看到，构造器传入的permits值就是同步状态的值，这也体现了我们在AQS系列中说过的：<br>AQS框架的设计思想就是分离构建同步器时的一系列关注点，它的所有操作都围绕着资源——<em>同步状态（synchronization state）</em>来展开，并将资源的定义和访问留给用户解决：<br><img src="image-20200925144603175.png" alt="image-20200925144603175"></p>
+<h3 id="3-4-2-ThreadA调用acqure方法"><a href="#3-4-2-ThreadA调用acqure方法" class="headerlink" title="3.4.2 ThreadA调用acqure方法"></a>3.4.2 ThreadA调用acqure方法</h3><p><strong>Semaphore</strong>的<strong>acquire</strong>方法内部调用了AQS的方法，入参”1”表示尝试获取1个许可：<br><img src="image-20200925144615040.png" alt="image-20200925144615040"></p>
+<p>AQS的<strong>acquireSharedInterruptibly</strong>方式是共享功能的一部分，我们在AQS系列中就已经对它很熟悉了：<br><img src="image-20200925144636795.png" alt="image-20200925144636795"></p>
+<p>关键来看下<strong>Semaphore</strong>是如何实现<strong>tryAcquireShared</strong>方法的：<br><img src="image-20200925144648976.png" alt="image-20200925144648976"></p>
+<blockquote>
+<p>对于<strong>Semaphore</strong>来说，线程是可以一次性尝试获取多个许可的，此时只要剩余的许可数量够，最终会通过自旋操作更新成功。如果剩余许可数量不够，会返回一个负数，表示获取失败。</p>
+</blockquote>
+<p>显然，<strong>ThreadA</strong>获取许可成功。此时，同步状态值<code>State == 1</code>，等待队列的结构如下：<br><img src="image-20200925144700073.png" alt="image-20200925144700073"></p>
+<h3 id="3-4-3-ThreadB调用acqure-2-方法"><a href="#3-4-3-ThreadB调用acqure-2-方法" class="headerlink" title="3.4.3 ThreadB调用acqure(2)方法"></a>3.4.3 ThreadB调用acqure(2)方法</h3><p>带入参的<strong>aquire</strong>方法内部和无参的一样，都是调用了AQS的acquireSharedInterruptibly方法：<br><img src="image-20200925144721964.png" alt="image-20200925144721964"></p>
+<p>此时，ThreadB一样进入<strong>tryAcquireShared</strong>方法。不同的是，此时剩余许可数不足，因为ThreadB一次性获取2个许可，<strong>tryAcquireShared</strong>方法返回一个负数，表示获取失败：<br><code>remaining = available - acquires = 1- 2 = -1;</code></p>
+<p>ThreadB会调用<strong>doAcquireSharedInterruptibly</strong>方法：<br><img src="image-20200925144739176.png" alt="image-20200925144739176"></p>
+<p>上述方法首先通过<strong>addWaiter</strong>方法将ThreadB包装成一个共享结点，加入等待队列：<br><img src="image-20200925144750924.png" alt="image-20200925144750924">然后会进入自旋操作，先尝试获取一次资源，显然此时是获取失败的，然后判断是否要进入阻塞（<strong>shouldParkAfterFailedAcquire</strong>）：<br><img src="image-20200925144803819.png" alt="image-20200925144803819"></p>
+<p>上述方法会先将前驱结点的状态置为<strong>SIGNAL</strong>，表示ThreadB需要阻塞，但在阻塞之前需要将前驱置为<strong>SIGNAL</strong>，以便将来可以唤醒ThreadB。</p>
+<p>最终ThreadB会在<strong>parkAndCheckInterrupt</strong>中进入阻塞：<br><img src="image-20200925144814792.png" alt="image-20200925144814792"></p>
+<p>此时，同步状态值依然是<code>State == 1</code>，等待队列的结构如下：<br><img src="image-20200925144843791.png" alt="image-20200925144843791"></p>
+<h3 id="3-4-4-ThreadC调用acqure-方法"><a href="#3-4-4-ThreadC调用acqure-方法" class="headerlink" title="3.4.4 ThreadC调用acqure()方法"></a>3.4.4 ThreadC调用acqure()方法</h3><p>流程和步骤3完全相同，ThreadC被包装成结点加入等待队列后：<br><img src="image-20200925144852896.png" alt="image-20200925144852896"></p>
+<p>同步状态：<code>State == 1</code></p>
+<h3 id="3-4-5-ThreadA调用release-方法"><a href="#3-4-5-ThreadA调用release-方法" class="headerlink" title="3.4.5 ThreadA调用release()方法"></a>3.4.5 ThreadA调用release()方法</h3><p><strong>Semaphore</strong>的<strong>realse</strong>方法调用了AQS的<strong>releaseShared</strong>方法，默认入参为”1”，表示归还一个许可：<br><img src="image-20200925144903822.png" alt="image-20200925144903822"></p>
+<p>来看下<strong>Semaphore</strong>是如何实现<strong>tryReleaseShared</strong>方法的，<strong>tryReleaseShared</strong>方法是一个自旋操作，直到更新State成功：<br><img src="image-20200925144913047.png" alt="image-20200925144913047"></p>
+<p>更新完成后，<code>State == 2</code>,ThreadA会进入<strong>doReleaseShared</strong>方法，先将头结点状态置为0，表示即将唤醒后继结点：<br><img src="image-20200925144923847.png" alt="image-20200925144923847"></p>
+<p>此时，等待队列结构：<br><img src="image-20200925144940260.png" alt="image-20200925144940260"></p>
+<p>然后调用<strong>unparkSuccessor</strong>方法唤醒后继结点：<br><img src="image-20200925144949705.png" alt="image-20200925144949705"></p>
+<p>此时，ThreadB被唤醒，会从原阻塞处继续向下执行：<br><img src="image-20200925145000376.png" alt="image-20200925145000376"></p>
+<p>此时，同步状态：<code>State == 2</code></p>
+<h3 id="3-4-6-ThreadB从原阻塞处继续执行"><a href="#3-4-6-ThreadB从原阻塞处继续执行" class="headerlink" title="3.4.6 ThreadB从原阻塞处继续执行"></a>3.4.6 ThreadB从原阻塞处继续执行</h3><p>ThreadB被唤醒后，从下面开始继续往下执行，进入下一次自旋：<br><img src="image-20200925145013788.png" alt="image-20200925145013788"></p>
+<p>在下一次自旋中，ThreadB调用<strong>tryAcquireShared</strong>方法成功获取到共享资源（State修改为0），<strong>setHeadAndPropagate</strong>方法把ThreadB变为头结点，<br>并根据传播状态判断是否要唤醒并释放后继结点：<br><img src="image-20200925145030882.png" alt="image-20200925145030882"></p>
+<p><img src="image-20200925145039662.png" alt="image-20200925145039662"></p>
+<p>同步状态：<code>State == 0</code></p>
+<p>ThreadB会调用<strong>doReleaseShared</strong>方法，继续尝试唤醒后继的共享结点（也就是ThreadC），这个过程和ThreadB被唤醒完全一样：<br><img src="image-20200925145049196.png" alt="image-20200925145049196"></p>
+<p><img src="image-20200925145057361.png" alt="image-20200925145057361"></p>
+<p>同步状态：<code>State == 0</code></p>
+<h3 id="3-4-7-ThreadC从原阻塞处继续执行"><a href="#3-4-7-ThreadC从原阻塞处继续执行" class="headerlink" title="3.4.7 ThreadC从原阻塞处继续执行"></a>3.4.7 ThreadC从原阻塞处继续执行</h3><p>由于目前共享资源仍为0，所以ThreadC被唤醒后，在经过尝试获取资源失败后，又进入了阻塞：<br><img src="image-20200925145107973.png" alt="image-20200925145107973"></p>
+<p><img src="image-20200925145115725.png" alt="image-20200925145115725"></p>
+<h3 id="3-4-8-ThreadA调用release-2-方法"><a href="#3-4-8-ThreadA调用release-2-方法" class="headerlink" title="3.4.8 ThreadA调用release(2)方法"></a>3.4.8 ThreadA调用release(2)方法</h3><p>内部和无参的release方法一样：<br><img src="image-20200925145125515.png" alt="image-20200925145125515"></p>
+<p>更新完成后，<code>State == 2</code>,ThreadA会进入<strong>doReleaseShared</strong>方法，唤醒后继结点：<br><img src="image-20200925145137948.png" alt="image-20200925145137948"></p>
+<p>此时，等待队列结构：<br><img src="image-20200925145149049.png" alt="image-20200925145149049"></p>
+<p>同步状态：<code>State == 2</code></p>
+<h3 id="3-4-9-ThreadC从原阻塞处继续执行"><a href="#3-4-9-ThreadC从原阻塞处继续执行" class="headerlink" title="3.4.9 ThreadC从原阻塞处继续执行"></a>3.4.9 ThreadC从原阻塞处继续执行</h3><p>由于目前共享资源为2，所以ThreadC被唤醒后，获取资源成功：<br><img src="image-20200925145200766.png" alt="image-20200925145200766"><br>最终同步队列的结构如下：<br><img src="image-20200925145210146.png" alt="image-20200925145210146"></p>
+<p>同步状态：<code>State == 0</code></p>
+<h2 id="3-5-总结"><a href="#3-5-总结" class="headerlink" title="3.5 总结"></a>3.5 总结</h2><p><strong>Semaphore</strong>其实就是实现了AQS共享功能的同步器，对于<strong>Semaphore</strong>来说，资源就是许可证的数量：</p>
+<ul>
+<li>剩余许可证数（State值） - 尝试获取的许可数（<strong>acquire</strong>方法入参） ≥ 0：资源可用</li>
+<li>剩余许可证数（State值） - 尝试获取的许可数（<strong>acquire</strong>方法入参） &lt; 0：资源不可用</li>
+</ul>
+<p>这里共享的含义是多个线程可以同时获取资源，当计算出的剩余资源不足时，线程就会阻塞。</p>
+<blockquote>
+<p><strong>注意：</strong>Semaphore不是锁，只能限制同时访问资源的线程数，至于对数据一致性的控制，Semaphore是不关心的。当前，如果是只有一个许可的Semaphore，可以当作锁使用。</p>
+</blockquote>
+<h3 id="3-5-1-非公平策略"><a href="#3-5-1-非公平策略" class="headerlink" title="3.5.1 非公平策略"></a>3.5.1 非公平策略</h3><p>另外，上述我们讨论的是<strong>Semaphore</strong>的公平策略，非公平策略的差异并不大：<br><img src="image-20200925145349597.png" alt="image-20200925145349597"></p>
+<p>可以看到，非公平策略不会去查看等待队列的队首是否有其它线程正在等待，而是直接尝试修改State值。</p>
+<h3 id="3-5-2-其它方法"><a href="#3-5-2-其它方法" class="headerlink" title="3.5.2 其它方法"></a>3.5.2 其它方法</h3><p><strong>Semaphore</strong>还有两个比较特殊的方法，这两个方法的特点是采用自旋操作State变量，直到成功为止。所以，并不会阻塞调用线程。</p>
+<p><strong>reducePermits</strong><br><img src="image-20200925145412624.png" alt="image-20200925145412624"></p>
+<p><strong>reducePermits</strong>立即减少指定数目的可用许可数。</p>
+<p><strong>drainPermits</strong><br><img src="image-20200925145427115.png" alt="image-20200925145427115"></p>
+<p><strong>drainPermits</strong>方法用于将可用许可数清零，并返回清零前的许可数</p>
+<h2 id="3-6-Semaphore的类-接口声明"><a href="#3-6-Semaphore的类-接口声明" class="headerlink" title="3.6 Semaphore的类/接口声明"></a>3.6 Semaphore的类/接口声明</h2><p><strong>类声明</strong></p>
+<p><img src="image-20200925145513314.png" alt="image-20200925145513314"></p>
+<p><strong>构造器</strong></p>
+<p><img src="image-20200925145527354.png" alt="image-20200925145527354"></p>
+<p><strong>接口声明</strong></p>
+<p><img src="image-20200925145601211.png" alt="image-20200925145601211"></p>
+<h1 id="四、Exchanger"><a href="#四、Exchanger" class="headerlink" title="四、Exchanger"></a>四、Exchanger</h1><h2 id="4-1-简介"><a href="#4-1-简介" class="headerlink" title="4.1 简介"></a>4.1 简介</h2><p><code>Exchanger</code>——交换器，是JDK1.5时引入的一个同步器，从字面上就可以看出，这个类的主要作用是交换数据。</p>
+<p>Exchanger有点类似于<code>CyclicBarrier</code>，我们知道CyclicBarrier是一个栅栏，到达栅栏的线程需要等待其它一定数量的线程到达后，才能通过栅栏。</p>
+<p>Exchanger可以看成是一个双向栅栏，如下图：<br><img src="image-20200925145650539.png" alt="image-20200925145650539"></p>
+<p><em>Thread1线程到达栅栏后，会首先观察有没其它线程已经到达栅栏，如果没有就会等待，如果已经有其它线程（Thread2）已经到达了，就会以成对的方式交换各自携带的信息，因此Exchanger非常适合用于两个线程之间的数据交换。</em></p>
+<h2 id="4-2-示例"><a href="#4-2-示例" class="headerlink" title="4.2 示例"></a>4.2 示例</h2><p>我们来看一个示例，理解下Exchanger的功能：</p>
+<blockquote>
+<p><strong>示例：</strong>假设现在有1个生产者，1个消费者，如果要实现生产者-消费者模式，一般的思路是利用队列作为一个消息队列，生产者不断生产消息，然后入队；消费者不断从消息队列中取消息进行消费。如果队列满了，生产者等待，如果队列空了，消费者等待。</p>
+</blockquote>
+<p>我们来看下如何利用<strong>Exchanger</strong>实现生产者-消息者模式：<br><strong>生产者：</strong></p>
+<pre><code class="java">public class Producer implements Runnable &#123;
+    private final Exchanger&lt;Message&gt; exchanger;
+
+    public Producer(Exchanger&lt;Message&gt; exchanger) &#123;
+        this.exchanger = exchanger;
+    &#125;
+
+    @Override
+    public void run() &#123;
+        Message message = new Message(null);
+        for (int i = 0; i &lt; 3; i++) &#123;
+            try &#123;
+                Thread.sleep(1000);
+
+                message.setV(String.valueOf(i));
+                System.out.println(Thread.currentThread().getName() + &quot;: 生产了数据[&quot; + i + &quot;]&quot;);
+
+                message = exchanger.exchange(message);
+
+                System.out.println(Thread.currentThread().getName() + &quot;: 交换得到数据[&quot; + String.valueOf(message.getV()) + &quot;]&quot;);
+
+            &#125; catch (InterruptedException e) &#123;
+                e.printStackTrace();
+            &#125;
+
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p><strong>消费者：</strong></p>
+<pre><code class="java">public class Consumer implements Runnable &#123;
+    private final Exchanger&lt;Message&gt; exchanger;
+
+    public Consumer(Exchanger&lt;Message&gt; exchanger) &#123;
+        this.exchanger = exchanger;
+    &#125;
+
+    @Override
+    public void run() &#123;
+        Message msg = new Message(null);
+        while (true) &#123;
+            try &#123;
+                Thread.sleep(1000);
+                msg = exchanger.exchange(msg);
+                System.out.println(Thread.currentThread().getName() + &quot;: 消费了数据[&quot; + msg.getV() + &quot;]&quot;);
+                msg.setV(null);
+            &#125; catch (InterruptedException e) &#123;
+                e.printStackTrace();
+            &#125;
+        &#125;
+    &#125;
+
+&#125;
+</code></pre>
+<p><strong>Main：</strong></p>
+<pre><code class="java">public class Main &#123;
+    public static void main(String[] args) &#123;
+        Exchanger&lt;Message&gt; exchanger = new Exchanger&lt;&gt;();
+        Thread t1 = new Thread(new Consumer(exchanger), &quot;消费者-t1&quot;);
+        Thread t2 = new Thread(new Producer(exchanger), &quot;生产者-t2&quot;);
+
+        t1.start();
+        t2.start();
+    &#125;
+&#125;
+</code></pre>
+<p><strong>输出：</strong></p>
+<pre><code>生产者-t2: 生产了数据[0]
+生产者-t2: 交换得到数据[null]
+消费者-t1: 消费了数据[0]
+生产者-t2: 生产了数据[1]
+消费者-t1: 消费了数据[1]
+生产者-t2: 交换得到数据[null]
+生产者-t2: 生产了数据[2]
+消费者-t1: 消费了数据[2]
+生产者-t2: 交换得到数据[null]
+</code></pre>
+<p>上述示例中，生产者生产了3个数据：0、1、2。通过<strong>Exchanger</strong>与消费者进行交换。可以看到，消费者消费完后会将空的<strong>Message</strong>交换给生产者。</p>
+<h2 id="4-3-原理"><a href="#4-3-原理" class="headerlink" title="4.3 原理"></a>4.3 原理</h2><h3 id="4-3-1-构造"><a href="#4-3-1-构造" class="headerlink" title="4.3.1 构造"></a>4.3.1 构造</h3><p>我们先来看下<strong>Exchanger</strong>的构造，<strong>Exchanger</strong>只有一个空构造器：<br><img src="image-20200925145827529.png" alt="image-20200925145827529"></p>
+<p>构造时，内部创建了一个<strong>Participant</strong>对象，<strong>Participant</strong>是Exchanger的一个内部类，本质就是一个ThreadLocal，用来保存线程本地变量<strong>Node</strong>：<br><img src="image-20200925145921244.png" alt="image-20200925145921244"></p>
+<p>我们可以把<strong>Node</strong>对象理解成每个线程自身携带的交换数据，：<br><img src="image-20200925145934366.png" alt="image-20200925145934366"></p>
+<h3 id="4-3-2-单槽位交换"><a href="#4-3-2-单槽位交换" class="headerlink" title="4.3.2 单槽位交换"></a>4.3.2 单槽位交换</h3><p><strong>Exchanger</strong>有两种数据交换的方式，当并发量低的时候，内部采用“<strong>单槽位交换</strong>”；并发量高的时候会采用“<strong>多槽位交换</strong>”。</p>
+<p>我们先来看下<strong>exchange</strong>方法：<br><img src="image-20200925150002131.png" alt="image-20200925150002131"></p>
+<p>可以看到exchange其实就是一个用于判断数据交换方式的方法，它的内部会根据<strong>Exchanger</strong>的某些字段状态来判断当前应该采用<strong>单槽交换</strong>（<strong>slotExchange</strong>）还是<strong>多槽交换</strong>（<strong>arenaExchange</strong>），整个判断的流程图如下：<br><img src="image-20200925150031243.png" alt="image-20200925150031243"></p>
+<p><strong>Exchanger</strong>的<strong>arena</strong>字段是一个<strong>Node</strong>类型的数组，代表了一个槽数组，只在多槽交换时会用到。此外，Exchanger还有一个<strong>slot</strong>字段，表示单槽交换结点，只在单槽交换时使用。</p>
+<blockquote>
+<p><strong>slot</strong>字段最终会指向首个到达的线程的自身Node结点，表示线程占用了槽位。</p>
+</blockquote>
+<p><img src="image-20200925150249312.png" alt="image-20200925150249312"></p>
+<p>单槽交换示意图：<br><img src="image-20200925150301280.png" alt="image-20200925150301280"></p>
+<p>我们来看下<strong>Exchanger</strong>具体是如何实现单槽交换的，单槽交换方法<strong>slotExchange</strong>并不复杂，<strong>slotExchange</strong>的入参<strong>item</strong>表示当前线程携带的数据，返回值正常情况下为配对线程携带的数据：</p>
+<pre><code class="java">/**
+ * 单槽交换
+ *
+ * @param item 待交换的数据
+ * @return 其它配对线程的数据; 如果多槽交换被激活或被中断返回null, 如果超时返回TIMED_OUT(一个Obejct对象)
+ */
+private final Object slotExchange(Object item, boolean timed, long ns) &#123;
+    Node p = participant.get();         // 当前线程携带的交换结点
+    Thread t = Thread.currentThread();
+    if (t.isInterrupted())              // 线程的中断状态检查
+        return null;
+
+    for (Node q; ; ) &#123;
+        if ((q = slot) != null) &#123;       // slot != null, 说明已经有线程先到并占用了slot
+            if (U.compareAndSwapObject(this, SLOT, q, null)) &#123;
+                Object v = q.item;      // 获取交换值
+                q.match = item;         // 设置交换值
+                Thread w = q.parked;
+                if (w != null)          // 唤醒在此槽位等待的线程
+                    U.unpark(w);
+                return v;               // 交换成功, 返回结果
+            &#125;
+            // CPU核数数多于1个, 且bound为0时创建arena数组，并将bound设置为SEQ大小
+            if (NCPU &gt; 1 &amp;&amp; bound == 0 &amp;&amp; U.compareAndSwapInt(this, BOUND, 0, SEQ))
+                arena = new Node[(FULL + 2) &lt;&lt; ASHIFT];
+        &#125; else if (arena != null)       // slot == null &amp;&amp; arena != null
+            // 单槽交换中途出现了初始化arena的操作，需要重新直接路由到多槽交换(arenaExchange)
+            return null;
+        else &#123;                          // 当前线程先到, 则占用此slot
+            p.item = item;
+            if (U.compareAndSwapObject(this, SLOT, null, p))    // 将slot槽占用
+                break;
+            p.item = null;              // CAS操作失败, 继续下一次自旋
+        &#125;
+    &#125;
+
+    // 执行到这, 说明当前线程先到达, 且已经占用了slot槽, 需要等待配对线程到达
+    int h = p.hash;
+    long end = timed ? System.nanoTime() + ns : 0L;
+    int spins = (NCPU &gt; 1) ? SPINS : 1;             // 自旋次数, 与CPU核数有关
+    Object v;
+    while ((v = p.match) == null) &#123;                 // p.match == null表示配对的线程还未到达
+        if (spins &gt; 0) &#123;                            // 优化操作:自旋过程中随机释放CPU
+            h ^= h &lt;&lt; 1;
+            h ^= h &gt;&gt;&gt; 3;
+            h ^= h &lt;&lt; 10;
+            if (h == 0)
+                h = SPINS | (int) t.getId();
+            else if (h &lt; 0 &amp;&amp; (--spins &amp; ((SPINS &gt;&gt;&gt; 1) - 1)) == 0)
+                Thread.yield();
+        &#125; else if (slot != p)                       // 优化操作:配对线程已经到达, 但是还未完全准备好, 所以需要再自旋等待一会儿
+            spins = SPINS;
+        else if (!t.isInterrupted() &amp;&amp; arena == null &amp;&amp;
+                (!timed || (ns = end - System.nanoTime()) &gt; 0L)) &#123;  //已经自旋很久了, 还是等不到配对, 此时才阻塞当前线程
+            U.putObject(t, BLOCKER, this);
+            p.parked = t;
+            if (slot == p)
+                U.park(false, ns);               // 阻塞当前线程
+            p.parked = null;
+            U.putObject(t, BLOCKER, null);
+        &#125; else if (U.compareAndSwapObject(this, SLOT, p, null)) &#123;   // 超时或其他（取消）, 给其他线程腾出slot
+            v = timed &amp;&amp; ns &lt;= 0L &amp;&amp; !t.isInterrupted() ? TIMED_OUT : null;
+            break;
+        &#125;
+    &#125;
+    U.putOrderedObject(p, MATCH, null);
+    p.item = null;
+    p.hash = h;
+    return v;
+&#125;
+</code></pre>
+<p>上述代码的整个流程大致如下：<br><img src="image-20200925150449373.png" alt="image-20200925150449373"></p>
+<p><strong>首先到达的线程：</strong></p>
+<ol>
+<li>如果当前线程是首个到达的线程，会将<strong>slot</strong>字段指向自身的<strong>Node</strong>结点，表示槽位被占用；</li>
+<li>然后，线程会自旋一段时间，如果经过一段时间的自旋还是等不到配对线程到达，就会进入阻塞。（<strong>这里之所以不直接阻塞，而是自旋，是出于线程上下文切换开销的考虑，属于一种优化手段</strong>）</li>
+</ol>
+<p><strong>稍后到达的配对线程：</strong><br>如果当前线程（配对线程）不是首个到达的线程，则到达时槽（<strong>slot</strong>）已经被占用，此时<strong>slot</strong>指向首个到达线程自身的<strong>Node</strong>结点。配对线程会将<strong>slot</strong>置空，并取Node中的<strong>item</strong>作为交换得到的数据返回，另外，配对线程会把自身携带的数据存入<strong>Node</strong>的<strong>match</strong>字段中，并唤醒<code>Node.parked</code>所指向的线程（也就是先到达的线程）。</p>
+<p><strong>首先到达的线程被唤醒：</strong><br>线程被唤醒后，由于<strong>match</strong>不为空（存放了配对线程携带过来的数据），所以会退出自旋，然后将<strong>match</strong>对应的值返回。</p>
+<p>这样，线程A和线程B就实现了数据交换，<strong>整个过程都没有用到同步操作</strong>。</p>
+<h3 id="4-3-2-多槽位交换"><a href="#4-3-2-多槽位交换" class="headerlink" title="4.3.2 多槽位交换"></a>4.3.2 多槽位交换</h3><p><strong>Exchanger</strong>最复杂的地方就是它的<strong>多槽位交换（arenaExchange）</strong>，我们先看下，什么时候会触发多槽位交换？<br>我们之前说了，并发量大的时候会触发多槽交换，这个说法并不准确。</p>
+<p><strong>单槽交换（slotExchange）</strong>中有这样一段代码：<br><img src="image-20200925150512093.png" alt="image-20200925150512093"></p>
+<p>也就是说，如果在单槽交换中，同时出现了<strong>多个配对线程竞争修改slot槽位，导致某个线程CAS修改slot失败时，就会初始化arena多槽数组，后续所有的交换都会走arenaExchange</strong>：</p>
+<pre><code class="java">/**
+ * 多槽交换
+ *
+ * @param item 待交换的数据
+ * @return 其它配对线程的数据; 如果被中断返回null, 如果超时返回TIMED_OUT(一个Obejct对象)
+ */
+private final Object arenaExchange(Object item, boolean timed, long ns) &#123;
+    Node[] a = arena;
+    Node p = participant.get();                     // 当前线程携带的交换结点
+    for (int i = p.index; ; ) &#123;                     // 当前线程的arena索引
+        int b, m, c;
+        long j;
+
+        // 从arena数组中选出偏移地址为(i &lt;&lt; ASHIFT) + ABASE的元素, 即真正可用的Node
+        Node q = (Node) U.getObjectVolatile(a, j = (i &lt;&lt; ASHIFT) + ABASE);
+
+        if (q != null &amp;&amp; U.compareAndSwapObject(a, j, q, null)) &#123;   // CASE1: 槽不为空，说明已经有线程到达并在等待了
+            Object v = q.item;                     // 获取已经到达的线程所携带的值
+            q.match = item;                        // 把当前线程携带的值交换给已经到达的线程
+            Thread w = q.parked;                   // q.parked指向已经到达的线程
+            if (w != null)
+                U.unpark(w);                       // 唤醒已经到达的线程
+            return v;
+        &#125; else if (i &lt;= (m = (b = bound) &amp; MMASK) &amp;&amp; q == null) &#123;       // CASE2: 有效槽位位置且槽位为空
+            p.item = item;
+            if (U.compareAndSwapObject(a, j, null, p)) &#123;            // 占用该槽位, 成功
+                long end = (timed &amp;&amp; m == 0) ? System.nanoTime() + ns : 0L;
+                Thread t = Thread.currentThread();
+                for (int h = p.hash, spins = SPINS; ; ) &#123;               // 自旋等待一段时间,看看有没其它配对线程到达该槽位
+                    Object v = p.match;
+                    if (v != null) &#123;                                    // 有配对线程到达了该槽位
+                        U.putOrderedObject(p, MATCH, null);
+                        p.item = null;
+                        p.hash = h;
+                        return v;   // 返回配对线程交换过来的值
+                    &#125; else if (spins &gt; 0) &#123;
+                        h ^= h &lt;&lt; 1;
+                        h ^= h &gt;&gt;&gt; 3;
+                        h ^= h &lt;&lt; 10;
+                        if (h == 0)                // initialize hash
+                            h = SPINS | (int) t.getId();
+                        else if (h &lt; 0 &amp;&amp;          // approx 50% true
+                                (--spins &amp; ((SPINS &gt;&gt;&gt; 1) - 1)) == 0)
+                            Thread.yield();        // 每一次等待有两次让出CPU的时机
+                    &#125; else if (U.getObjectVolatile(a, j) != p)       // 优化操作:配对线程已经到达, 但是还未完全准备好, 所以需要再自旋等待一会儿
+                        spins = SPINS;
+                    else if (!t.isInterrupted() &amp;&amp; m == 0 &amp;&amp;
+                            (!timed || (ns = end - System.nanoTime()) &gt; 0L)) &#123;      // 等不到配对线程了, 阻塞当前线程
+                        U.putObject(t, BLOCKER, this);
+                        p.parked = t;                           // 在结点引用当前线程，以便配对线程到达后唤醒我
+                        if (U.getObjectVolatile(a, j) == p)
+                            U.park(false, ns);
+                        p.parked = null;
+                        U.putObject(t, BLOCKER, null);
+                    &#125; else if (U.getObjectVolatile(a, j) == p &amp;&amp;
+                            U.compareAndSwapObject(a, j, p, null)) &#123;    // 尝试缩减arena槽数组的大小
+                        if (m != 0)                // try to shrink
+                            U.compareAndSwapInt(this, BOUND, b, b + SEQ - 1);
+                        p.item = null;
+                        p.hash = h;
+                        i = p.index &gt;&gt;&gt;= 1;        // descend
+                        if (Thread.interrupted())
+                            return null;
+                        if (timed &amp;&amp; m == 0 &amp;&amp; ns &lt;= 0L)
+                            return TIMED_OUT;
+                        break;                     // expired; restart
+                    &#125;
+                &#125;
+            &#125; else                                 // 占用槽位失败
+                p.item = null;
+        &#125; else &#123;                                   // CASE3: 无效槽位位置, 需要扩容
+            if (p.bound != b) &#123;
+                p.bound = b;
+                p.collides = 0;
+                i = (i != m || m == 0) ? m : m - 1;
+            &#125; else if ((c = p.collides) &lt; m || m == FULL ||
+                    !U.compareAndSwapInt(this, BOUND, b, b + SEQ + 1)) &#123;
+                p.collides = c + 1;
+                i = (i == 0) ? m : i - 1;          // cyclically traverse
+            &#125; else
+                i = m + 1;                         // grow
+            p.index = i;
+        &#125;
+    &#125;
+&#125;
+
+/**
+ * 单槽交换
+ *
+ * @param item 待交换的数据
+ * @return 其它配对线程的数据; 如果多槽交换被激活或被中断返回null, 如果超时返回TIMED_OUT(一个Obejct对象)
+ */
+private final Object slotExchange(Object item, boolean timed, long ns) &#123;
+    Node p = participant.get();         // 当前线程携带的交换结点
+    Thread t = Thread.currentThread();
+    if (t.isInterrupted())              // 线程的中断状态检查
+        return null;
+
+    for (Node q; ; ) &#123;
+        if ((q = slot) != null) &#123;       // slot != null, 说明已经有线程先到并占用了slot
+            if (U.compareAndSwapObject(this, SLOT, q, null)) &#123;
+                Object v = q.item;      // 获取交换值
+                q.match = item;         // 设置交换值
+                Thread w = q.parked;
+                if (w != null)          // 唤醒在此槽位等待的线程
+                    U.unpark(w);
+                return v;               // 交换成功, 返回结果
+            &#125;
+            // CPU核数数多于1个, 且bound为0时创建arena数组，并将bound设置为SEQ大小
+            if (NCPU &gt; 1 &amp;&amp; bound == 0 &amp;&amp; U.compareAndSwapInt(this, BOUND, 0, SEQ))
+                arena = new Node[(FULL + 2) &lt;&lt; ASHIFT];
+        &#125; else if (arena != null)       // slot == null &amp;&amp; arena != null
+            // 单槽交换中途出现了初始化arena的操作，需要重新直接路由到多槽交换(arenaExchange)
+            return null;
+        else &#123;                          // 当前线程先到, 则占用此slot
+            p.item = item;
+            if (U.compareAndSwapObject(this, SLOT, null, p))    // 将slot槽占用
+                break;
+            p.item = null;              // CAS操作失败, 继续下一次自旋
+        &#125;
+    &#125;
+
+    // 执行到这, 说明当前线程先到达, 且已经占用了slot槽, 需要等待配对线程到达
+    int h = p.hash;
+    long end = timed ? System.nanoTime() + ns : 0L;
+    int spins = (NCPU &gt; 1) ? SPINS : 1;             // 自旋次数, 与CPU核数有关
+    Object v;
+    while ((v = p.match) == null) &#123;                 // p.match == null表示配对的线程还未到达
+        if (spins &gt; 0) &#123;                            // 优化操作:自旋过程中随机释放CPU
+            h ^= h &lt;&lt; 1;
+            h ^= h &gt;&gt;&gt; 3;
+            h ^= h &lt;&lt; 10;
+            if (h == 0)
+                h = SPINS | (int) t.getId();
+            else if (h &lt; 0 &amp;&amp; (--spins &amp; ((SPINS &gt;&gt;&gt; 1) - 1)) == 0)
+                Thread.yield();
+        &#125; else if (slot != p)                       // 优化操作:配对线程已经到达, 但是还未完全准备好, 所以需要再自旋等待一会儿
+            spins = SPINS;
+        else if (!t.isInterrupted() &amp;&amp; arena == null &amp;&amp;
+                (!timed || (ns = end - System.nanoTime()) &gt; 0L)) &#123;  //已经自旋很久了, 还是等不到配对, 此时才阻塞当前线程
+            U.putObject(t, BLOCKER, this);
+            p.parked = t;
+            if (slot == p)
+                U.park(false, ns);               // 阻塞当前线程
+            p.parked = null;
+            U.putObject(t, BLOCKER, null);
+        &#125; else if (U.compareAndSwapObject(this, SLOT, p, null)) &#123;   // 超时或其他（取消）, 给其他线程腾出slot
+            v = timed &amp;&amp; ns &lt;= 0L &amp;&amp; !t.isInterrupted() ? TIMED_OUT : null;
+            break;
+        &#125;
+    &#125;
+    U.putOrderedObject(p, MATCH, null);
+    p.item = null;
+    p.hash = h;
+    return v;
+&#125;
+</code></pre>
+<p>多槽交换方法<strong>arenaExchange</strong>的整体流程和<strong>slotExchange</strong>类似，<strong>主要区别在于它会根据当前线程的数据携带结点Node中的index字段计算出命中的槽位</strong>。</p>
+<p>如果槽位被占用，说明已经有线程先到了，之后的处理和<strong>slotExchange</strong>一样；</p>
+<p>如果槽位有效且为null，说明当前线程是先到的，就占用槽位，然后按照：<code>spin-&gt;yield-&gt;block</code>这种锁升级的顺序进行优化的等待，等不到配对线程就会进入阻塞。</p>
+<p>另外，由于<strong>arenaExchange</strong>利用了槽数组，所以涉及到槽数组的扩容和缩减问题，读者可以自己去研读源码。</p>
+<p>其次，在定位<strong>arena</strong>数组的有效槽位时，需要考虑缓存行的影响。由于高速缓存与内存之间是以缓存行为单位交换数据的，根据局部性原理，相邻地址空间的数据会被加载到高速缓存的同一个数据块上（缓存行），而数组是连续的（逻辑，涉及到虚拟内存）内存地址空间，因此，多个<strong>slot</strong>会被加载到同一个缓存行上，当一个<strong>slot</strong>改变时，会导致这个<strong>slot</strong>所在的缓存行上所有的数据（包括其他的<strong>slot</strong>）无效，需要从内存重新加载，影响性能。</p>
+<blockquote>
+<p>需要注意的是，由于不同的JDK版本，同步工具类内部的实现细节千差万别，所以最关键的还是理解它的设计思想。<strong>Exchanger</strong>的设计思想和**<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000015865714">LongAdder</a><strong>有些类似，都是通过<code>无锁+分散热点</code>的方式提升性能，但是个人感觉JDK1.8中的</strong>Exchanger**实现更为复杂，特别是其中的多槽交换，还涉及了缓存行相关的东西。</p>
+</blockquote>
+<h2 id="4-4-类-接口声明"><a href="#4-4-类-接口声明" class="headerlink" title="4.4 类/接口声明"></a>4.4 类/接口声明</h2><p><strong>类声明</strong></p>
+<p><img src="image-20200925150540244.png" alt="image-20200925150540244"></p>
+<p><strong>接口声明</strong></p>
+<p><img src="image-20200925150557894.png" alt="image-20200925150557894"></p>
+<h1 id="五、Phaser"><a href="#五、Phaser" class="headerlink" title="五、Phaser"></a>五、Phaser</h1><h2 id="5-1-简介"><a href="#5-1-简介" class="headerlink" title="5.1 简介"></a>5.1 简介</h2><p><code>Phaser</code>是<strong>JDK1.7</strong>开始引入的一个同步工具类，适用于一些需要分阶段的任务的处理。它的功能与 <strong>CyclicBarrier</strong>和<strong>CountDownLatch</strong>有些类似，类似于一个多阶段的栅栏，并且功能更强大，我们来比较下这三者的功能：</p>
+<table>
+<thead>
+<tr>
+<th>同步器</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CountDownLatch</td>
+<td>倒数计数器，初始时设定计数器值，线程可以在计数器上等待，当计数器值归0后，所有等待的线程继续执行</td>
+</tr>
+<tr>
+<td>CyclicBarrier</td>
+<td>循环栅栏，初始时设定参与线程数，当线程到达栅栏后，会等待其它线程的到达，当到达栅栏的总数满足指定数后，所有等待的线程继续执行</td>
+</tr>
+<tr>
+<td>Phaser</td>
+<td>多阶段栅栏，可以在初始时设定参与线程数，也可以中途注册/注销参与者，当到达的参与者数量满足栅栏设定的数量后，会进行阶段升级（advance）</td>
+</tr>
+</tbody></table>
+<hr>
+<p><strong>Phaser</strong>中有一些比较重要的概念，理解了这些概念才能理解Phaser的功能。</p>
+<h3 id="5-1-1-phase-阶段"><a href="#5-1-1-phase-阶段" class="headerlink" title="5.1.1 phase(阶段)"></a>5.1.1 phase(阶段)</h3><p>我们知道，在<strong>CyclicBarrier</strong>中，只有一个栅栏，线程在到达栅栏后会等待其它线程的到达。</p>
+<p>Phaser也有栅栏，在Phaser中，栅栏的名称叫做<strong>phase(阶段)<strong>，在任意时间点，Phaser只处于某一个</strong>phase(阶段)<strong>，初始阶段为0，最大达到<code>Integerr.MAX_VALUE</code>，然后再次归零。当所有</strong>parties</strong>参与者都到达后，<strong>phase</strong>值会递增。</p>
+<p>如果看过之前CyclicBarrier，就会知道，Phaser中的phase(阶段)这个概念其实和<strong>CyclicBarrier</strong>中的<strong>Generation</strong>很相似，只不过<strong>Generation</strong>没有计数。</p>
+<h3 id="5-1-2-parties-参与者"><a href="#5-1-2-parties-参与者" class="headerlink" title="5.1.2 parties(参与者)"></a>5.1.2 parties(参与者)</h3><p><strong>parties(参与者)<strong>其实就是</strong>CyclicBarrier</strong>中的参与线程的概念。</p>
+<p><strong>CyclicBarrier</strong>中的参与者在初始构造指定后就不能变更，而Phaser既可以在初始构造时指定参与者的数量，也可以中途通过<code>register</code>、<code>bulkRegister</code>、<code>arriveAndDeregister</code>等方法注册/注销参与者。</p>
+<h3 id="5-1-3-arrive-到达-advance-进阶"><a href="#5-1-3-arrive-到达-advance-进阶" class="headerlink" title="5.1.3 arrive(到达) / advance(进阶)"></a>5.1.3 arrive(到达) / advance(进阶)</h3><p>Phaser注册完<strong>parties（参与者）</strong>之后，参与者的初始状态是<strong>unarrived</strong>的，当参与者<strong>到达（arrive）</strong>当前阶段（phase）后，状态就会变成<strong>arrived</strong>。当阶段的到达参与者数满足条件后（注册的数量等于到达的数量），阶段就会发生<strong>进阶（advance）</strong>——也就是phase值+1。</p>
+<p><img src="image-20200925151053494.png" alt="image-20200925151053494"></p>
+<h3 id="5-1-4-Termination（终止）"><a href="#5-1-4-Termination（终止）" class="headerlink" title="5.1.4 Termination（终止）"></a>5.1.4 Termination（终止）</h3><p>代表当前<strong>Phaser</strong>对象达到终止状态，有点类似于<strong>CyclicBarrier</strong>中的栅栏被破坏的概念。</p>
+<h3 id="5-1-5-Tiering（分层）"><a href="#5-1-5-Tiering（分层）" class="headerlink" title="5.1.5 Tiering（分层）"></a>5.1.5 Tiering（分层）</h3><p>Phaser支持<strong>分层（Tiering）</strong> —— 一种树形结构，通过构造函数可以指定当前待构造的Phaser对象的父结点。之所以引入<strong>Tiering</strong>，是因为当一个Phaser有大量<strong>参与者（parties）</strong>的时候，内部的同步操作会使性能急剧下降，而分层可以降低竞争，从而减小因同步导致的额外开销。</p>
+<p>在一个分层Phasers的树结构中，注册和撤销子Phaser或父Phaser是自动被管理的。当一个Phaser的<strong>参与者（parties）</strong>数量变成0时，如果有该Phaser有父结点，就会将它从父结点中溢移除。</p>
+<p>关于Phaser的分层，后续我们在讲Phaser原理时会进一步讨论。</p>
+<h2 id="5-2-示例"><a href="#5-2-示例" class="headerlink" title="5.2 示例"></a>5.2 示例</h2><p>为了更好的理解Phaser的功能，我们来看几个示例：</p>
+<h3 id="5-2-1-示例一"><a href="#5-2-1-示例一" class="headerlink" title="5.2.1 示例一"></a>5.2.1 示例一</h3><blockquote>
+<p>通过Phaser控制多个线程的执行时机：有时候我们希望所有线程到达指定点后再同时开始执行，我们可以利用<strong>CyclicBarrier</strong>或<strong>CountDownLatch</strong>来实现，这里给出使用Phaser的版本。</p>
+</blockquote>
+<pre><code class="java">public class PhaserTest1 &#123;
+    public static void main(String[] args) &#123;
+        Phaser phaser = new Phaser();
+        for (int i = 0; i &lt; 10; i++) &#123;
+            phaser.register();                  // 注册各个参与者线程
+       new Thread(new Task(phaser), &quot;Thread-&quot; + i).start();
+        &#125;
+    &#125;
+&#125;
+
+class Task implements Runnable &#123;
+    private final Phaser phaser;
+
+    Task(Phaser phaser) &#123;
+        this.phaser = phaser;
+    &#125;
+
+    @Override
+    public void run() &#123;
+        int i = phaser.arriveAndAwaitAdvance();     // 等待其它参与者线程到达
+     // do something
+        System.out.println(Thread.currentThread().getName() + &quot;: 执行完任务，当前phase =&quot; + i + &quot;&quot;);
+    &#125;
+&#125;
+</code></pre>
+<p><strong>输出：</strong></p>
+<pre><code>Thread-8: 执行完任务，当前phase =1
+Thread-4: 执行完任务，当前phase =1
+Thread-3: 执行完任务，当前phase =1
+Thread-0: 执行完任务，当前phase =1
+Thread-5: 执行完任务，当前phase =1
+Thread-6: 执行完任务，当前phase =1
+Thread-7: 执行完任务，当前phase =1
+Thread-9: 执行完任务，当前phase =1
+Thread-1: 执行完任务，当前phase =1
+Thread-2: 执行完任务，当前phase =1
+</code></pre>
+<p>以上示例中，创建了10个线程，并通过<code>register</code>方法注册Phaser的参与者数量为10。当某个线程调用<code>arriveAndAwaitAdvance</code>方法后，<strong>arrive</strong>数量会加1，如果数量没有满足总数（参与者数量10），当前线程就是一直等待，当最后一个线程到达后，所有线程都会继续往下执行。</p>
+<blockquote>
+<p><strong>注意：</strong><code>arriveAndAwaitAdvance</code>方法是不响应中断的，也就是说即使当前线程被中断，<strong>arriveAndAwaitAdvance</strong>方法也不会返回或抛出异常，而是继续等待。如果希望能够响应中断，可以参考<code>awaitAdvanceInterruptibly</code>方法。</p>
+</blockquote>
+<h3 id="5-2-2-示例二"><a href="#5-2-2-示例二" class="headerlink" title="5.2.2 示例二"></a>5.2.2 示例二</h3><blockquote>
+<p>通过Phaser实现开关。在以前讲<strong>CountDownLatch</strong>时，我们给出过以<strong>CountDownLatch</strong>实现开关的示例，也就是说，我们希望一些外部条件得到满足后，然后打开开关，线程才能继续执行，我们看下如何用<strong>Phaser</strong>来实现此功能。</p>
+</blockquote>
+<pre><code class="java">public class PhaserTest2 &#123;
+
+    public static void main(String[] args) throws IOException &#123;
+        Phaser phaser = new Phaser(1);       // 注册主线程,当外部条件满足时,由主线程打开开关
+        for (int i = 0; i &lt; 10; i++) &#123;
+            phaser.register();                      // 注册各个参与者线程
+            new Thread(new Task2(phaser), &quot;Thread-&quot; + i).start();
+        &#125;
+
+        // 外部条件:等待用户输入命令
+        System.out.println(&quot;Press ENTER to continue&quot;);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        reader.readLine();
+
+        // 打开开关
+        phaser.arriveAndDeregister();
+        System.out.println(&quot;主线程打开了开关&quot;);
+    &#125;
+&#125;
+
+class Task2 implements Runnable &#123;
+    private final Phaser phaser;
+
+    Task2(Phaser phaser) &#123;
+        this.phaser = phaser;
+    &#125;
+
+    @Override
+    public void run() &#123;
+        int i = phaser.arriveAndAwaitAdvance();     // 等待其它参与者线程到达
+
+        // do something
+        System.out.println(Thread.currentThread().getName() + &quot;: 执行完任务，当前phase =&quot; + i + &quot;&quot;);
+    &#125;
+&#125;
+</code></pre>
+<p><strong>输出：</strong></p>
+<pre><code>主线程打开了开关
+Thread-7: 执行完任务，当前phase =1
+Thread-4: 执行完任务，当前phase =1
+Thread-3: 执行完任务，当前phase =1
+Thread-1: 执行完任务，当前phase =1
+Thread-0: 执行完任务，当前phase =1
+Thread-9: 执行完任务，当前phase =1
+Thread-8: 执行完任务，当前phase =1
+Thread-2: 执行完任务，当前phase =1
+Thread-5: 执行完任务，当前phase =1
+Thread-6: 执行完任务，当前phase =1
+</code></pre>
+<p>以上示例中，只有当用户按下回车之后，任务才真正开始执行。这里主线程Main相当于一个协调者，用来控制开关打开的时机，<code>arriveAndDeregister</code>方法不会阻塞，该方法会将到达数加1，同时减少一个参与者数量，最终返回线程到达时的<strong>phase</strong>值。</p>
+<h3 id="5-2-3-示例三"><a href="#5-2-3-示例三" class="headerlink" title="5.2.3 示例三"></a>5.2.3 示例三</h3><blockquote>
+<p>通过<strong>Phaser</strong>控制任务的执行轮数</p>
+</blockquote>
+<pre><code class="java">public class PhaserTest3 &#123;
+    public static void main(String[] args) throws IOException &#123;
+
+        int repeats = 3;    // 指定任务最多执行的次数
+
+        Phaser phaser = new Phaser() &#123;
+            @Override
+            protected boolean onAdvance(int phase, int registeredParties) &#123;
+                System.out.println(&quot;---------------PHASE[&quot; + phase + &quot;],Parties[&quot; + registeredParties + &quot;] ---------------&quot;);
+                return phase + 1 &gt;= repeats  || registeredParties == 0;
+            &#125;
+        &#125;;
+
+        for (int i = 0; i &lt; 10; i++) &#123;
+            phaser.register();                      // 注册各个参与者线程
+       new Thread(new Task3(phaser), &quot;Thread-&quot; + i).start();
+        &#125;
+    &#125;
+&#125;
+
+class Task3 implements Runnable &#123;
+    private final Phaser phaser;
+
+    Task3(Phaser phaser) &#123;
+        this.phaser = phaser;
+    &#125;
+
+    @Override
+    public void run() &#123;
+        while (!phaser.isTerminated()) &#123;   //只要Phaser没有终止, 各个线程的任务就会一直执行
+            int i = phaser.arriveAndAwaitAdvance();     // 等待其它参与者线程到达
+            // do something
+            System.out.println(Thread.currentThread().getName() + &quot;: 执行完任务&quot;);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p><strong>输出：</strong></p>
+<pre><code>---------------PHASE[0],Parties[5] ---------------
+Thread-4: 执行完任务
+Thread-1: 执行完任务
+Thread-2: 执行完任务
+Thread-3: 执行完任务
+Thread-0: 执行完任务
+---------------PHASE[1],Parties[5] ---------------
+Thread-0: 执行完任务
+Thread-3: 执行完任务
+Thread-1: 执行完任务
+Thread-4: 执行完任务
+Thread-2: 执行完任务
+---------------PHASE[2],Parties[5] ---------------
+Thread-2: 执行完任务
+Thread-4: 执行完任务
+Thread-1: 执行完任务
+Thread-0: 执行完任务
+Thread-3: 执行完任务
+</code></pre>
+<p>以上示例中，我们在创建Phaser对象时，覆写了<code>onAdvance</code>方法，这个方法类似于<strong>CyclicBarrier</strong>中的<code>barrierAction</code>任务。<br>也就是说，当最后一个参与者到达时，会触发<code>onAdvance</code>方法，入参<strong>phase</strong>表示到达时的phase值，<strong>registeredParties</strong>表示到达时的参与者数量，返回true表示需要终止Phaser。</p>
+<p>我们通过<code>phase + 1 &gt;= repeats</code> ，来控制<strong>阶段（phase）</strong>数的上限为2（从0开始计），最终控制了每个线程的执行任务次数为<strong>repeats</strong>次。</p>
+<h3 id="5-2-4-示例四"><a href="#5-2-4-示例四" class="headerlink" title="5.2.4 示例四"></a>5.2.4 示例四</h3><blockquote>
+<p>Phaser支持分层功能，我们先来考虑下如何用利用Phaser的分层来实现高并发时的优化，在<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000015979879#articleHeader9">示例三</a>中，我们其实创建了10个任务，然后10个线程共用一个Phaser对象，如下图：</p>
+</blockquote>
+<p><img src="image-20200925153418766.png" alt="image-20200925153418766"></p>
+<p>如果任务数继续增大，那么同步产生的开销会非常大，利用Phaser分层的功能，我们可以限定每个Phaser对象的最大使用线程（任务数），如下图：<br><img src="image-20200925153428670.png" alt="image-20200925153428670"></p>
+<p>可以看到，上述Phasers其实构成了一颗多叉树，如果任务数继续增多，还可以将Phaser的叶子结点继续分裂，然后将分裂出的子结点供工作线程使用。</p>
+<pre><code class="java">public class PhaserTest4 &#123;
+    private static final int TASKS_PER_PHASER = 4;      // 每个Phaser对象对应的工作线程（任务）数
+
+    public static void main(String[] args) throws IOException &#123;
+
+        int repeats = 3;    // 指定任务最多执行的次数
+        Phaser phaser = new Phaser() &#123;
+            @Override
+            protected boolean onAdvance(int phase, int registeredParties) &#123;
+                System.out.println(&quot;---------------PHASE[&quot; + phase + &quot;],Parties[&quot; + registeredParties + &quot;] ---------------&quot;);
+                return phase + 1 &gt;= repeats || registeredParties == 0;
+            &#125;
+        &#125;;
+
+        Tasker[] taskers = new Tasker[10];
+        build(taskers, 0, taskers.length, phaser);       // 根据任务数,为每个任务分配Phaser对象
+
+        for (int i = 0; i &lt; taskers.length; i++) &#123;          // 执行任务
+            Thread thread = new Thread(taskers[i]);
+            thread.start();
+        &#125;
+    &#125;
+
+    private static void build(Tasker[] taskers, int lo, int hi, Phaser phaser) &#123;
+        if (hi - lo &gt; TASKS_PER_PHASER) &#123;
+            for (int i = lo; i &lt; hi; i += TASKS_PER_PHASER) &#123;
+                int j = Math.min(i + TASKS_PER_PHASER, hi);
+                build(taskers, i, j, new Phaser(phaser));
+            &#125;
+        &#125; else &#123;
+            for (int i = lo; i &lt; hi; ++i)
+                taskers[i] = new Tasker(i, phaser);
+        &#125;
+
+    &#125;
+&#125;
+
+class Task4 implements Runnable &#123;
+    private final Phaser phaser;
+
+    Task4(Phaser phaser) &#123;
+        this.phaser = phaser;
+        this.phaser.register();
+    &#125;
+
+    @Override
+    public void run() &#123;
+        while (!phaser.isTerminated()) &#123;   //只要Phaser没有终止, 各个线程的任务就会一直执行
+            int i = phaser.arriveAndAwaitAdvance();     // 等待其它参与者线程到达
+            // do something
+            System.out.println(Thread.currentThread().getName() + &quot;: 执行完任务&quot;);
+        &#125;
+    &#125;
+&#125;
+输出：
+---------------PHASE[0],Parties[3] ---------------
+Thread-9: 执行完任务
+Thread-6: 执行完任务
+Thread-5: 执行完任务
+Thread-4: 执行完任务
+Thread-1: 执行完任务
+Thread-0: 执行完任务
+Thread-7: 执行完任务
+Thread-8: 执行完任务
+Thread-2: 执行完任务
+Thread-3: 执行完任务
+---------------PHASE[1],Parties[3] ---------------
+Thread-3: 执行完任务
+Thread-7: 执行完任务
+Thread-0: 执行完任务
+Thread-1: 执行完任务
+Thread-5: 执行完任务
+Thread-8: 执行完任务
+Thread-2: 执行完任务
+Thread-9: 执行完任务
+Thread-6: 执行完任务
+Thread-4: 执行完任务
+---------------PHASE[2],Parties[3] ---------------
+Thread-4: 执行完任务
+Thread-2: 执行完任务
+Thread-8: 执行完任务
+Thread-0: 执行完任务
+Thread-3: 执行完任务
+Thread-9: 执行完任务
+Thread-6: 执行完任务
+Thread-7: 执行完任务
+Thread-1: 执行完任务
+Thread-5: 执行完任务
+</code></pre>
+<h2 id="5-3-原理"><a href="#5-3-原理" class="headerlink" title="5.3 原理"></a>5.3 原理</h2><p>Phaser是本系列至今为止，内部结构最为复杂的同步器之一。在开始深入Phaser原理之前，我们有必要先来讲讲Phaser的内部组织结构和它的设计思想。</p>
+<h3 id="5-3-1-内部结构"><a href="#5-3-1-内部结构" class="headerlink" title="5.3.1 内部结构"></a>5.3.1 内部结构</h3><p>之前我们说过，Phaser支持树形结构，在之前示例四中，也给出了一个通过分层提高并发性和程序执行效率的例子。一个复杂分层结构的Phaser树的内部结构如下图所示：<br><img src="image-20200925153505797.png" alt="image-20200925153505797"></p>
+<p>上面图中的几点关键点：</p>
+<ol>
+<li>树的根结点root链接着两个“无锁栈”——Treiber Stack，用于保存等待线程（比如当线程等待Phaser进入下一阶段时，会根据当前阶段的奇偶性，把自己挂到某个栈中），所有Phaser对象都共享这两个栈。</li>
+<li>当首次将某个Phaser结点链接到树中时，会同时向该结点的父结点注册一个参与者。</li>
+</ol>
+<blockquote>
+<p>为什么需要向父结点注册参与者？</p>
+</blockquote>
+<p>首先我们要明白对于Phaser来说，什么时候会发生跃迁（advance）进入下一阶段？</p>
+<p>废话，当然是等它所有参与者都到达的时候。那么它所等待的参与者都包含那几类呢？</p>
+<p><strong>①对于一个孤立的Phaser结点</strong>（也可以看成是只有一个根结点的树）<br>其等待的参与者，就是显式注册的参与者，这也是最常见的情况。<br>比如下图，如果有10个Task共用这个Phaser，那等待的参与者数就是10，当10个线程都到达后，Phaser就会跃迁至下一阶段。<br><img src="image-20200925153522049.png" alt="image-20200925153522049"></p>
+<p>②<strong>对于一个非孤立的Phaser叶子结点</strong>，比如下图中标绿的叶子结点<br>这种情况和①一样，子Phaser1和子Phaser2等待的参与者数是4，子Phaser3等待的参与者数是2。<br><img src="image-20200925153532019.png" alt="image-20200925153532019"></p>
+<p>③<strong>对于一个非孤立非叶子的Phaser结点</strong>，比如上图中标蓝色的结点<br>这是最特殊的一种情况，这也是Phaser同步器关于分层的主要设计思路。<br>这种情况，结点所等待的参与者数目包含两部分：</p>
+<ol>
+<li>直接显式注册的参与者（通过构造器或register方法）。——等于0</li>
+<li>子结点的数目。——等于3</li>
+</ol>
+<p>也就是说在上图中，当左一的<strong>子Phaser1</strong>的4个参与者都到达后，它会通知父结点<strong>Phaser</strong>，自己的状态已经OK了，这时<strong>Phaser</strong>会认为<strong>子Phaser1</strong>已经准备就绪，会将自己的到达者数量加1，同理，当<strong>子Phaser2</strong>和<strong>子Phaser3</strong>的所有参与者分别到达后，它们也会依次通知<strong>Phaser</strong>，只有当Phaser（根结点）的到达者数量为3时，才会释放“无锁栈”中等待着的线程，并将阶段数phase增加1。</p>
+<blockquote>
+<p>这是一种层层递归的设计，<strong>只要当根结点的所有参与者都到达后（也就是到达参数者数等于其子结点数），所有等待线程才会放行，栅栏才会进入下一阶段。</strong></p>
+</blockquote>
+<hr>
+<p>了解了上面这些，我们再来看Phaser的源码。</p>
+<h3 id="5-3-2-同步状态定义"><a href="#5-3-2-同步状态定义" class="headerlink" title="5.3.2 同步状态定义"></a>5.3.2 同步状态定义</h3><p>Phaser使用一个long类型来保存同步状态值State，并按位划分不同区域的含义，通过掩码和位运算进行赋值和操作：<br><img src="image-20200925153550592.png" alt="image-20200925153550592"></p>
+<h3 id="5-3-3-栈结点定义"><a href="#5-3-3-栈结点定义" class="headerlink" title="5.3.3 栈结点定义"></a>5.3.3 栈结点定义</h3><p>“无锁栈”——Treiber Stack，保存在Phaser树的根结点中，其余所有Phaser子结点共享这两个栈：<br><img src="image-20200925153602739.png" alt="image-20200925153602739"></p>
+<p>结点的定义非常简单，内部保存了线程信息和Phsaer对象信息：<br><img src="image-20200925153616534.png" alt="image-20200925153616534"></p>
+<p><strong>注意：</strong><code>ForkJoinPool.ManagedBlocker</code>是当栈包含ForkJoinWorkerThread类型的QNode阻塞的时候，ForkJoinPool内部会增加一个工作线程来保证并行度，后续讲ForkJoin框架时我们会进行分析。</p>
+<h3 id="5-3-4-构造器"><a href="#5-3-4-构造器" class="headerlink" title="5.3.4 构造器"></a>5.3.4 构造器</h3><p>Phaser一共有4个构造器，可以看到，最终其实都是调用了<code>Phaser(Phaser parent, int parties)</code>这个构造器。<br><img src="image-20200925153652702.png" alt="image-20200925153652702"></p>
+<p><code>Phaser(Phaser parent, int parties)</code>的内部实现如下，关键就是给当前的Phaser对象指定父结点时，如果当前Phaser的参与者不为0，需要向父Phaser注册一个参与者（代表当前结点本身）：<br><img src="image-20200925153704082.png" alt="image-20200925153704082"></p>
+<h3 id="5-3-5-注册参与者"><a href="#5-3-5-注册参与者" class="headerlink" title="5.3.5 注册参与者"></a>5.3.5 注册参与者</h3><p>Phaser提供了两个注册参与者的方法：</p>
+<ul>
+<li><strong>register</strong>：注册单个参与者</li>
+<li><strong>bulkRegister</strong>：批量注册参与者</li>
+</ul>
+<p><img src="image-20200925153716461.png" alt="image-20200925153716461"></p>
+<p>这两个方法都很简单，内部调用了<strong>doRegister</strong>方法：</p>
+<pre><code class="java">/**
+ * 注册指定数目&#123;#registrations&#125;的参与者
+ */
+private int doRegister(int registrations) &#123;
+    // 首先计算注冊后当前State要调整的值adjust
+    long adjust = ((long) registrations &lt;&lt; PARTIES_SHIFT) | registrations;
+    final Phaser parent = this.parent;
+    int phase;
+    for (; ; ) &#123;
+        long s = (parent == null) ? state : reconcileState();   // reconcileState()调整当前Phaser的State与root一致
+        int counts = (int) s;
+        int parties = counts &gt;&gt;&gt; PARTIES_SHIFT;                 // 参与者数目
+        int unarrived = counts &amp; UNARRIVED_MASK;                // 未到达的数目
+        if (registrations &gt; MAX_PARTIES - parties)
+            throw new IllegalStateException(badRegister(s));
+        phase = (int) (s &gt;&gt;&gt; PHASE_SHIFT);                      // 当前Phaser所处的阶段phase
+        if (phase &lt; 0)
+            break;
+        if (counts != EMPTY) &#123;                                  // CASE1: 当前Phaser已经注册过参与者
+            if (parent == null || reconcileState() == s) &#123;
+                if (unarrived == 0)    // 参与者已全部到达栅栏, 当前Phaser正在Advance, 需要阻塞等待这一过程完成
+                    root.internalAwaitAdvance(phase, null);
+                else if (UNSAFE.compareAndSwapLong(this, stateOffset, s, s + adjust))    // 否则,直接更新State
+                    break;
+            &#125;
+        &#125; else if (parent == null) &#123;                            // CASE2: 当前Phaser未注册过参与者（第一次注册）,且没有父结点
+            long next = ((long) phase &lt;&lt; PHASE_SHIFT) | adjust;
+            if (UNSAFE.compareAndSwapLong(this, stateOffset, s, next))  // CAS更新当前Phaser的State值
+                break;
+        &#125; else &#123;                                                // CASE3: 当前Phaser未注册过参与者（第一次注册）,且有父结点
+            synchronized (this) &#123;
+                if (state == s) &#123;
+                    phase = parent.doRegister(1);   // 向父结点注册一个参与者
+                    if (phase &lt; 0)
+                        break;
+                    while (!UNSAFE.compareAndSwapLong(this, stateOffset, s,
+                            ((long) phase &lt;&lt; PHASE_SHIFT) | adjust)) &#123;
+                        s = state;
+                        phase = (int) (root.state &gt;&gt;&gt; PHASE_SHIFT);
+                    &#125;
+                    break;
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+    return phase;
+&#125;
+</code></pre>
+<p><strong>doRegister</strong>方法用来给当前Phaser对象注册参与者，主要有三个分支：<br><strong>①当前Phaser已经注册过参与者</strong><br>如果参与者已经全部到达栅栏，则当前线程需要阻塞等待（因为此时phase正在变化，增加1到下一个phase），否则直接更新State。</p>
+<p><strong>②当前Phaser未注册过参与者（第一次注册），且没有父结点</strong><br>这种情况最简单，直接更新当前Phaser的State值。</p>
+<p><strong>③当前Phaser未注册过参与者（第一次注册），且有父结点</strong><br>说明当前Phaser是新加入的叶子结点，需要向父结点注册自身，同时更新自身的State值。</p>
+<p><strong>注意:</strong> <strong>reconcileState</strong>方法比较特殊，因为当出现树形结构时，根结点首先进行phase的更新，所以需要显式同步，使当前结点和根结点保持一致。<br><img src="image-20200925153739345.png" alt="image-20200925153739345"></p>
+<p>另外，阻塞等待调用的是<strong>internalAwaitAdvance</strong>方法，其实就是根据当前阶段phase，将线程包装成结点加入到root结点所指向的某个“无锁栈”中：</p>
+<pre><code class="java">/**
+ * internalAwaitAdvance的主要逻辑就是：当前参与者线程等待Phaser进入下一个阶段(就是phase值变化).
+ * @return 返回新的阶段
+ */
+private int internalAwaitAdvance(int phase, QNode node) &#123;
+    // assert root == this;
+    releaseWaiters(phase - 1);       // 清空不用的Treiber Stack（奇偶Stack交替使用）
+    boolean queued = false;                 // 入队标识
+    int lastUnarrived = 0;
+    int spins = SPINS_PER_ARRIVAL;
+    long s;
+    int p;
+    while ((p = (int) ((s = state) &gt;&gt;&gt; PHASE_SHIFT)) == phase) &#123;
+        if (node == null) &#123;           // spinning in noninterruptible mode
+            int unarrived = (int) s &amp; UNARRIVED_MASK;
+            if (unarrived != lastUnarrived &amp;&amp;
+                    (lastUnarrived = unarrived) &lt; NCPU)
+                spins += SPINS_PER_ARRIVAL;
+            boolean interrupted = Thread.interrupted();
+            if (interrupted || --spins &lt; 0) &#123; // need node to record intr
+                node = new QNode(this, phase, false, false, 0L);
+                node.wasInterrupted = interrupted;
+            &#125;
+        &#125; else if (node.isReleasable()) // done or aborted
+            break;
+        else if (!queued) &#123;           // 将结点压入栈顶
+            AtomicReference&lt;QNode&gt; head = (phase &amp; 1) == 0 ? evenQ : oddQ;
+            QNode q = node.next = head.get();
+            if ((q == null || q.phase == phase) &amp;&amp;
+                    (int) (state &gt;&gt;&gt; PHASE_SHIFT) == phase) // avoid stale enq
+                queued = head.compareAndSet(q, node);
+        &#125; else &#123;
+            try &#123;
+                // 阻塞等待
+                ForkJoinPool.managedBlock(node);
+            &#125; catch (InterruptedException ie) &#123;
+                node.wasInterrupted = true;
+            &#125;
+        &#125;
+    &#125;
+ 
+    if (node != null) &#123;
+        if (node.thread != null)
+            node.thread = null;       // avoid need for unpark()
+        if (node.wasInterrupted &amp;&amp; !node.interruptible)
+            Thread.currentThread().interrupt();
+        if (p == phase &amp;&amp; (p = (int) (state &gt;&gt;&gt; PHASE_SHIFT)) == phase)
+            return abortWait(phase); // possibly clean up on abort
+    &#125;
+    releaseWaiters(phase);
+    return p;
+&#125;
+</code></pre>
+<h3 id="5-3-6-参与者到达并等待"><a href="#5-3-6-参与者到达并等待" class="headerlink" title="5.3.6 参与者到达并等待"></a>5.3.6 参与者到达并等待</h3><p><img src="image-20200925153807167.png" alt="image-20200925153807167"></p>
+<p><strong>arriveAndAwaitAdvance</strong>的主要逻辑如下：<br>首先将同步状态值State中的未到达参与者数量减1，然后判断未到达参与者数量是否为0?</p>
+<p>如果不为0，则阻塞当前线程，以等待其他参与者到来；</p>
+<p>如果为0，说明当前线程是最后一个参与者，如果有父结点则对父结点递归调用该方法。（因为只有根结点的未到达参与者数目为0时），才会进阶phase。</p>
+<h2 id="5-4-类-接口声明"><a href="#5-4-类-接口声明" class="headerlink" title="5.4 类/接口声明"></a>5.4 类/接口声明</h2><p><strong>类声明</strong></p>
+<p><img src="image-20200925153830497.png" alt="image-20200925153830497"></p>
+<p><strong>构造器声明</strong></p>
+<p><img src="image-20200925153840498.png" alt="image-20200925153840498"></p>
+<p><strong>接口声明</strong></p>
+<p><img src="image-20200925153907225.png" alt="image-20200925153907225"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+              <a href="/tags/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" rel="tag"># 深入并发</a>
+              <a href="/tags/juc/" rel="tag"># juc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/" rel="prev" title="juc_atomic框架#6-LongAdder">
+      <i class="fa fa-chevron-left"></i> juc_atomic框架#6-LongAdder
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/27/juc_collections%E6%A1%86%E6%9E%B6-1-ConcurrentHashMap/" rel="next" title="juc_collections框架#1-ConcurrentHashMap">
+      juc_collections框架#1-ConcurrentHashMap <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81CountDownLatch"><span class="nav-text">一、CountDownLatch</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-%E7%AE%80%E4%BB%8B"><span class="nav-text">1.1 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-text">1.2 使用示例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-1-%E4%BD%9C%E4%B8%BA%E4%B8%80%E4%B8%AA%E5%BC%80%E5%85%B3-%E5%85%A5%E5%8F%A3"><span class="nav-text">1.2.1 作为一个开关&#x2F;入口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-2-%E4%BD%9C%E4%B8%BA%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%88%90%E4%BF%A1%E5%8F%B7"><span class="nav-text">1.2.2 作为一个完成信号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-%E7%B1%BB-%E6%8E%A5%E5%8F%A3%E5%A3%B0%E6%98%8E"><span class="nav-text">1.3 类&#x2F;接口声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-4-%E5%8E%9F%E7%90%86"><span class="nav-text">1.4 原理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81CyclicBarrier"><span class="nav-text">二、CyclicBarrier</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E7%AE%80%E4%BB%8B"><span class="nav-text">2.1 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E7%A4%BA%E4%BE%8B"><span class="nav-text">2.2 示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E5%AF%B9%E5%BC%82%E5%B8%B8%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-text">2.3 对异常的处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-%E5%8E%9F%E7%90%86"><span class="nav-text">2.4 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-1-%E6%9E%84%E9%80%A0"><span class="nav-text">2.4.1 构造</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-2-%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84"><span class="nav-text">2.4.2 内部结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-3-%E6%A0%B8%E5%BF%83%E6%96%B9%E6%B3%95"><span class="nav-text">2.4.3 核心方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-%E6%8E%A5%E5%8F%A3-%E7%B1%BB%E5%A3%B0%E6%98%8E"><span class="nav-text">2.5 接口&#x2F;类声明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81Semaphore"><span class="nav-text">三、Semaphore</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E7%AE%80%E4%BB%8B"><span class="nav-text">3.1 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-%E7%A4%BA%E4%BE%8B"><span class="nav-text">3.2 示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-%E5%8E%9F%E7%90%86"><span class="nav-text">3.3 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-1-%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84"><span class="nav-text">3.3.1 内部结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-2-%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%9E%84%E9%80%A0"><span class="nav-text">3.3.2 对象的构造</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-4-%E5%85%AC%E5%B9%B3%E7%AD%96%E7%95%A5%E5%88%86%E6%9E%90"><span class="nav-text">3.4 公平策略分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-1-%E5%88%9B%E5%BB%BA%E5%85%AC%E5%B9%B3%E7%AD%96%E7%95%A5%E7%9A%84Semaphore%E5%AF%B9%E8%B1%A1"><span class="nav-text">3.4.1 创建公平策略的Semaphore对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-2-ThreadA%E8%B0%83%E7%94%A8acqure%E6%96%B9%E6%B3%95"><span class="nav-text">3.4.2 ThreadA调用acqure方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-3-ThreadB%E8%B0%83%E7%94%A8acqure-2-%E6%96%B9%E6%B3%95"><span class="nav-text">3.4.3 ThreadB调用acqure(2)方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-4-ThreadC%E8%B0%83%E7%94%A8acqure-%E6%96%B9%E6%B3%95"><span class="nav-text">3.4.4 ThreadC调用acqure()方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-5-ThreadA%E8%B0%83%E7%94%A8release-%E6%96%B9%E6%B3%95"><span class="nav-text">3.4.5 ThreadA调用release()方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-6-ThreadB%E4%BB%8E%E5%8E%9F%E9%98%BB%E5%A1%9E%E5%A4%84%E7%BB%A7%E7%BB%AD%E6%89%A7%E8%A1%8C"><span class="nav-text">3.4.6 ThreadB从原阻塞处继续执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-7-ThreadC%E4%BB%8E%E5%8E%9F%E9%98%BB%E5%A1%9E%E5%A4%84%E7%BB%A7%E7%BB%AD%E6%89%A7%E8%A1%8C"><span class="nav-text">3.4.7 ThreadC从原阻塞处继续执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-8-ThreadA%E8%B0%83%E7%94%A8release-2-%E6%96%B9%E6%B3%95"><span class="nav-text">3.4.8 ThreadA调用release(2)方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-9-ThreadC%E4%BB%8E%E5%8E%9F%E9%98%BB%E5%A1%9E%E5%A4%84%E7%BB%A7%E7%BB%AD%E6%89%A7%E8%A1%8C"><span class="nav-text">3.4.9 ThreadC从原阻塞处继续执行</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-5-%E6%80%BB%E7%BB%93"><span class="nav-text">3.5 总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-1-%E9%9D%9E%E5%85%AC%E5%B9%B3%E7%AD%96%E7%95%A5"><span class="nav-text">3.5.1 非公平策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-2-%E5%85%B6%E5%AE%83%E6%96%B9%E6%B3%95"><span class="nav-text">3.5.2 其它方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-6-Semaphore%E7%9A%84%E7%B1%BB-%E6%8E%A5%E5%8F%A3%E5%A3%B0%E6%98%8E"><span class="nav-text">3.6 Semaphore的类&#x2F;接口声明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81Exchanger"><span class="nav-text">四、Exchanger</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E7%AE%80%E4%BB%8B"><span class="nav-text">4.1 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E7%A4%BA%E4%BE%8B"><span class="nav-text">4.2 示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E5%8E%9F%E7%90%86"><span class="nav-text">4.3 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-1-%E6%9E%84%E9%80%A0"><span class="nav-text">4.3.1 构造</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-2-%E5%8D%95%E6%A7%BD%E4%BD%8D%E4%BA%A4%E6%8D%A2"><span class="nav-text">4.3.2 单槽位交换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-2-%E5%A4%9A%E6%A7%BD%E4%BD%8D%E4%BA%A4%E6%8D%A2"><span class="nav-text">4.3.2 多槽位交换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-%E7%B1%BB-%E6%8E%A5%E5%8F%A3%E5%A3%B0%E6%98%8E"><span class="nav-text">4.4 类&#x2F;接口声明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%94%E3%80%81Phaser"><span class="nav-text">五、Phaser</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-%E7%AE%80%E4%BB%8B"><span class="nav-text">5.1 简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-1-phase-%E9%98%B6%E6%AE%B5"><span class="nav-text">5.1.1 phase(阶段)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-2-parties-%E5%8F%82%E4%B8%8E%E8%80%85"><span class="nav-text">5.1.2 parties(参与者)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-3-arrive-%E5%88%B0%E8%BE%BE-advance-%E8%BF%9B%E9%98%B6"><span class="nav-text">5.1.3 arrive(到达) &#x2F; advance(进阶)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-4-Termination%EF%BC%88%E7%BB%88%E6%AD%A2%EF%BC%89"><span class="nav-text">5.1.4 Termination（终止）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-5-Tiering%EF%BC%88%E5%88%86%E5%B1%82%EF%BC%89"><span class="nav-text">5.1.5 Tiering（分层）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-%E7%A4%BA%E4%BE%8B"><span class="nav-text">5.2 示例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-1-%E7%A4%BA%E4%BE%8B%E4%B8%80"><span class="nav-text">5.2.1 示例一</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-2-%E7%A4%BA%E4%BE%8B%E4%BA%8C"><span class="nav-text">5.2.2 示例二</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-3-%E7%A4%BA%E4%BE%8B%E4%B8%89"><span class="nav-text">5.2.3 示例三</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-4-%E7%A4%BA%E4%BE%8B%E5%9B%9B"><span class="nav-text">5.2.4 示例四</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3-%E5%8E%9F%E7%90%86"><span class="nav-text">5.3 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-1-%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84"><span class="nav-text">5.3.1 内部结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-2-%E5%90%8C%E6%AD%A5%E7%8A%B6%E6%80%81%E5%AE%9A%E4%B9%89"><span class="nav-text">5.3.2 同步状态定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-3-%E6%A0%88%E7%BB%93%E7%82%B9%E5%AE%9A%E4%B9%89"><span class="nav-text">5.3.3 栈结点定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-4-%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-text">5.3.4 构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-5-%E6%B3%A8%E5%86%8C%E5%8F%82%E4%B8%8E%E8%80%85"><span class="nav-text">5.3.5 注册参与者</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-6-%E5%8F%82%E4%B8%8E%E8%80%85%E5%88%B0%E8%BE%BE%E5%B9%B6%E7%AD%89%E5%BE%85"><span class="nav-text">5.3.6 参与者到达并等待</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-4-%E7%B1%BB-%E6%8E%A5%E5%8F%A3%E5%A3%B0%E6%98%8E"><span class="nav-text">5.4 类&#x2F;接口声明</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

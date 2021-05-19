@@ -1,0 +1,2318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="ConcurrentHashMap是在JDK1.5时，J.U.C引入的一个同步集合工具类，顾名思义，这是一个线程安全的HashMap。不同版本的ConcurrentHashMap，内部实现机制千差万别，本节所有的讨论基于JDK1.8。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="juc_collections框架#1-ConcurrentHashMap">
+<meta property="og:url" content="http://yoursite.com/2020/08/27/juc_collections%E6%A1%86%E6%9E%B6-1-ConcurrentHashMap/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="ConcurrentHashMap是在JDK1.5时，J.U.C引入的一个同步集合工具类，顾名思义，这是一个线程安全的HashMap。不同版本的ConcurrentHashMap，内部实现机制千差万别，本节所有的讨论基于JDK1.8。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/27/juc_collections%E6%A1%86%E6%9E%B6-1-ConcurrentHashMap/image-20200928092253841.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/27/juc_collections%E6%A1%86%E6%9E%B6-1-ConcurrentHashMap/image-20200928092829893.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/27/juc_collections%E6%A1%86%E6%9E%B6-1-ConcurrentHashMap/image-20200928231124690.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/27/juc_collections%E6%A1%86%E6%9E%B6-1-ConcurrentHashMap/image-20200928104146316.png">
+<meta property="article:published_time" content="2020-08-27T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T01:58:15.606Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="深入并发">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/27/juc_collections%E6%A1%86%E6%9E%B6-1-ConcurrentHashMap/image-20200928092253841.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/27/juc_collections%E6%A1%86%E6%9E%B6-1-ConcurrentHashMap/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>juc_collections框架#1-ConcurrentHashMap | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/27/juc_collections%E6%A1%86%E6%9E%B6-1-ConcurrentHashMap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          juc_collections框架#1-ConcurrentHashMap
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-27 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-27T09:34:33+08:00">2020-08-27</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>ConcurrentHashMap</code>是在JDK1.5时，J.U.C引入的一个同步集合工具类，顾名思义，这是一个线程安全的HashMap。不同版本的ConcurrentHashMap，内部实现机制千差万别，本节所有的讨论基于JDK1.8。</p>
+<span id="more"></span>
+
+<h1 id="一、类简介"><a href="#一、类简介" class="headerlink" title="一、类简介"></a>一、类简介</h1><p><strong>ConcurrentHashMap</strong>的类继承关系并不复杂：<br><img src="image-20200928092253841.png" alt="image-20200928092253841"></p>
+<p>可以看到ConcurrentHashMap继承了<strong>AbstractMap</strong>，这是一个<code>java.util</code>包下的抽象类，提供Map接口的骨干实现，以最大限度地减少实现Map这类数据结构时所需的工作量，一般来讲，如果需要重复造轮子——自己来实现一个Map，那一般就是继承AbstractMap。</p>
+<p>另外，<strong>ConcurrentHashMap</strong>实现了<code>ConcurrentMap</code>这个接口，ConcurrentMap是在JDK1.5时随着J.U.C包引入的，这个接口其实就是提供了一些针对Map的原子操作：</p>
+<p><img src="image-20200928092829893.png" alt="image-20200928092829893"></p>
+<p><strong>ConcurrentMap接口提供的功能：</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">方法签名</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">getOrDefault(Object key, V defaultValue)</td>
+<td>返回指定key对应的值；如果Map不存在该key，则返回defaultValue</td>
+</tr>
+<tr>
+<td align="left">forEach(BiConsumer action)</td>
+<td>遍历Map的所有Entry，并对其进行指定的aciton操作</td>
+</tr>
+<tr>
+<td align="left">putIfAbsent(K key, V value)</td>
+<td>如果Map不存在指定的key，则插入&lt;K,V&gt;；否则，直接返回该key对应的值</td>
+</tr>
+<tr>
+<td align="left">remove(Object key, Object value)</td>
+<td>删除与&lt;key,value&gt;完全匹配的Entry，并返回true；否则，返回false</td>
+</tr>
+<tr>
+<td align="left">replace(K key, V oldValue, V newValue)</td>
+<td>如果存在key，且值和oldValue一致，则更新为newValue，并返回true；否则，返回false</td>
+</tr>
+<tr>
+<td align="left">replace(K key, V value)</td>
+<td>如果存在key，则更新为value，返回旧value；否则，返回null</td>
+</tr>
+<tr>
+<td align="left">replaceAll(BiFunction function)</td>
+<td>遍历Map的所有Entry，并对其进行指定的funtion操作</td>
+</tr>
+<tr>
+<td align="left">computeIfAbsent(K key, Function mappingFunction)</td>
+<td>如果Map不存在指定的key，则通过mappingFunction计算value并插入</td>
+</tr>
+<tr>
+<td align="left">computeIfPresent(K key, BiFunction remappingFunction)</td>
+<td>如果Map存在指定的key，则通过mappingFunction计算value并替换旧值</td>
+</tr>
+<tr>
+<td align="left">compute(K key, BiFunction remappingFunction)</td>
+<td>根据指定的key，查找value；然后根据得到的value和remappingFunction重新计算新值，并替换旧值</td>
+</tr>
+<tr>
+<td align="left">merge(K key, V value, BiFunction remappingFunction)</td>
+<td>如果key不存在，则插入value；否则，根据key对应的值和remappingFunction计算新值，并替换旧值</td>
+</tr>
+</tbody></table>
+<h1 id="二、基本结构"><a href="#二、基本结构" class="headerlink" title="二、基本结构"></a>二、基本结构</h1><p>我们先来看下<code>ConcurrentHashMap</code>对象的内部结构究竟什么样的：</p>
+<p><img src="image-20200928231124690.png" alt="image-20200928231124690"></p>
+<h2 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h2><p><strong>ConcurrentHashMap</strong>内部维护了一个<code>Node</code>类型的数组，也就是<strong>table</strong>：</p>
+<pre><code class="java">transient volatile Node&lt;K, V&gt;[] table;
+</code></pre>
+<p>数组的每一个位置<code>table[i]</code>代表了一个桶，当插入键值对时，会根据键的hash值映射到不同的桶位置，table一共可以包含<strong>4种不同类型</strong>的桶：<strong>Node</strong>、<strong>TreeBin</strong>、<strong>ForwardingNode</strong>、<strong>ReservationNode</strong>。上图中，不同的桶用不同颜色表示。可以看到，有的桶链接着<strong>链表</strong>，有的桶链接着<strong>树</strong>，这也是JDK1.8中ConcurrentHashMap的特殊之处，后面会详细讲到。</p>
+<p>需要注意的是：<strong>TreeBin</strong>所链接的是一颗红黑树，红黑树的结点用<strong>TreeNode</strong>表示，所以ConcurrentHashMap中实际上一共有<strong>五种不同类型</strong>的Node结点。</p>
+<p><em>之所以用<strong>TreeBin</strong>而不是直接用<strong>TreeNode</strong>，是因为红黑树的操作比较复杂，包括构建、左旋、右旋、删除，平衡等操作，用一个代理结点TreeBin来包含这些复杂操作，其实是一种“职责分离”的思想。另外TreeBin中也包含了一些加/解锁的操作。</em></p>
+<blockquote>
+<p>在JDK1.8之前，ConcurrentHashMap采用了分段锁的设计思路，以减少热点域的冲突。JDK1.8时不再延续，转而直接对每个桶加锁，并用“红黑树”链接冲突结点。关于红黑树和一般HashMap的实现思路，读者可以参考《Algorithms 4th》</p>
+</blockquote>
+<h2 id="结点定义"><a href="#结点定义" class="headerlink" title="结点定义"></a>结点定义</h2><p>上一节提到，<strong>ConcurrentHashMap</strong>一共包含5种结点，我们来看下各个结点的定义和作用。</p>
+<h3 id="Node结点"><a href="#Node结点" class="headerlink" title="Node结点"></a>Node结点</h3><p>Node结点的定义非常简单，也是其它四种类型结点的父类。</p>
+<blockquote>
+<p>默认链接到<code>table[i]</code>——桶上的结点就是Node结点。<br>当出现hash冲突时，Node结点会首先以<strong>链表</strong>的形式链接到table上，当结点数量超过一定数目时，链表会转化为红黑树。因为链表查找的平均时间复杂度为<code>O(n)</code>，而红黑树是一种平衡二叉树，其平均时间复杂度为<code>O(logn)</code>。</p>
+</blockquote>
+<pre><code class="java">/**
+ * 普通的Entry结点, 以链表形式保存时才会使用, 存储实际的数据.
+ */
+static class Node&lt;K, V&gt; implements Map.Entry&lt;K, V&gt; &#123;
+    final int hash;
+    final K key;
+    volatile V val;
+    volatile Node&lt;K, V&gt; next;   // 链表指针
+
+    Node(int hash, K key, V val, Node&lt;K, V&gt; next) &#123;
+        this.hash = hash;
+        this.key = key;
+        this.val = val;
+        this.next = next;
+    &#125;
+
+    public final K getKey() &#123;
+        return key;
+    &#125;
+
+    public final V getValue() &#123;
+        return val;
+    &#125;
+
+    public final int hashCode() &#123;
+        return key.hashCode() ^ val.hashCode();
+    &#125;
+
+    public final String toString() &#123;
+        return key + &quot;=&quot; + val;
+    &#125;
+
+    public final V setValue(V value) &#123;
+        throw new UnsupportedOperationException();
+    &#125;
+
+    public final boolean equals(Object o) &#123;
+        Object k, v, u;
+        Map.Entry&lt;?, ?&gt; e;
+        return ((o instanceof Map.Entry) &amp;&amp;
+            (k = (e = (Map.Entry&lt;?, ?&gt;) o).getKey()) != null &amp;&amp;
+            (v = e.getValue()) != null &amp;&amp;
+            (k == key || k.equals(key)) &amp;&amp;
+            (v == (u = val) || v.equals(u)));
+    &#125;
+
+    /**
+     * 链表查找.
+     */
+    Node&lt;K, V&gt; find(int h, Object k) &#123;
+        Node&lt;K, V&gt; e = this;
+        if (k != null) &#123;
+            do &#123;
+                K ek;
+                if (e.hash == h &amp;&amp;
+                    ((ek = e.key) == k || (ek != null &amp;&amp; k.equals(ek))))
+                    return e;
+            &#125; while ((e = e.next) != null);
+        &#125;
+        return null;
+    &#125;
+&#125;
+</code></pre>
+<hr>
+<h3 id="TreeNode结点"><a href="#TreeNode结点" class="headerlink" title="TreeNode结点"></a>TreeNode结点</h3><p>TreeNode就是红黑树的结点，TreeNode不会直接链接到<code>table[i]</code>——桶上面，而是由TreeBin链接，TreeBin会指向红黑树的根结点。</p>
+<pre><code class="java">/**
+ * 红黑树结点, 存储实际的数据.
+ */
+static final class TreeNode&lt;K, V&gt; extends Node&lt;K, V&gt; &#123;
+    boolean red;
+
+    TreeNode&lt;K, V&gt; parent;
+    TreeNode&lt;K, V&gt; left;
+    TreeNode&lt;K, V&gt; right;
+
+    /**
+     * prev指针是为了方便删除.
+     * 删除链表的非头结点时，需要知道它的前驱结点才能删除，所以直接提供一个prev指针
+     */
+    TreeNode&lt;K, V&gt; prev;
+
+    TreeNode(int hash, K key, V val, Node&lt;K, V&gt; next,
+             TreeNode&lt;K, V&gt; parent) &#123;
+        super(hash, key, val, next);
+        this.parent = parent;
+    &#125;
+
+    Node&lt;K, V&gt; find(int h, Object k) &#123;
+        return findTreeNode(h, k, null);
+    &#125;
+
+    /**
+     * 以当前结点（this）为根结点，开始遍历查找指定key.
+     */
+    final TreeNode&lt;K, V&gt; findTreeNode(int h, Object k, Class&lt;?&gt; kc) &#123;
+        if (k != null) &#123;
+            TreeNode&lt;K, V&gt; p = this;
+            do &#123;
+                int ph, dir;
+                K pk;
+                TreeNode&lt;K, V&gt; q;
+                TreeNode&lt;K, V&gt; pl = p.left, pr = p.right;
+                if ((ph = p.hash) &gt; h)
+                    p = pl;
+                else if (ph &lt; h)
+                    p = pr;
+                else if ((pk = p.key) == k || (pk != null &amp;&amp; k.equals(pk)))
+                    return p;
+                else if (pl == null)
+                    p = pr;
+                else if (pr == null)
+                    p = pl;
+                else if ((kc != null ||
+                    (kc = comparableClassFor(k)) != null) &amp;&amp;
+                    (dir = compareComparables(kc, k, pk)) != 0)
+                    p = (dir &lt; 0) ? pl : pr;
+                else if ((q = pr.findTreeNode(h, k, kc)) != null)
+                    return q;
+                else
+                    p = pl;
+            &#125; while (p != null);
+        &#125;
+        return null;
+    &#125;
+&#125;
+</code></pre>
+<hr>
+<h3 id="TreeBin结点"><a href="#TreeBin结点" class="headerlink" title="TreeBin结点"></a>TreeBin结点</h3><p>TreeBin相当于TreeNode的代理结点。TreeBin会直接链接到<code>table[i]</code>——桶上面，该结点提供了一系列红黑树相关的操作，以及加锁、解锁操作。</p>
+<pre><code class="java">/**
+ * TreeNode的代理结点（相当于封装了TreeNode的容器，提供针对红黑树的转换操作和锁控制）
+ * hash值固定为-3
+ */
+static final class TreeBin&lt;K, V&gt; extends Node&lt;K, V&gt; &#123;
+    TreeNode&lt;K, V&gt; root;                // 红黑树结构的根结点
+    volatile TreeNode&lt;K, V&gt; first;      // 链表结构的头结点
+    volatile Thread waiter;             // 最近的一个设置WAITER标识位的线程
+
+    volatile int lockState;             // 整体的锁状态标识位
+
+    static final int WRITER = 1;        // 二进制001，红黑树的写锁状态
+    static final int WAITER = 2;        // 二进制010，红黑树的等待获取写锁状态
+    static final int READER = 4;        // 二进制100，红黑树的读锁状态，读可以并发，每多一个读线程，lockState都加上一个READER值
+
+    /**
+     * 在hashCode相等并且不是Comparable类型时，用此方法判断大小.
+     */
+    static int tieBreakOrder(Object a, Object b) &#123;
+        int d;
+        if (a == null || b == null ||
+            (d = a.getClass().getName().
+                compareTo(b.getClass().getName())) == 0)
+            d = (System.identityHashCode(a) &lt;= System.identityHashCode(b) ?
+                -1 : 1);
+        return d;
+    &#125;
+
+    /**
+     * 将以b为头结点的链表转换为红黑树.
+     */
+    TreeBin(TreeNode&lt;K, V&gt; b) &#123;
+        super(TREEBIN, null, null, null);
+        this.first = b;
+        TreeNode&lt;K, V&gt; r = null;
+        for (TreeNode&lt;K, V&gt; x = b, next; x != null; x = next) &#123;
+            next = (TreeNode&lt;K, V&gt;) x.next;
+            x.left = x.right = null;
+            if (r == null) &#123;
+                x.parent = null;
+                x.red = false;
+                r = x;
+            &#125; else &#123;
+                K k = x.key;
+                int h = x.hash;
+                Class&lt;?&gt; kc = null;
+                for (TreeNode&lt;K, V&gt; p = r; ; ) &#123;
+                    int dir, ph;
+                    K pk = p.key;
+                    if ((ph = p.hash) &gt; h)
+                        dir = -1;
+                    else if (ph &lt; h)
+                        dir = 1;
+                    else if ((kc == null &amp;&amp;
+                        (kc = comparableClassFor(k)) == null) ||
+                        (dir = compareComparables(kc, k, pk)) == 0)
+                        dir = tieBreakOrder(k, pk);
+                    TreeNode&lt;K, V&gt; xp = p;
+                    if ((p = (dir &lt;= 0) ? p.left : p.right) == null) &#123;
+                        x.parent = xp;
+                        if (dir &lt;= 0)
+                            xp.left = x;
+                        else
+                            xp.right = x;
+                        r = balanceInsertion(r, x);
+                        break;
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+        this.root = r;
+        assert checkInvariants(root);
+    &#125;
+
+    /**
+     * 对红黑树的根结点加写锁.
+     */
+    private final void lockRoot() &#123;
+        if (!U.compareAndSwapInt(this, LOCKSTATE, 0, WRITER))
+            contendedLock();
+    &#125;
+
+    /**
+     * 释放写锁.
+     */
+    private final void unlockRoot() &#123;
+        lockState = 0;
+    &#125;
+
+    /**
+     * Possibly blocks awaiting root lock.
+     */
+    private final void contendedLock() &#123;
+        boolean waiting = false;
+        for (int s; ; ) &#123;
+            if (((s = lockState) &amp; ~WAITER) == 0) &#123;
+                if (U.compareAndSwapInt(this, LOCKSTATE, s, WRITER)) &#123;
+                    if (waiting)
+                        waiter = null;
+                    return;
+                &#125;
+            &#125; else if ((s &amp; WAITER) == 0) &#123;
+                if (U.compareAndSwapInt(this, LOCKSTATE, s, s | WAITER)) &#123;
+                    waiting = true;
+                    waiter = Thread.currentThread();
+                &#125;
+            &#125; else if (waiting)
+                LockSupport.park(this);
+        &#125;
+    &#125;
+
+    /**
+     * 从根结点开始遍历查找，找到“相等”的结点就返回它，没找到就返回null
+     * 当存在写锁时，以链表方式进行查找
+     */
+    final Node&lt;K, V&gt; find(int h, Object k) &#123;
+        if (k != null) &#123;
+            for (Node&lt;K, V&gt; e = first; e != null; ) &#123;
+                int s;
+                K ek;
+                /**
+                 * 两种特殊情况下以链表的方式进行查找:
+                 * 1. 有线程正持有写锁，这样做能够不阻塞读线程
+                 * 2. 有线程等待获取写锁，不再继续加读锁，相当于“写优先”模式
+                 */
+                if (((s = lockState) &amp; (WAITER | WRITER)) != 0) &#123;
+                    if (e.hash == h &amp;&amp;
+                        ((ek = e.key) == k || (ek != null &amp;&amp; k.equals(ek))))
+                        return e;
+                    e = e.next;
+                &#125; else if (U.compareAndSwapInt(this, LOCKSTATE, s,
+                    s + READER)) &#123;
+                    TreeNode&lt;K, V&gt; r, p;
+                    try &#123;
+                        p = ((r = root) == null ? null :
+                            r.findTreeNode(h, k, null));
+                    &#125; finally &#123;
+                        Thread w;
+                        if (U.getAndAddInt(this, LOCKSTATE, -READER) ==
+                            (READER | WAITER) &amp;&amp; (w = waiter) != null)
+                            LockSupport.unpark(w);
+                    &#125;
+                    return p;
+                &#125;
+            &#125;
+        &#125;
+        return null;
+    &#125;
+
+    /**
+     * 查找指定key对应的结点,如果未找到，则插入.
+     *
+     * @return 插入成功返回null, 否则返回找到的结点
+     */
+    final TreeNode&lt;K, V&gt; putTreeVal(int h, K k, V v) &#123;
+        Class&lt;?&gt; kc = null;
+        boolean searched = false;
+        for (TreeNode&lt;K, V&gt; p = root; ; ) &#123;
+            int dir, ph;
+            K pk;
+            if (p == null) &#123;
+                first = root = new TreeNode&lt;K, V&gt;(h, k, v, null, null);
+                break;
+            &#125; else if ((ph = p.hash) &gt; h)
+                dir = -1;
+            else if (ph &lt; h)
+                dir = 1;
+            else if ((pk = p.key) == k || (pk != null &amp;&amp; k.equals(pk)))
+                return p;
+            else if ((kc == null &amp;&amp;
+                (kc = comparableClassFor(k)) == null) ||
+                (dir = compareComparables(kc, k, pk)) == 0) &#123;
+                if (!searched) &#123;
+                    TreeNode&lt;K, V&gt; q, ch;
+                    searched = true;
+                    if (((ch = p.left) != null &amp;&amp;
+                        (q = ch.findTreeNode(h, k, kc)) != null) ||
+                        ((ch = p.right) != null &amp;&amp;
+                            (q = ch.findTreeNode(h, k, kc)) != null))
+                        return q;
+                &#125;
+                dir = tieBreakOrder(k, pk);
+            &#125;
+
+            TreeNode&lt;K, V&gt; xp = p;
+            if ((p = (dir &lt;= 0) ? p.left : p.right) == null) &#123;
+                TreeNode&lt;K, V&gt; x, f = first;
+                first = x = new TreeNode&lt;K, V&gt;(h, k, v, f, xp);
+                if (f != null)
+                    f.prev = x;
+                if (dir &lt;= 0)
+                    xp.left = x;
+                else
+                    xp.right = x;
+                if (!xp.red)
+                    x.red = true;
+                else &#123;
+                    lockRoot();
+                    try &#123;
+                        root = balanceInsertion(root, x);
+                    &#125; finally &#123;
+                        unlockRoot();
+                    &#125;
+                &#125;
+                break;
+            &#125;
+        &#125;
+        assert checkInvariants(root);
+        return null;
+    &#125;
+
+    /**
+     * 删除红黑树的结点：
+     * 1. 红黑树规模太小时，返回true，然后进行 树 -&gt; 链表 的转化;
+     * 2. 红黑树规模足够时，不用变换成链表，但删除结点时需要加写锁.
+     */
+    final boolean removeTreeNode(TreeNode&lt;K, V&gt; p) &#123;
+        TreeNode&lt;K, V&gt; next = (TreeNode&lt;K, V&gt;) p.next;
+        TreeNode&lt;K, V&gt; pred = p.prev;  // unlink traversal pointers
+        TreeNode&lt;K, V&gt; r, rl;
+        if (pred == null)
+            first = next;
+        else
+            pred.next = next;
+        if (next != null)
+            next.prev = pred;
+        if (first == null) &#123;
+            root = null;
+            return true;
+        &#125;
+        if ((r = root) == null || r.right == null || // too small
+            (rl = r.left) == null || rl.left == null)
+            return true;
+        lockRoot();
+        try &#123;
+            TreeNode&lt;K, V&gt; replacement;
+            TreeNode&lt;K, V&gt; pl = p.left;
+            TreeNode&lt;K, V&gt; pr = p.right;
+            if (pl != null &amp;&amp; pr != null) &#123;
+                TreeNode&lt;K, V&gt; s = pr, sl;
+                while ((sl = s.left) != null) // find successor
+                    s = sl;
+                boolean c = s.red;
+                s.red = p.red;
+                p.red = c; // swap colors
+                TreeNode&lt;K, V&gt; sr = s.right;
+                TreeNode&lt;K, V&gt; pp = p.parent;
+                if (s == pr) &#123; // p was s&#39;s direct parent
+                    p.parent = s;
+                    s.right = p;
+                &#125; else &#123;
+                    TreeNode&lt;K, V&gt; sp = s.parent;
+                    if ((p.parent = sp) != null) &#123;
+                        if (s == sp.left)
+                            sp.left = p;
+                        else
+                            sp.right = p;
+                    &#125;
+                    if ((s.right = pr) != null)
+                        pr.parent = s;
+                &#125;
+                p.left = null;
+                if ((p.right = sr) != null)
+                    sr.parent = p;
+                if ((s.left = pl) != null)
+                    pl.parent = s;
+                if ((s.parent = pp) == null)
+                    r = s;
+                else if (p == pp.left)
+                    pp.left = s;
+                else
+                    pp.right = s;
+                if (sr != null)
+                    replacement = sr;
+                else
+                    replacement = p;
+            &#125; else if (pl != null)
+                replacement = pl;
+            else if (pr != null)
+                replacement = pr;
+            else
+                replacement = p;
+            if (replacement != p) &#123;
+                TreeNode&lt;K, V&gt; pp = replacement.parent = p.parent;
+                if (pp == null)
+                    r = replacement;
+                else if (p == pp.left)
+                    pp.left = replacement;
+                else
+                    pp.right = replacement;
+                p.left = p.right = p.parent = null;
+            &#125;
+
+            root = (p.red) ? r : balanceDeletion(r, replacement);
+
+            if (p == replacement) &#123;  // detach pointers
+                TreeNode&lt;K, V&gt; pp;
+                if ((pp = p.parent) != null) &#123;
+                    if (p == pp.left)
+                        pp.left = null;
+                    else if (p == pp.right)
+                        pp.right = null;
+                    p.parent = null;
+                &#125;
+            &#125;
+        &#125; finally &#123;
+            unlockRoot();
+        &#125;
+        assert checkInvariants(root);
+        return false;
+    &#125;
+
+    // 以下是红黑树的经典操作方法，改编自《算法导论》
+    static &lt;K, V&gt; TreeNode&lt;K, V&gt; rotateLeft(TreeNode&lt;K, V&gt; root,
+                                            TreeNode&lt;K, V&gt; p) &#123;
+        TreeNode&lt;K, V&gt; r, pp, rl;
+        if (p != null &amp;&amp; (r = p.right) != null) &#123;
+            if ((rl = p.right = r.left) != null)
+                rl.parent = p;
+            if ((pp = r.parent = p.parent) == null)
+                (root = r).red = false;
+            else if (pp.left == p)
+                pp.left = r;
+            else
+                pp.right = r;
+            r.left = p;
+            p.parent = r;
+        &#125;
+        return root;
+    &#125;
+
+    static &lt;K, V&gt; TreeNode&lt;K, V&gt; rotateRight(TreeNode&lt;K, V&gt; root,
+                                             TreeNode&lt;K, V&gt; p) &#123;
+        TreeNode&lt;K, V&gt; l, pp, lr;
+        if (p != null &amp;&amp; (l = p.left) != null) &#123;
+            if ((lr = p.left = l.right) != null)
+                lr.parent = p;
+            if ((pp = l.parent = p.parent) == null)
+                (root = l).red = false;
+            else if (pp.right == p)
+                pp.right = l;
+            else
+                pp.left = l;
+            l.right = p;
+            p.parent = l;
+        &#125;
+        return root;
+    &#125;
+
+    static &lt;K, V&gt; TreeNode&lt;K, V&gt; balanceInsertion(TreeNode&lt;K, V&gt; root,
+                                                  TreeNode&lt;K, V&gt; x) &#123;
+        x.red = true;
+        for (TreeNode&lt;K, V&gt; xp, xpp, xppl, xppr; ; ) &#123;
+            if ((xp = x.parent) == null) &#123;
+                x.red = false;
+                return x;
+            &#125; else if (!xp.red || (xpp = xp.parent) == null)
+                return root;
+            if (xp == (xppl = xpp.left)) &#123;
+                if ((xppr = xpp.right) != null &amp;&amp; xppr.red) &#123;
+                    xppr.red = false;
+                    xp.red = false;
+                    xpp.red = true;
+                    x = xpp;
+                &#125; else &#123;
+                    if (x == xp.right) &#123;
+                        root = rotateLeft(root, x = xp);
+                        xpp = (xp = x.parent) == null ? null : xp.parent;
+                    &#125;
+                    if (xp != null) &#123;
+                        xp.red = false;
+                        if (xpp != null) &#123;
+                            xpp.red = true;
+                            root = rotateRight(root, xpp);
+                        &#125;
+                    &#125;
+                &#125;
+            &#125; else &#123;
+                if (xppl != null &amp;&amp; xppl.red) &#123;
+                    xppl.red = false;
+                    xp.red = false;
+                    xpp.red = true;
+                    x = xpp;
+                &#125; else &#123;
+                    if (x == xp.left) &#123;
+                        root = rotateRight(root, x = xp);
+                        xpp = (xp = x.parent) == null ? null : xp.parent;
+                    &#125;
+                    if (xp != null) &#123;
+                        xp.red = false;
+                        if (xpp != null) &#123;
+                            xpp.red = true;
+                            root = rotateLeft(root, xpp);
+                        &#125;
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+
+    static &lt;K, V&gt; TreeNode&lt;K, V&gt; balanceDeletion(TreeNode&lt;K, V&gt; root,
+                                                 TreeNode&lt;K, V&gt; x) &#123;
+        for (TreeNode&lt;K, V&gt; xp, xpl, xpr; ; ) &#123;
+            if (x == null || x == root)
+                return root;
+            else if ((xp = x.parent) == null) &#123;
+                x.red = false;
+                return x;
+            &#125; else if (x.red) &#123;
+                x.red = false;
+                return root;
+            &#125; else if ((xpl = xp.left) == x) &#123;
+                if ((xpr = xp.right) != null &amp;&amp; xpr.red) &#123;
+                    xpr.red = false;
+                    xp.red = true;
+                    root = rotateLeft(root, xp);
+                    xpr = (xp = x.parent) == null ? null : xp.right;
+                &#125;
+                if (xpr == null)
+                    x = xp;
+                else &#123;
+                    TreeNode&lt;K, V&gt; sl = xpr.left, sr = xpr.right;
+                    if ((sr == null || !sr.red) &amp;&amp;
+                        (sl == null || !sl.red)) &#123;
+                        xpr.red = true;
+                        x = xp;
+                    &#125; else &#123;
+                        if (sr == null || !sr.red) &#123;
+                            if (sl != null)
+                                sl.red = false;
+                            xpr.red = true;
+                            root = rotateRight(root, xpr);
+                            xpr = (xp = x.parent) == null ?
+                                null : xp.right;
+                        &#125;
+                        if (xpr != null) &#123;
+                            xpr.red = (xp == null) ? false : xp.red;
+                            if ((sr = xpr.right) != null)
+                                sr.red = false;
+                        &#125;
+                        if (xp != null) &#123;
+                            xp.red = false;
+                            root = rotateLeft(root, xp);
+                        &#125;
+                        x = root;
+                    &#125;
+                &#125;
+            &#125; else &#123; // symmetric
+                if (xpl != null &amp;&amp; xpl.red) &#123;
+                    xpl.red = false;
+                    xp.red = true;
+                    root = rotateRight(root, xp);
+                    xpl = (xp = x.parent) == null ? null : xp.left;
+                &#125;
+                if (xpl == null)
+                    x = xp;
+                else &#123;
+                    TreeNode&lt;K, V&gt; sl = xpl.left, sr = xpl.right;
+                    if ((sl == null || !sl.red) &amp;&amp;
+                        (sr == null || !sr.red)) &#123;
+                        xpl.red = true;
+                        x = xp;
+                    &#125; else &#123;
+                        if (sl == null || !sl.red) &#123;
+                            if (sr != null)
+                                sr.red = false;
+                            xpl.red = true;
+                            root = rotateLeft(root, xpl);
+                            xpl = (xp = x.parent) == null ?
+                                null : xp.left;
+                        &#125;
+                        if (xpl != null) &#123;
+                            xpl.red = (xp == null) ? false : xp.red;
+                            if ((sl = xpl.left) != null)
+                                sl.red = false;
+                        &#125;
+                        if (xp != null) &#123;
+                            xp.red = false;
+                            root = rotateRight(root, xp);
+                        &#125;
+                        x = root;
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+
+    /**
+     * 递归检查红黑树的正确性
+     */
+    static &lt;K, V&gt; boolean checkInvariants(TreeNode&lt;K, V&gt; t) &#123;
+        TreeNode&lt;K, V&gt; tp = t.parent, tl = t.left, tr = t.right,
+            tb = t.prev, tn = (TreeNode&lt;K, V&gt;) t.next;
+        if (tb != null &amp;&amp; tb.next != t)
+            return false;
+        if (tn != null &amp;&amp; tn.prev != t)
+            return false;
+        if (tp != null &amp;&amp; t != tp.left &amp;&amp; t != tp.right)
+            return false;
+        if (tl != null &amp;&amp; (tl.parent != t || tl.hash &gt; t.hash))
+            return false;
+        if (tr != null &amp;&amp; (tr.parent != t || tr.hash &lt; t.hash))
+            return false;
+        if (t.red &amp;&amp; tl != null &amp;&amp; tl.red &amp;&amp; tr != null &amp;&amp; tr.red)
+            return false;
+        if (tl != null &amp;&amp; !checkInvariants(tl))
+            return false;
+        if (tr != null &amp;&amp; !checkInvariants(tr))
+            return false;
+        return true;
+    &#125;
+
+    private static final sun.misc.Unsafe U;
+    private static final long LOCKSTATE;
+
+    static &#123;
+        try &#123;
+            U = sun.misc.Unsafe.getUnsafe();
+            Class&lt;?&gt; k = TreeBin.class;
+            LOCKSTATE = U.objectFieldOffset
+                (k.getDeclaredField(&quot;lockState&quot;));
+        &#125; catch (Exception e) &#123;
+            throw new Error(e);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<hr>
+<h3 id="ForwardingNode结点"><a href="#ForwardingNode结点" class="headerlink" title="ForwardingNode结点"></a>ForwardingNode结点</h3><p>ForwardingNode结点仅仅在扩容时才会使用——关于扩容</p>
+<pre><code class="java">/**
+ * ForwardingNode是一种临时结点，在扩容进行中才会出现，hash值固定为-1，且不存储实际数据。
+ * 如果旧table数组的一个hash桶中全部的结点都迁移到了新table中，则在这个桶中放置一个ForwardingNode。
+ * 读操作碰到ForwardingNode时，将操作转发到扩容后的新table数组上去执行；写操作碰见它时，则尝试帮助扩容。
+ */
+static final class ForwardingNode&lt;K, V&gt; extends Node&lt;K, V&gt; &#123;
+    final Node&lt;K, V&gt;[] nextTable;
+
+    ForwardingNode(Node&lt;K, V&gt;[] tab) &#123;
+        super(MOVED, null, null, null);
+        this.nextTable = tab;
+    &#125;
+
+    // 在新的数组nextTable上进行查找
+    Node&lt;K, V&gt; find(int h, Object k) &#123;
+        // loop to avoid arbitrarily deep recursion on forwarding nodes
+        outer:
+        for (Node&lt;K, V&gt;[] tab = nextTable; ; ) &#123;
+            Node&lt;K, V&gt; e;
+            int n;
+            if (k == null || tab == null || (n = tab.length) == 0 ||
+                (e = tabAt(tab, (n - 1) &amp; h)) == null)
+                return null;
+            for (; ; ) &#123;
+                int eh;
+                K ek;
+                if ((eh = e.hash) == h &amp;&amp;
+                    ((ek = e.key) == k || (ek != null &amp;&amp; k.equals(ek))))
+                    return e;
+                if (eh &lt; 0) &#123;
+                    if (e instanceof ForwardingNode) &#123;
+                        tab = ((ForwardingNode&lt;K, V&gt;) e).nextTable;
+                        continue outer;
+                    &#125; else
+                        return e.find(h, k);
+                &#125;
+                if ((e = e.next) == null)
+                    return null;
+            &#125;
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<hr>
+<p>ReservationNode结点<br>保留结点，ConcurrentHashMap中的一些特殊方法会专门用到该类结点。</p>
+<pre><code class="java">/**
+ * 保留结点.
+ * hash值固定为-3， 不保存实际数据
+ * 只在computeIfAbsent和compute这两个函数式API中充当占位符加锁使用
+ */
+static final class ReservationNode&lt;K, V&gt; extends Node&lt;K, V&gt; &#123;
+    ReservationNode() &#123;
+        super(RESERVED, null, null, null);
+    &#125;
+
+    Node&lt;K, V&gt; find(int h, Object k) &#123;
+        return null;
+    &#125;
+&#125;
+</code></pre>
+<h1 id="三、构造器"><a href="#三、构造器" class="headerlink" title="三、构造器"></a>三、构造器</h1><h2 id="构造器定义"><a href="#构造器定义" class="headerlink" title="构造器定义"></a>构造器定义</h2><p><strong>ConcurrentHashMap</strong>提供了<strong>五个构造器</strong>，这五个构造器内部最多也只是计算了下table的初始容量大小，并没有进行实际的创建table数组的工作：</p>
+<blockquote>
+<p>ConcurrentHashMap，采用了一种<strong>“懒加载”</strong>的模式，只有到<strong>首次插入键值对</strong>的时候，才会真正的去初始化table数组。</p>
+</blockquote>
+<h3 id="null构造器"><a href="#null构造器" class="headerlink" title="null构造器"></a>null构造器</h3><pre><code class="java">public ConcurrentHashMap() &#123;
+&#125;
+</code></pre>
+<hr>
+<h3 id="initialCapacity构造器"><a href="#initialCapacity构造器" class="headerlink" title="initialCapacity构造器"></a>initialCapacity构造器</h3><pre><code class="java">/**
+ * 指定table初始容量的构造器.
+ * tableSizeFor会返回大于入参（initialCapacity + (initialCapacity &gt;&gt;&gt; 1) + 1）的最小2次幂值
+ */
+public ConcurrentHashMap(int initialCapacity) &#123;
+    if (initialCapacity &lt; 0)
+        throw new IllegalArgumentException();
+
+    int cap = ((initialCapacity &gt;= (MAXIMUM_CAPACITY &gt;&gt;&gt; 1)) ? MAXIMUM_CAPACITY :
+        tableSizeFor(initialCapacity + (initialCapacity &gt;&gt;&gt; 1) + 1));
+
+    this.sizeCtl = cap;
+&#125;
+</code></pre>
+<hr>
+<h3 id="Map构造器"><a href="#Map构造器" class="headerlink" title="Map构造器"></a>Map构造器</h3><pre><code class="java">/**
+ * 根据已有的Map构造ConcurrentHashMap.
+ */
+public ConcurrentHashMap(Map&lt;? extends K, ? extends V&gt; m) &#123;
+    this.sizeCtl = DEFAULT_CAPACITY;
+    putAll(m);
+&#125;
+</code></pre>
+<hr>
+<h3 id="init-factor构造器"><a href="#init-factor构造器" class="headerlink" title="init+factor构造器"></a>init+factor构造器</h3><pre><code class="java">/**
+ * 指定table初始容量和负载因子的构造器.
+ */
+public ConcurrentHashMap(int initialCapacity, float loadFactor) &#123;
+    this(initialCapacity, loadFactor, 1);
+&#125;
+</code></pre>
+<hr>
+<h3 id="init-factor-Level构造器"><a href="#init-factor-Level构造器" class="headerlink" title="init+factor+Level构造器"></a>init+factor+Level构造器</h3><pre><code class="java">/**
+ * 指定table初始容量、负载因子、并发级别的构造器.
+ * &lt;p&gt;
+ * 注意：concurrencyLevel只是为了兼容JDK1.8以前的版本，并不是实际的并发级别，loadFactor也不是实际的负载因子
+ * 这两个都失去了原有的意义，仅仅对初始容量有一定的控制作用
+ */
+public ConcurrentHashMap(int initialCapacity, float loadFactor, int concurrencyLevel) &#123;
+    if (!(loadFactor &gt; 0.0f) || initialCapacity &lt; 0 || concurrencyLevel &lt;= 0)
+        throw new IllegalArgumentException();
+
+    if (initialCapacity &lt; concurrencyLevel)
+        initialCapacity = concurrencyLevel;
+
+    long size = (long) (1.0 + (long) initialCapacity / loadFactor);
+    int cap = (size &gt;= (long) MAXIMUM_CAPACITY) ?
+        MAXIMUM_CAPACITY : tableSizeFor((int) size);
+    this.sizeCtl = cap;
+&#125;
+</code></pre>
+<h2 id="常量-字段定义"><a href="#常量-字段定义" class="headerlink" title="常量/字段定义"></a>常量/字段定义</h2><p>我们再看下ConcurrentHashMap内部定义了哪些常量/字段，先大致熟悉下这些常量/字段，后面结合具体的方法分析就能相对容易地理解这些常量/字段的含义了。</p>
+<p><strong>常量 :</strong></p>
+<pre><code class="java">/**
+ * 最大容量.
+ */
+private static final int MAXIMUM_CAPACITY = 1 &lt;&lt; 30;
+
+/**
+ * 默认初始容量
+ */
+private static final int DEFAULT_CAPACITY = 16;
+
+/**
+ * The largest possible (non-power of two) array size.
+ * Needed by toArray and related methods.
+ */
+static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+
+/**
+ * 负载因子，为了兼容JDK1.8以前的版本而保留。
+ * JDK1.8中的ConcurrentHashMap的负载因子恒定为0.75
+ */
+private static final float LOAD_FACTOR = 0.75f;
+
+/**
+ * 链表转树的阈值，即链接结点数大于8时， 链表转换为树.
+ */
+static final int TREEIFY_THRESHOLD = 8;
+
+/**
+ * 树转链表的阈值，即树结点树小于6时，树转换为链表.
+ */
+static final int UNTREEIFY_THRESHOLD = 6;
+
+/**
+ * 在链表转变成树之前，还会有一次判断：
+ * 即只有键值对数量大于MIN_TREEIFY_CAPACITY，才会发生转换。
+ * 这是为了避免在Table建立初期，多个键值对恰好被放入了同一个链表中而导致不必要的转化。
+ */
+static final int MIN_TREEIFY_CAPACITY = 64;
+
+/**
+ * 在树转变成链表之前，还会有一次判断：
+ * 即只有键值对数量小于MIN_TRANSFER_STRIDE，才会发生转换.
+ */
+private static final int MIN_TRANSFER_STRIDE = 16;
+
+/**
+ * 用于在扩容时生成唯一的随机数.
+ */
+private static int RESIZE_STAMP_BITS = 16;
+
+/**
+ * 可同时进行扩容操作的最大线程数.
+ */
+private static final int MAX_RESIZERS = (1 &lt;&lt; (32 - RESIZE_STAMP_BITS)) - 1;
+
+/**
+ * The bit shift for recording size stamp in sizeCtl.
+ */
+private static final int RESIZE_STAMP_SHIFT = 32 - RESIZE_STAMP_BITS;
+
+static final int MOVED = -1;                // 标识ForwardingNode结点（在扩容时才会出现，不存储实际数据）
+static final int TREEBIN = -2;              // 标识红黑树的根结点
+static final int RESERVED = -3;             // 标识ReservationNode结点（）
+static final int HASH_BITS = 0x7fffffff;    // usable bits of normal node hash
+
+/**
+ * CPU核心数，扩容时使用
+ */
+static final int NCPU = Runtime.getRuntime().availableProcessors();
+</code></pre>
+<p><strong>字段 :</strong></p>
+<pre><code class="java">/**
+ * Node数组，标识整个Map，首次插入元素时创建，大小总是2的幂次.
+ */
+transient volatile Node&lt;K, V&gt;[] table;
+
+/**
+ * 扩容后的新Node数组，只有在扩容时才非空.
+ */
+private transient volatile Node&lt;K, V&gt;[] nextTable;
+
+/**
+ * 控制table的初始化和扩容.
+ * 0  : 初始默认值
+ * -1 : 有线程正在进行table的初始化
+ * &gt;0 : table初始化时使用的容量，或初始化/扩容完成后的threshold
+ * -(1 + nThreads) : 记录正在执行扩容任务的线程数
+ */
+private transient volatile int sizeCtl;
+
+/**
+ * 扩容时需要用到的一个下标变量.
+ */
+private transient volatile int transferIndex;
+
+/**
+ * 计数基值,当没有线程竞争时，计数将加到该变量上。类似于LongAdder的base变量
+ */
+private transient volatile long baseCount;
+
+/**
+ * 计数数组，出现并发冲突时使用。类似于LongAdder的cells数组
+ */
+private transient volatile CounterCell[] counterCells;
+
+/**
+ * 自旋标识位，用于CounterCell[]扩容时使用。类似于LongAdder的cellsBusy变量
+ */
+private transient volatile int cellsBusy;
+
+
+// 视图相关字段
+private transient KeySetView&lt;K, V&gt; keySet;
+private transient ValuesView&lt;K, V&gt; values;
+private transient EntrySetView&lt;K, V&gt; entrySet;
+</code></pre>
+<h1 id="四、put操作"><a href="#四、put操作" class="headerlink" title="四、put操作"></a>四、put操作</h1><p>我们来看下<strong>ConcurrentHashMap</strong>如何插入一个元素：</p>
+<pre><code class="java">/**
+ * 插入键值对，&lt;K,V&gt;均不能为null.
+ */
+public V put(K key, V value) &#123;
+    return putVal(key, value, false);
+&#125;
+</code></pre>
+<p>put方法内部调用了<code>putVal</code>这个私有方法：</p>
+<pre><code class="java">/**
+ * 实际的插入操作
+ *
+ * @param onlyIfAbsent true:仅当key不存在时,才插入
+ */
+final V putVal(K key, V value, boolean onlyIfAbsent) &#123;
+    if (key == null || value == null) throw new NullPointerException();
+    int hash = spread(key.hashCode());  // 再次计算hash值
+
+    /**
+     * 使用链表保存时，binCount记录table[i]这个桶中所保存的结点数；
+     * 使用红黑树保存时，binCount==2，保证put后更改计数值时能够进行扩容检查，同时不触发红黑树化操作
+     */
+    int binCount = 0;
+
+    for (Node&lt;K, V&gt;[] tab = table; ; ) &#123;            // 自旋插入结点，直到成功
+        Node&lt;K, V&gt; f;
+        int n, i, fh;
+        if (tab == null || (n = tab.length) == 0)                   // CASE1: 首次初始化table —— 懒加载
+            tab = initTable();
+        else if ((f = tabAt(tab, i = (n - 1) &amp; hash)) == null) &#123;    // CASE2: table[i]对应的桶为null
+            // 注意下上面table[i]的索引i的计算方式：[ key的hash值 &amp; (table.length-1) ]
+            // 这也是table容量必须为2的幂次的原因，读者可以自己看下当table.length为2的幂次时，(table.length-1)的二进制形式的特点 —— 全是1
+            // 配合这种索引计算方式可以实现key的均匀分布，减少hash冲突
+            if (casTabAt(tab, i, null, new Node&lt;K, V&gt;(hash, key, value, null))) // 插入一个链表结点
+                break;
+        &#125; else if ((fh = f.hash) == MOVED)                          // CASE3: 发现ForwardingNode结点，说明此时table正在扩容，则尝试协助数据迁移
+            tab = helpTransfer(tab, f);
+        else &#123;                                                      // CASE4: 出现hash冲突,也就是table[i]桶中已经有了结点
+            V oldVal = null;
+            synchronized (f) &#123;              // 锁住table[i]结点
+                if (tabAt(tab, i) == f) &#123;   // 再判断一下table[i]是不是第一个结点, 防止其它线程的写修改
+                    if (fh &gt;= 0) &#123;          // CASE4.1: table[i]是链表结点
+                        binCount = 1;
+                        for (Node&lt;K, V&gt; e = f; ; ++binCount) &#123;
+                            K ek;
+                            // 找到“相等”的结点，判断是否需要更新value值
+                            if (e.hash == hash &amp;&amp; ((ek = e.key) == key || (ek != null &amp;&amp; key.equals(ek)))) &#123;
+                                oldVal = e.val;
+                                if (!onlyIfAbsent)
+                                    e.val = value;
+                                break;
+                            &#125;
+                            Node&lt;K, V&gt; pred = e;
+                            if ((e = e.next) == null) &#123;     // “尾插法”插入新结点
+                                pred.next = new Node&lt;K, V&gt;(hash, key,
+                                    value, null);
+                                break;
+                            &#125;
+                        &#125;
+                    &#125; else if (f instanceof TreeBin) &#123;  // CASE4.2: table[i]是红黑树结点
+                        Node&lt;K, V&gt; p;
+                        binCount = 2;
+                        if ((p = ((TreeBin&lt;K, V&gt;) f).putTreeVal(hash, key, value)) != null) &#123;
+                            oldVal = p.val;
+                            if (!onlyIfAbsent)
+                                p.val = value;
+                        &#125;
+                    &#125;
+                &#125;
+            &#125;
+            if (binCount != 0) &#123;
+                if (binCount &gt;= TREEIFY_THRESHOLD)
+                    treeifyBin(tab, i);     // 链表 -&gt; 红黑树 转换
+                if (oldVal != null)         // 表明本次put操作只是替换了旧值，不用更改计数值
+                    return oldVal;
+                break;
+            &#125;
+        &#125;
+    &#125;
+    addCount(1L, binCount);             // 计数值加1
+    return null;
+&#125;   
+</code></pre>
+<p><code>putVal</code>的逻辑还是很清晰的，首先根据<strong>key</strong>计算<strong>hash</strong>值，然后通过<strong>hash</strong>值与<strong>table</strong>容量进行运算，计算得到key所映射的索引——也就是对应到<strong>table</strong>中桶的位置。</p>
+<p>这里需要注意的是计算索引的方式：<code>i = (n - 1) &amp; hash</code></p>
+<p><code>n - 1 == table.length - 1</code>，<code>table.length</code> 的大小必须为<strong>2的幂次</strong>的原因就在这里。</p>
+<p>读者可以自己计算下，当<code>table.length</code>为2的幂次时，<code>(table.length-1)</code>的二进制形式的特点是<strong>除最高位外全部是1</strong>，配合这种索引计算方式可以<strong>实现key在table中的均匀分布，减少hash冲突</strong>——出现hash冲突时，结点就需要以链表或红黑树的形式链接到table[i]，这样无论是插入还是查找都需要额外的时间。</p>
+<hr>
+<p><strong>putVal</strong>方法一共处理四种情况：</p>
+<h2 id="1、首次初始化table-——-懒加载"><a href="#1、首次初始化table-——-懒加载" class="headerlink" title="1、首次初始化table —— 懒加载"></a>1、首次初始化table —— 懒加载</h2><p>之前讲构造器的时候说了，<strong>ConcurrentHashMap</strong>在构造的时候并不会初始化table数组，首次初始化就在这里通过<strong>initTable</strong>方法完成：</p>
+<pre><code class="java">/**
+ * 初始化table, 使用sizeCtl作为初始化容量.
+ */
+private final Node&lt;K, V&gt;[] initTable() &#123;
+    Node&lt;K, V&gt;[] tab;
+    int sc;
+    while ((tab = table) == null || tab.length == 0) &#123;  //自旋直到初始化成功
+        if ((sc = sizeCtl) &lt; 0)         // sizeCtl&lt;0 说明table已经正在初始化/扩容
+            Thread.yield();
+        else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) &#123;  // 将sizeCtl更新成-1,表示正在初始化中
+            try &#123;
+                if ((tab = table) == null || tab.length == 0) &#123;
+                    int n = (sc &gt; 0) ? sc : DEFAULT_CAPACITY;
+                    Node&lt;K, V&gt;[] nt = (Node&lt;K, V&gt;[]) new Node&lt;?, ?&gt;[n];
+                    table = tab = nt;
+                    sc = n - (n &gt;&gt;&gt; 2);     // n - (n &gt;&gt;&gt; 2) = n - n/4 = 0.75n, 前面说了loadFactor已在JDK1.8废弃
+                &#125;
+            &#125; finally &#123;
+                sizeCtl = sc;               // 设置threshold = 0.75 * table.length
+            &#125;
+            break;
+        &#125;
+    &#125;
+    return tab;
+&#125;
+</code></pre>
+<p><strong>initTable</strong>方法就是将<strong>sizeCtl</strong>字段的值（ConcurrentHashMap对象在构造时设置）作为table的大小。<br>需要注意的是这里的<code>n - (n &gt;&gt;&gt; 2)</code>，其实就是<code>0.75 * n</code>，sizeCtl 的值最终需要变更为<code>0.75 * n</code>，相当于设置了<strong>threshold</strong>。</p>
+<h2 id="2、table-i-对应的桶为空"><a href="#2、table-i-对应的桶为空" class="headerlink" title="2、table[i]对应的桶为空"></a>2、table[i]对应的桶为空</h2><p>最简单的情况，直接CAS操作占用桶<code>table[i]</code>即可。</p>
+<h2 id="3、发现ForwardingNode结点"><a href="#3、发现ForwardingNode结点" class="headerlink" title="3、发现ForwardingNode结点"></a>3、发现<strong>ForwardingNode</strong>结点</h2><p>说明此时table正在扩容，则尝试协助进行数据迁移</p>
+<p><strong>ForwardingNode</strong>结点是ConcurrentHashMap中的五类结点之一，相当于一个占位结点，表示当前table正在进行扩容，当前线程可以尝试协助数据迁移。</p>
+<h2 id="4、出现hash冲突"><a href="#4、出现hash冲突" class="headerlink" title="4、出现hash冲突"></a>4、出现hash冲突</h2><p>也就是table[i]桶中已经有了结点</p>
+<p>当两个不同key映射到同一个<code>table[i]</code>桶中时，就会出现这种情况：</p>
+<ul>
+<li>当table[i]的结点类型为Node——链表结点时，就会将新结点以<strong>“尾插法”</strong>的形式插入链表的尾部。</li>
+<li>当table[i]的结点类型为TreeBin——红黑树代理结点时，就会将新结点通过红黑树的插入方式插入。</li>
+</ul>
+<hr>
+<p><strong>putVal</strong>方法的最后，涉及将链表转换为红黑树 —— <strong>treeifyBin</strong> ，<strong>但实际情况并非立即就会转换，当table的容量小于64时，出于性能考虑，只是对table数组扩容1倍</strong>——<strong>tryPresize</strong>：</p>
+<blockquote>
+<p><strong>tryPresize</strong>方法涉及扩容和数据迁移</p>
+</blockquote>
+<pre><code class="java">/**
+ * 尝试进行 链表 -&gt; 红黑树 的转换.
+ */
+private final void treeifyBin(Node&lt;K, V&gt;[] tab, int index) &#123;
+    Node&lt;K, V&gt; b;
+    int n, sc;
+    if (tab != null) &#123;
+
+        // CASE 1: table的容量 &lt; MIN_TREEIFY_CAPACITY(64)时，直接进行table扩容，不进行红黑树转换
+        if ((n = tab.length) &lt; MIN_TREEIFY_CAPACITY)
+            tryPresize(n &lt;&lt; 1);
+
+            // CASE 2: table的容量 ≥ MIN_TREEIFY_CAPACITY(64)时，进行链表 -&gt; 红黑树的转换
+        else if ((b = tabAt(tab, index)) != null &amp;&amp; b.hash &gt;= 0) &#123;
+            synchronized (b) &#123;
+                if (tabAt(tab, index) == b) &#123;
+                    TreeNode&lt;K, V&gt; hd = null, tl = null;
+
+                    // 遍历链表，建立红黑树
+                    for (Node&lt;K, V&gt; e = b; e != null; e = e.next) &#123;
+                        TreeNode&lt;K, V&gt; p = new TreeNode&lt;K, V&gt;(e.hash, e.key, e.val, null, null);
+                        if ((p.prev = tl) == null)
+                            hd = p;
+                        else
+                            tl.next = p;
+                        tl = p;
+                    &#125;
+                    // 以TreeBin类型包装，并链接到table[index]中
+                    setTabAt(tab, index, new TreeBin&lt;K, V&gt;(hd));
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ol>
+<li>数组为空就初始化—-&gt;2</li>
+<li>计算当前桶是否有值<ol>
+<li>无，CAS赋值，失败后自旋，直到成功为止</li>
+<li>有—-&gt;3</li>
+</ol>
+</li>
+<li>桶位是否为forwarding节点（扩容ing)<ol>
+<li>是，一直自旋直到扩容完成后再添加</li>
+<li>否—-&gt;4</li>
+</ol>
+</li>
+<li>桶位有值，对当前桶加synchronized锁<ol>
+<li>链表，新增节点到链表尾部</li>
+<li>红黑树，红黑的新增</li>
+</ol>
+</li>
+<li>新增后扩容</li>
+</ol>
+<h1 id="五、get操作"><a href="#五、get操作" class="headerlink" title="五、get操作"></a>五、get操作</h1><p>我们来看下ConcurrentHashMap如何根据key来查找一个元素：</p>
+<pre><code class="java">/**
+ * 根据key查找对应的value值
+ *
+ * @return 查找不到则返回null
+ * @throws NullPointerException if the specified key is null
+ */
+public V get(Object key) &#123;
+    Node&lt;K, V&gt;[] tab;
+    Node&lt;K, V&gt; e, p;
+    int n, eh;
+    K ek;
+    int h = spread(key.hashCode());     // 重新计算key的hash值
+    if ((tab = table) != null &amp;&amp; (n = tab.length) &gt; 0 &amp;&amp;
+            (e = tabAt(tab, (n - 1) &amp; h)) != null) &#123;
+        if ((eh = e.hash) == h) &#123;       // table[i]就是待查找的项，直接返回
+            if ((ek = e.key) == key || (ek != null &amp;&amp; key.equals(ek)))
+                return e.val;
+        &#125; else if (eh &lt; 0)              // hash值&lt;0, 说明遇到特殊结点(非链表结点), 调用find方法查找
+            return (p = e.find(h, key)) != null ? p.val : null;
+        while ((e = e.next) != null) &#123;  // 按链表方式查找
+            if (e.hash == h &amp;&amp;
+                    ((ek = e.key) == key || (ek != null &amp;&amp; key.equals(ek))))
+                return e.val;
+        &#125;
+    &#125;
+    return null;
+&#125;
+</code></pre>
+<p><strong>get</strong>方法的逻辑很简单，首先根据key的hash值计算映射到table的哪个桶——<code>table[i]</code>。</p>
+<ol>
+<li><strong>如果table[i]的key和待查找key相同，那直接返回；</strong></li>
+<li><strong>如果table[i]对应的结点是特殊结点（hash值小于0），则通过<code>find</code>方法查找；</strong></li>
+<li><strong>如果table[i]对应的结点是普通链表结点，则按链表方式查找。</strong></li>
+</ol>
+<hr>
+<p>关键是第二种情况，不同结点的find查找方式有所不同，我们来具体看下：</p>
+<h2 id="Node结点的查找"><a href="#Node结点的查找" class="headerlink" title="Node结点的查找"></a>Node结点的查找</h2><p>当槽<code>table[i]</code>被普通<strong>Node</strong>结点占用，说明是链表链接的形式，直接从链表头开始查找：</p>
+<pre><code class="java">/**
+ * 链表查找.
+ */
+Node&lt;K, V&gt; find(int h, Object k) &#123;
+    Node&lt;K, V&gt; e = this;
+    if (k != null) &#123;
+        do &#123;
+            K ek;
+            if (e.hash == h &amp;&amp; ((ek = e.key) == k || (ek != null &amp;&amp; k.equals(ek))))
+                return e;
+        &#125; while ((e = e.next) != null);
+    &#125;
+    return null;
+&#125;
+</code></pre>
+<h2 id="TreeBin结点的查找"><a href="#TreeBin结点的查找" class="headerlink" title="TreeBin结点的查找"></a>TreeBin结点的查找</h2><p>TreeBin的查找比较特殊，我们知道当槽<code>table[i]</code>被TreeBin结点占用时，说明链接的是一棵红黑树。由于红黑树的插入、删除会涉及整个结构的调整，所以通常存在读写并发操作的时候，是需要加锁的。</p>
+<blockquote>
+<p>ConcurrentHashMap采用了一种<strong>类似读写锁</strong>的方式：当线程持有写锁（修改红黑树）时，如果读线程需要查找，不会像传统的读写锁那样阻塞等待，而是转而以链表的形式进行查找（TreeBin本身时Node类型的子类，所有拥有Node的所有字段）</p>
+</blockquote>
+<pre><code class="java">/**
+ * 从根结点开始遍历查找，找到“相等”的结点就返回它，没找到就返回null
+ * 当存在写锁时，以链表方式进行查找
+ */
+final Node&lt;K, V&gt; find(int h, Object k) &#123;
+    if (k != null) &#123;
+        for (Node&lt;K, V&gt; e = first; e != null; ) &#123;
+            int s;
+            K ek;
+            /**
+             * 两种特殊情况下以链表的方式进行查找:
+             * 1. 有线程正持有写锁，这样做能够不阻塞读线程
+             * 2. 有线程等待获取写锁，不再继续加读锁，相当于“写优先”模式
+             */
+            if (((s = lockState) &amp; (WAITER | WRITER)) != 0) &#123;
+                if (e.hash == h &amp;&amp;
+                    ((ek = e.key) == k || (ek != null &amp;&amp; k.equals(ek))))
+                    return e;
+                e = e.next;     // 链表形式
+            &#125;
+
+            // 读线程数量加1，读状态进行累加
+            else if (U.compareAndSwapInt(this, LOCKSTATE, s, s + READER)) &#123;
+                TreeNode&lt;K, V&gt; r, p;
+                try &#123;
+                    p = ((r = root) == null ? null :
+                        r.findTreeNode(h, k, null));
+                &#125; finally &#123;
+                    Thread w;
+                    // 如果当前线程是最后一个读线程，且有写线程因为读锁而阻塞，则写线程，告诉它可以尝试获取写锁了
+                    if (U.getAndAddInt(this, LOCKSTATE, -READER) == (READER | WAITER) &amp;&amp; (w = waiter) != null)
+                        LockSupport.unpark(w);
+                &#125;
+                return p;
+            &#125;
+        &#125;
+    &#125;
+    return null;
+&#125;
+</code></pre>
+<h2 id="ForwardingNode结点的查找"><a href="#ForwardingNode结点的查找" class="headerlink" title="ForwardingNode结点的查找"></a>ForwardingNode结点的查找</h2><p><strong>ForwardingNode</strong>是一种临时结点，在扩容进行中才会出现，所以查找也在扩容的table上进行：</p>
+<pre><code class="java">/**
+ * 在新的扩容table——nextTable上进行查找
+ */
+Node&lt;K, V&gt; find(int h, Object k) &#123;
+    // loop to avoid arbitrarily deep recursion on forwarding nodes
+    outer:
+    for (Node&lt;K, V&gt;[] tab = nextTable; ; ) &#123;
+        Node&lt;K, V&gt; e;
+        int n;
+        if (k == null || tab == null || (n = tab.length) == 0 ||
+            (e = tabAt(tab, (n - 1) &amp; h)) == null)
+            return null;
+        for (; ; ) &#123;
+            int eh;
+            K ek;
+            if ((eh = e.hash) == h &amp;&amp;
+                ((ek = e.key) == k || (ek != null &amp;&amp; k.equals(ek))))
+                return e;
+            if (eh &lt; 0) &#123;
+                if (e instanceof ForwardingNode) &#123;
+                    tab = ((ForwardingNode&lt;K, V&gt;) e).nextTable;
+                    continue outer;
+                &#125; else
+                    return e.find(h, k);
+            &#125;
+            if ((e = e.next) == null)
+                return null;
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<h2 id="ReservationNode结点的查找"><a href="#ReservationNode结点的查找" class="headerlink" title="ReservationNode结点的查找"></a>ReservationNode结点的查找</h2><p>ReservationNode是保留结点，不保存实际数据，所以直接返回null：</p>
+<pre><code class="java">Node&lt;K, V&gt; find(int h, Object k) &#123;
+    return null;
+&#125;
+</code></pre>
+<h1 id="六、计数"><a href="#六、计数" class="headerlink" title="六、计数"></a>六、计数</h1><h2 id="计数原理"><a href="#计数原理" class="headerlink" title="计数原理"></a>计数原理</h2><p>我们来看下<strong>ConcurrentHashMap</strong>是如何计算键值对的数目的：</p>
+<pre><code class="java">public int size() &#123;
+    long n = sumCount();
+    return ((n &lt; 0L) ? 0 :
+            (n &gt; (long) Integer.MAX_VALUE) ? Integer.MAX_VALUE :
+                    (int) n);
+&#125;
+</code></pre>
+<p>size方法内部实际调用了<strong>sumCount</strong>方法：</p>
+<pre><code class="java">final long sumCount() &#123;
+    CounterCell[] as = counterCells;
+    CounterCell a;
+    long sum = baseCount;
+    if (as != null) &#123;
+        for (int i = 0; i &lt; as.length; ++i) &#123;
+            if ((a = as[i]) != null)
+                sum += a.value;
+        &#125;
+    &#125;
+    return sum;
+&#125;
+</code></pre>
+<p>没错，ConcurrentHashMap的计数其实延用了LongAdder分段计数的思路，只不过ConcurrentHashMap并没有在内部直接使用LongAdder，而是差不多copy了一份和LongAdder类似的代码：</p>
+<pre><code class="java">/**
+ * 计数基值,当没有线程竞争时，计数将加到该变量上。类似于LongAdder的base变量
+ */
+private transient volatile long baseCount;
+
+/**
+ * 计数数组，出现并发冲突时使用。类似于LongAdder的cells数组
+ */
+private transient volatile CounterCell[] counterCells;
+
+/**
+ * 自旋标识位，用于CounterCell[]扩容时使用。类似于LongAdder的cellsBusy变量
+ */
+private transient volatile int cellsBusy;
+</code></pre>
+<p>我们来看下<strong>CounterCell</strong>这个槽对象——出现并发冲突时，每个线程会根据自己的hash值找到对应的槽位置：</p>
+<pre><code class="java">/**
+ * 计数槽.
+ * 类似于LongAdder中的Cell内部类
+ */
+static final class CounterCell &#123;
+    volatile long value;
+
+    CounterCell(long x) &#123;
+        value = x;
+    &#125;
+&#125;
+</code></pre>
+<h2 id="addCount的实现"><a href="#addCount的实现" class="headerlink" title="addCount的实现"></a>addCount的实现</h2><p>回顾之前的<strong>putval</strong>方法的最后，当插入一对键值对后，通过<strong>addCount</strong>方法将计数值为加1：</p>
+<pre><code class="java">/**
+ * 实际的插入操作
+ *
+ * @param onlyIfAbsent true:仅当key不存在时,才插入
+ */
+final V putVal(K key, V value, boolean onlyIfAbsent) &#123;
+    // …
+    addCount(1L, binCount);             // 计数值加1
+    return null;
+&#125;
+</code></pre>
+<p>我们来看下<strong>addCount</strong>的具体实现（后半部分涉及扩容，暂且不看）：<br>首先，如果counterCells为null，说明之前一直没有出现过冲突，直接将值累加到baseCount上；<br>否则，尝试更新<code>counterCells[i]</code>中的值，更新成功就退出。失败说明槽中也出现了并发冲突，可能涉及槽数组——counterCells的扩容，所以调用<strong>fullAddCount</strong>方法。</p>
+<blockquote>
+<p>fullAddCount的逻辑和LongAdder中的longAccumulate几乎完全一样</p>
+</blockquote>
+<pre><code class="java">/**
+ * 更改计数值
+ */
+private final void addCount(long x, int check) &#123;
+    CounterCell[] as;
+    long b, s;
+    if ((as = counterCells) != null ||
+            !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) &#123; // 首先尝试更新baseCount
+ 
+        // 更新失败,说明出现并发冲突,则将计数值累加到Cell槽
+        CounterCell a;
+        long v;
+        int m;
+        boolean uncontended = true;
+        if (as == null || (m = as.length - 1) &lt; 0 ||
+                (a = as[ThreadLocalRandom.getProbe() &amp; m]) == null ||   // 根据线程hash值计算槽索引
+                !(uncontended = U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) &#123;
+            fullAddCount(x, uncontended);       // 槽更新也失败, 则会执行fullAddCount
+            return;
+        &#125;
+        if (check &lt;= 1)
+            return;
+        s = sumCount();
+    &#125;
+    if (check &gt;= 0) &#123;       // 检测是否扩容
+        Node&lt;K, V&gt;[] tab, nt;
+        int n, sc;
+        while (s &gt;= (long) (sc = sizeCtl) &amp;&amp; (tab = table) != null &amp;&amp; (n = tab.length) &lt; MAXIMUM_CAPACITY) &#123;
+            int rs = resizeStamp(n);
+            if (sc &lt; 0) &#123;
+                if ((sc &gt;&gt;&gt; RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+                        sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+                        transferIndex &lt;= 0)
+                    break;
+                if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                    transfer(tab, nt);
+            &#125; else if (U.compareAndSwapInt(this, SIZECTL, sc, (rs &lt;&lt; RESIZE_STAMP_SHIFT) + 2))
+                transfer(tab, null);
+            s = sumCount();
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<h1 id="七、扩容"><a href="#七、扩容" class="headerlink" title="七、扩容"></a>七、扩容</h1><p>JDK1.8中，<strong>ConcurrentHashMap</strong>最复杂的部分就是扩容/数据迁移，涉及多线程的合作和rehash。我们先来考虑下一般情况下，如何对一个Hash表进行扩容。</p>
+<h2 id="扩容思路"><a href="#扩容思路" class="headerlink" title="扩容思路"></a>扩容思路</h2><p>Hash表的扩容，一般都包含两个步骤：</p>
+<p><strong>①table数组的扩容</strong><br>table数组的扩容，一般就是新建一个2倍大小的槽数组，这个过程通过由一个单线程完成，且不允许出现并发。</p>
+<p><strong>②数据迁移</strong><br>所谓数据迁移，就是把旧table中的各个槽中的结点重新分配到新table中<em>。比如，单线程情况下，可以遍历原来的table，然后put到新table中。</em></p>
+<p>这一过程通常涉及到槽中key的<strong>rehash</strong>，因为key映射到桶的位置与table的大小有关，新table的大小变了，key映射的位置一般也会变化。</p>
+<p><strong>ConcurrentHashMap</strong>在处理rehash的时候，并不会重新计算每个key的hash值，而是利用了一种很巧妙的方法。我们在上一篇说过，ConcurrentHashMap内部的table数组的大小必须为<strong>2的幂次</strong>，原因是让key均匀分布，减少冲突，这只是其中一个原因。另一个原因就是：</p>
+<blockquote>
+<p>当table数组的大小为2的幂次时，通过<code>key.hash &amp; table.length-1</code>这种方式计算出的索引<code>i</code>，当table扩容后（2倍），新的索引要么在原来的位置<code>i</code>，要么是<code>i+n</code>。</p>
+</blockquote>
+<p>我们来看个例子：<br><img src="image-20200928104146316.png" alt="image-20200928104146316"></p>
+<p>上图中：<br>扩容前，table数组大小为16，key1和key2映射到同一个索引5；<br>扩容后，table数组的大小变成 <strong>2*16=32</strong> ，key1的索引不变，key2的索引变成 <strong>5+16=21</strong>。</p>
+<p>而且还有一个特点，<strong>扩容后key对应的索引如果发生了变化，那么其变化后的索引最高位一定是1</strong>（见扩容后key2的最高位）。</p>
+<blockquote>
+<p>这种处理方式非常利于扩容时多个线程同时进行的数据迁移操作，因为旧table的各个桶中的结点迁移不会互相影响，所以就可以用<strong>“分治”</strong>的方式，将整个table数组划分为很多部分，每一部分包含一定区间的桶，每个数据迁移线程处理各自区间中的结点，对多线程同时进行数据迁移非常有利，后面我们会详细介绍。</p>
+</blockquote>
+<h2 id="扩容时机"><a href="#扩容时机" class="headerlink" title="扩容时机"></a>扩容时机</h2><p>我们再来看下，<strong>ConcurrentHashMap</strong>何时会发生扩容。<br>在之前，我们提到过，当往Map中插入结点时，如果链表的结点数目超过一定阈值，就会触发<code>链表 -&gt; 红黑树</code>的转换：</p>
+<pre><code class="java">if (binCount &gt;= TREEIFY_THRESHOLD)
+    treeifyBin(tab, i);             // 链表 -&gt; 红黑树 转换
+</code></pre>
+<p>现在，我们来分析下<strong>treeifyBin</strong>这个红黑树化的操作：</p>
+<pre><code class="java">/**
+ * 尝试进行 链表 -&gt; 红黑树 的转换.
+ */
+private final void treeifyBin(Node&lt;K, V&gt;[] tab, int index) &#123;
+    Node&lt;K, V&gt; b;
+    int n, sc;
+    if (tab != null) &#123;
+
+        // CASE 1: table的容量 &lt; MIN_TREEIFY_CAPACITY(64)时，直接进行table扩容，不进行红黑树转换
+        if ((n = tab.length) &lt; MIN_TREEIFY_CAPACITY)
+            tryPresize(n &lt;&lt; 1);
+
+            // CASE 2: table的容量 ≥ MIN_TREEIFY_CAPACITY(64)时，进行链表 -&gt; 红黑树的转换
+        else if ((b = tabAt(tab, index)) != null &amp;&amp; b.hash &gt;= 0) &#123;
+            synchronized (b) &#123;
+                if (tabAt(tab, index) == b) &#123;
+                    TreeNode&lt;K, V&gt; hd = null, tl = null;
+
+                    // 遍历链表，建立红黑树
+                    for (Node&lt;K, V&gt; e = b; e != null; e = e.next) &#123;
+                        TreeNode&lt;K, V&gt; p = new TreeNode&lt;K, V&gt;(e.hash, e.key, e.val, null, null);
+                        if ((p.prev = tl) == null)
+                            hd = p;
+                        else
+                            tl.next = p;
+                        tl = p;
+                    &#125;
+                    // 以TreeBin类型包装，并链接到table[index]中
+                    setTabAt(tab, index, new TreeBin&lt;K, V&gt;(hd));
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>上述第一个分支中，还会再对<strong>table</strong>数组的长度进行一次判断：<br>如果table长度小于阈值<strong>MIN_TREEIFY_CAPACITY</strong>——默认64，则会调用<strong>tryPresize</strong>方法把数组长度扩大到原来的两倍。</p>
+<blockquote>
+<p><strong>从代码也可以看到，<code>链表 -&gt; 红黑树</code>这一转换并不是一定会进行的，table长度较小时，CurrentHashMap会首先选择扩容，而非立即转换成红黑树。</strong></p>
+</blockquote>
+<p>来看下<strong>tryPresize</strong>方法如何执行扩容：</p>
+<pre><code class="java">/**
+ * 尝试对table数组进行扩容.
+ *
+ * @param 待扩容的大小
+ */
+private final void tryPresize(int size) &#123;
+    // 视情况将size调整为2的幂次
+    int c = (size &gt;= (MAXIMUM_CAPACITY &gt;&gt;&gt; 1)) ? MAXIMUM_CAPACITY : tableSizeFor(size + (size &gt;&gt;&gt; 1) + 1);
+    int sc;
+    while ((sc = sizeCtl) &gt;= 0) &#123;
+        Node&lt;K, V&gt;[] tab = table;
+        int n;
+
+        //CASE 1: table还未初始化，则先进行初始化
+        if (tab == null || (n = tab.length) == 0) &#123;
+            n = (sc &gt; c) ? sc : c;
+            if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) &#123;
+                try &#123;
+                    if (table == tab) &#123;
+                        Node&lt;K, V&gt;[] nt = (Node&lt;K, V&gt;[]) new Node&lt;?, ?&gt;[n];
+                        table = nt;
+                        sc = n - (n &gt;&gt;&gt; 2);
+                    &#125;
+                &#125; finally &#123;
+                    sizeCtl = sc;
+                &#125;
+            &#125;
+        &#125;
+        // CASE2: c &lt;= sc说明已经被扩容过了；n &gt;= MAXIMUM_CAPACITY说明table数组已达到最大容量
+        else if (c &lt;= sc || n &gt;= MAXIMUM_CAPACITY)
+            break;
+            // CASE3: 进行table扩容
+        else if (tab == table) &#123;
+            int rs = resizeStamp(n);    // 根据容量n生成一个随机数，唯一标识本次扩容操作
+            if (sc &lt; 0) &#123;               // sc &lt; 0 表明此时有别的线程正在进行扩容
+                Node&lt;K, V&gt;[] nt;
+
+                // 如果当前线程无法协助进行数据转移, 则退出
+                if ((sc &gt;&gt;&gt; RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+                    sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+                    transferIndex &lt;= 0)
+                    break;
+
+                // 协助数据转移, 把正在执行transfer任务的线程数加1
+                if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                    transfer(tab, nt);
+            &#125;
+            // sc置为负数, 当前线程自身成为第一个执行transfer(数据转移)的线程
+            // 这个CAS操作可以保证，仅有一个线程会执行扩容
+            else if (U.compareAndSwapInt(this, SIZECTL, sc, (rs &lt;&lt; RESIZE_STAMP_SHIFT) + 2))
+                transfer(tab, null);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>前两个分支没什么好说的，看下注释很容易理解，关键看第三个分支 —— <code>CASE3：进行table扩容</code>。<br><code>CASE3</code>其实分为两种情况：</p>
+<ol>
+<li>已经有其它线程正在执行扩容了，则当前线程会尝试协助“数据迁移”；（多线程并发）</li>
+<li>没有其它线程正在执行扩容，则当前线程自身发起扩容。（单线程）</li>
+</ol>
+<blockquote>
+<p>注意：这两种情况都是调用了transfer方法，通过第二个入参nextTab进行区分（nextTab表示扩容后的新table数组，如果为null，表示首次发起扩容）。<br>第二种情况下，是通过CAS和移位运算来保证仅有一个线程能发起扩容。</p>
+</blockquote>
+<h2 id="扩容原理"><a href="#扩容原理" class="headerlink" title="扩容原理"></a>扩容原理</h2><p>我们来看下<strong>transfer</strong>方法，这个方法可以被多个线程同时调用，也是<strong>“数据迁移”</strong>的核心操作方法：</p>
+<pre><code class="java">/**
+ * 数据转移和扩容.
+ * 每个调用tranfer的线程会对当前旧table中[transferIndex-stride, transferIndex-1]位置的结点进行迁移
+ *
+ * @param tab     旧table数组
+ * @param nextTab 新table数组
+ */
+private final void transfer(Node&lt;K, V&gt;[] tab, Node&lt;K, V&gt;[] nextTab) &#123;
+    int n = tab.length, stride;
+
+    // stride可理解成“步长”，即数据迁移时，每个线程要负责旧table中的多少个桶
+    if ((stride = (NCPU &gt; 1) ? (n &gt;&gt;&gt; 3) / NCPU : n) &lt; MIN_TRANSFER_STRIDE)
+        stride = MIN_TRANSFER_STRIDE;
+
+    if (nextTab == null) &#123;           // 首次扩容
+        try &#123;
+            // 创建新table数组
+            Node&lt;K, V&gt;[] nt = (Node&lt;K, V&gt;[]) new Node&lt;?, ?&gt;[n &lt;&lt; 1];
+            nextTab = nt;
+        &#125; catch (Throwable ex) &#123;      // 处理内存溢出（OOME）的情况
+            sizeCtl = Integer.MAX_VALUE;
+            return;
+        &#125;
+        nextTable = nextTab;
+        transferIndex = n;          // [transferIndex-stride, transferIndex-1]表示当前线程要进行数据迁移的桶区间
+    &#125;
+
+    int nextn = nextTab.length;
+
+    // ForwardingNode结点，当旧table的某个桶中的所有结点都迁移完后，用该结点占据这个桶
+    ForwardingNode&lt;K, V&gt; fwd = new ForwardingNode&lt;K, V&gt;(nextTab);
+
+    // 标识一个桶的迁移工作是否完成，advance == true 表示可以进行下一个位置的迁移
+    boolean advance = true;
+
+    // 最后一个数据迁移的线程将该值置为true，并进行本轮扩容的收尾工作
+    boolean finishing = false;
+
+    // i标识桶索引, bound标识边界
+    for (int i = 0, bound = 0; ; ) &#123;
+        Node&lt;K, V&gt; f;
+        int fh;
+
+        // 每一次自旋前的预处理，主要是定位本轮处理的桶区间
+        // 正常情况下，预处理完成后：i == transferIndex-1，bound == transferIndex-stride
+        while (advance) &#123;
+            int nextIndex, nextBound;
+            if (--i &gt;= bound || finishing)
+                advance = false;
+            else if ((nextIndex = transferIndex) &lt;= 0) &#123;
+                i = -1;
+                advance = false;
+            &#125; else if (U.compareAndSwapInt(this, TRANSFERINDEX, nextIndex,
+                nextBound = (nextIndex &gt; stride ? nextIndex - stride : 0))) &#123;
+                bound = nextBound;
+                i = nextIndex - 1;
+                advance = false;
+            &#125;
+        &#125;
+
+        if (i &lt; 0 || i &gt;= n || i + n &gt;= nextn) &#123;    // CASE1：当前是处理最后一个tranfer任务的线程或出现扩容冲突
+            int sc;
+            if (finishing) &#123;    // 所有桶迁移均已完成
+                nextTable = null;
+                table = nextTab;
+                sizeCtl = (n &lt;&lt; 1) - (n &gt;&gt;&gt; 1);
+                return;
+            &#125;
+
+            // 扩容线程数减1,表示当前线程已完成自己的transfer任务
+            if (U.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) &#123;
+                // 判断当前线程是否是本轮扩容中的最后一个线程，如果不是，则直接退出
+                if ((sc - 2) != resizeStamp(n) &lt;&lt; RESIZE_STAMP_SHIFT)
+                    return;
+                finishing = advance = true;
+
+                /**
+                 * 最后一个数据迁移线程要重新检查一次旧table中的所有桶，看是否都被正确迁移到新table了：
+                 * ①正常情况下，重新检查时，旧table的所有桶都应该是ForwardingNode;
+                 * ②特殊情况下，比如扩容冲突(多个线程申请到了同一个transfer任务)，此时当前线程领取的任务会作废，那么最后检查时，
+                 * 还要处理因为作废而没有被迁移的桶，把它们正确迁移到新table中
+                 */
+                i = n; // recheck before commit
+            &#125;
+        &#125; else if ((f = tabAt(tab, i)) == null)     // CASE2：旧桶本身为null，不用迁移，直接尝试放一个ForwardingNode
+            advance = casTabAt(tab, i, null, fwd);
+        else if ((fh = f.hash) == MOVED)            // CASE3：该旧桶已经迁移完成，直接跳过
+            advance = true;
+        else &#123;                                      // CASE4：该旧桶未迁移完成，进行数据迁移
+            synchronized (f) &#123;
+                if (tabAt(tab, i) == f) &#123;
+                    Node&lt;K, V&gt; ln, hn;
+                    if (fh &gt;= 0) &#123;                  // CASE4.1：桶的hash&gt;0，说明是链表迁移
+
+                        /**
+                         * 下面的过程会将旧桶中的链表分成两部分：ln链和hn链
+                         * ln链会插入到新table的槽i中，hn链会插入到新table的槽i+n中
+                         */
+                        int runBit = fh &amp; n;    // 由于n是2的幂次，所以runBit要么是0，要么高位是1
+                        Node&lt;K, V&gt; lastRun = f; // lastRun指向最后一个相邻runBit不同的结点
+                        for (Node&lt;K, V&gt; p = f.next; p != null; p = p.next) &#123;
+                            int b = p.hash &amp; n;
+                            if (b != runBit) &#123;
+                                runBit = b;
+                                lastRun = p;
+                            &#125;
+                        &#125;
+                        if (runBit == 0) &#123;
+                            ln = lastRun;
+                            hn = null;
+                        &#125; else &#123;
+                            hn = lastRun;
+                            ln = null;
+                        &#125;
+
+                        // 以lastRun所指向的结点为分界，将链表拆成2个子链表ln、hn
+                        for (Node&lt;K, V&gt; p = f; p != lastRun; p = p.next) &#123;
+                            int ph = p.hash;
+                            K pk = p.key;
+                            V pv = p.val;
+                            if ((ph &amp; n) == 0)
+                                ln = new Node&lt;K, V&gt;(ph, pk, pv, ln);
+                            else
+                                hn = new Node&lt;K, V&gt;(ph, pk, pv, hn);
+                        &#125;
+                        setTabAt(nextTab, i, ln);               // ln链表存入新桶的索引i位置
+                        setTabAt(nextTab, i + n, hn);        // hn链表存入新桶的索引i+n位置
+                        setTabAt(tab, i, fwd);                  // 设置ForwardingNode占位
+                        advance = true;                         // 表示当前旧桶的结点已迁移完毕
+                    &#125;
+                    else if (f instanceof TreeBin) &#123;    // CASE4.2：红黑树迁移
+
+                        /**
+                         * 下面的过程会先以链表方式遍历，复制所有结点，然后根据高低位组装成两个链表；
+                         * 然后看下是否需要进行红黑树转换，最后放到新table对应的桶中
+                         */
+                        TreeBin&lt;K, V&gt; t = (TreeBin&lt;K, V&gt;) f;
+                        TreeNode&lt;K, V&gt; lo = null, loTail = null;
+                        TreeNode&lt;K, V&gt; hi = null, hiTail = null;
+                        int lc = 0, hc = 0;
+                        for (Node&lt;K, V&gt; e = t.first; e != null; e = e.next) &#123;
+                            int h = e.hash;
+                            TreeNode&lt;K, V&gt; p = new TreeNode&lt;K, V&gt;
+                                (h, e.key, e.val, null, null);
+                            if ((h &amp; n) == 0) &#123;
+                                if ((p.prev = loTail) == null)
+                                    lo = p;
+                                else
+                                    loTail.next = p;
+                                loTail = p;
+                                ++lc;
+                            &#125; else &#123;
+                                if ((p.prev = hiTail) == null)
+                                    hi = p;
+                                else
+                                    hiTail.next = p;
+                                hiTail = p;
+                                ++hc;
+                            &#125;
+                        &#125;
+
+                        // 判断是否需要进行 红黑树 &lt;-&gt; 链表 的转换
+                         ln = (lc &lt;= UNTREEIFY_THRESHOLD) ? untreeify(lo) :
+                            (hc != 0) ? new TreeBin&lt;K, V&gt;(lo) : t;
+                        hn = (hc &lt;= UNTREEIFY_THRESHOLD) ? untreeify(hi) :
+                            (lc != 0) ? new TreeBin&lt;K, V&gt;(hi) : t;
+                        setTabAt(nextTab, i, ln);
+                        setTabAt(nextTab, i + n, hn);
+                        setTabAt(tab, i, fwd);  // 设置ForwardingNode占位
+                        advance = true;         // 表示当前旧桶的结点已迁移完毕
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p><strong>tranfer</strong>方法的开头，会计算出一个<code>stride</code>变量的值，这个stride其实就是每个线程处理的桶区间，也就是步长：</p>
+<pre><code class="java">// stride可理解成“步长”，即数据迁移时，每个线程要负责旧table中的多少个桶
+if ((stride = (NCPU &gt; 1) ? (n &gt;&gt;&gt; 3) / NCPU : n) &lt; MIN_TRANSFER_STRIDE)
+    stride = MIN_TRANSFER_STRIDE;
+</code></pre>
+<p>首次扩容时，会将table数组变成原来的2倍：</p>
+<pre><code class="java">if (nextTab == null) &#123;           // 首次扩容
+    try &#123;
+        // 创建新table数组
+        Node&lt;K, V&gt;[] nt = (Node&lt;K, V&gt;[]) new Node&lt;?, ?&gt;[n &lt;&lt; 1];
+        nextTab = nt;
+    &#125; catch (Throwable ex) &#123;      // 处理内存溢出（OOME）的情况
+        sizeCtl = Integer.MAX_VALUE;
+        return;
+    &#125;
+    nextTable = nextTab;
+    transferIndex = n;          // [transferIndex-stride, transferIndex-1]表示当前线程要进行数据迁移的桶区间
+&#125;
+</code></pre>
+<p>注意上面的<code>transferIndex</code>变量，这是一个字段，<code>table[transferIndex-stride, transferIndex-1]</code>就是当前线程要进行数据迁移的桶区间：</p>
+<pre><code class="java">/**
+ * 扩容时需要用到的一个下标变量.
+ */
+private transient volatile int transferIndex;
+</code></pre>
+<p>整个<strong>transfer</strong>方法几乎都在一个自旋操作中完成，从右往左开始进行数据迁移，transfer的退出点是当某个线程处理完最后的table区段——<code>table[0,stride-1]</code>。</p>
+<p>transfer方法主要包含<strong>4个分支</strong>，即对4种不同情况进行处理，我们按照难易程度来解释下各个分支所做的事情：</p>
+<h3 id="CASE2：桶table-i-为空"><a href="#CASE2：桶table-i-为空" class="headerlink" title="CASE2：桶table[i]为空"></a>CASE2：桶table[i]为空</h3><p>当旧table的桶<code>table[i] == null</code>，说明原来这个桶就没有数据，那就直接尝试放置一个<strong>ForwardingNode</strong>，表示这个桶已经处理完成。</p>
+<pre><code class="java">else if ((f = tabAt(tab, i)) == null)     // CASE2：旧桶本身为null，不用迁移，直接尝试放一个ForwardingNode
+    advance = casTabAt(tab, i, null, fwd);
+</code></pre>
+<blockquote>
+<p>注：<strong>ForwardingNode</strong>我们在上一篇提到过，主要做占用位，多线程进行数据迁移时，其它线程看到这个桶中是ForwardingNode结点，就知道有线程已经在数据迁移了。<br>另外，当最后一个线程完成迁移任务后，会遍历所有桶，看看是否都是ForwardingNode，如果是，那么说明整个扩容/数据迁移的过程就完成了。</p>
+</blockquote>
+<h3 id="CASE3：桶table-i-已迁移完成"><a href="#CASE3：桶table-i-已迁移完成" class="headerlink" title="CASE3：桶table[i]已迁移完成"></a>CASE3：桶table[i]已迁移完成</h3><p>没什么好说的，就是桶已经用<strong>ForwardingNode</strong>结点占用了，表示该桶的数据都迁移完了。</p>
+<pre><code class="java">else if ((fh = f.hash) == MOVED)            // CASE3：该旧桶已经迁移完成，直接跳过
+    advance = true;
+</code></pre>
+<h3 id="CASE4：桶table-i-未迁移完成"><a href="#CASE4：桶table-i-未迁移完成" class="headerlink" title="CASE4：桶table[i]未迁移完成"></a>CASE4：桶table[i]未迁移完成</h3><p>如果旧桶的数据未迁移完成，就要进行迁移，这里根据桶中结点的类型分为：链表迁移、红黑树迁移。</p>
+<p><strong>①链表迁移</strong></p>
+<p>链表迁移的过程如下，首先会遍历一遍原链表，找到最后一个相邻<code>runBit</code>不同的结点。<br><code>runbit</code>是根据<code>key.hash</code>和旧table长度<code>n</code>进行与运算得到的值，由于table的长度为2的幂次，所以<code>runbit</code>只可能为0或最高位为1</p>
+<p>然后，会进行第二次链表遍历，按照第一次遍历找到的结点为界，将原链表分成2个子链表，再链接到新table的槽中。可以看到，新table的索引要么是<code>i</code>，要么是<code>i+n</code>，这里就利用了上一节说的ConcurrentHashMap的rehash特点。</p>
+<pre><code class="java">if (fh &gt;= 0) &#123;                  // CASE4.1：桶的hash&gt;0，说明是链表迁移
+    /**
+     * 下面的过程会将旧桶中的链表分成两部分：ln链和hn链
+     * ln链会插入到新table的槽i中，hn链会插入到新table的槽i+n中
+     */
+    int runBit = fh &amp; n;    // 由于n是2的幂次，所以runBit要么是0，要么高位是1
+    Node&lt;K, V&gt; lastRun = f; // lastRun指向最后一个相邻runBit不同的结点
+    for (Node&lt;K, V&gt; p = f.next; p != null; p = p.next) &#123;
+        int b = p.hash &amp; n;
+        if (b != runBit) &#123;
+            runBit = b;
+            lastRun = p;
+        &#125;
+    &#125;
+    if (runBit == 0) &#123;
+        ln = lastRun;
+        hn = null;
+    &#125; else &#123;
+        hn = lastRun;
+        ln = null;
+    &#125;
+
+    // 以lastRun所指向的结点为分界，将链表拆成2个子链表ln、hn
+    for (Node&lt;K, V&gt; p = f; p != lastRun; p = p.next) &#123;
+        int ph = p.hash;
+        K pk = p.key;
+        V pv = p.val;
+        if ((ph &amp; n) == 0)
+            ln = new Node&lt;K, V&gt;(ph, pk, pv, ln);
+        else
+            hn = new Node&lt;K, V&gt;(ph, pk, pv, hn);
+    &#125;
+    setTabAt(nextTab, i, ln);               // ln链表存入新桶的索引i位置
+    setTabAt(nextTab, i + n, hn);        // hn链表存入新桶的索引i+n位置
+    setTabAt(tab, i, fwd);                  // 设置ForwardingNode占位
+    advance = true;                         // 表示当前旧桶的结点已迁移完毕
+&#125;
+</code></pre>
+<p><strong>②红黑树迁移</strong></p>
+<p>红黑树的迁移按照链表遍历的方式进行，当链表结点超过/小于阈值时，涉及<code>红黑树&lt;-&gt;链表</code>的相互转换：</p>
+<pre><code class="java">else if (f instanceof TreeBin) &#123;    // CASE4.2：红黑树迁移
+    /**
+     * 下面的过程会先以链表方式遍历，复制所有结点，然后根据高低位组装成两个链表；
+     * 然后看下是否需要进行红黑树转换，最后放到新table对应的桶中
+     */
+    TreeBin&lt;K, V&gt; t = (TreeBin&lt;K, V&gt;) f;
+    TreeNode&lt;K, V&gt; lo = null, loTail = null;
+    TreeNode&lt;K, V&gt; hi = null, hiTail = null;
+    int lc = 0, hc = 0;
+    for (Node&lt;K, V&gt; e = t.first; e != null; e = e.next) &#123;
+        int h = e.hash;
+        TreeNode&lt;K, V&gt; p = new TreeNode&lt;K, V&gt;
+            (h, e.key, e.val, null, null);
+        if ((h &amp; n) == 0) &#123;
+            if ((p.prev = loTail) == null)
+                lo = p;
+            else
+                loTail.next = p;
+            loTail = p;
+            ++lc;
+        &#125; else &#123;
+            if ((p.prev = hiTail) == null)
+                hi = p;
+            else
+                hiTail.next = p;
+            hiTail = p;
+            ++hc;
+        &#125;
+    &#125;
+
+    // 判断是否需要进行 红黑树 &lt;-&gt; 链表 的转换
+     ln = (lc &lt;= UNTREEIFY_THRESHOLD) ? untreeify(lo) :
+        (hc != 0) ? new TreeBin&lt;K, V&gt;(lo) : t;
+    hn = (hc &lt;= UNTREEIFY_THRESHOLD) ? untreeify(hi) :
+        (lc != 0) ? new TreeBin&lt;K, V&gt;(hi) : t;
+    setTabAt(nextTab, i, ln);
+    setTabAt(nextTab, i + n, hn);
+    setTabAt(tab, i, fwd);  // 设置ForwardingNode占位
+    advance = true;         // 表示当前旧桶的结点已迁移完毕
+&#125;
+</code></pre>
+<h3 id="CASE1：当前是最后一个迁移任务或出现扩容冲突"><a href="#CASE1：当前是最后一个迁移任务或出现扩容冲突" class="headerlink" title="CASE1：当前是最后一个迁移任务或出现扩容冲突"></a>CASE1：当前是最后一个迁移任务或出现扩容冲突</h3><p>我们刚才说了，调用<strong>transfer</strong>的线程会自动领用某个区段的桶，进行数据迁移操作，当区段的初始索引i变成负数的时候，说明当前线程处理的其实就是最后剩下的桶，并且处理完了。</p>
+<p>所以首先会更新<code>sizeCtl</code>变量，将扩容线程数减1，然后会做一些收尾工作：<br>设置table指向扩容后的新数组，遍历一遍旧数组，确保每个桶的数据都迁移完成——被ForwardingNode占用。</p>
+<p>另外，可能在扩容过程中，出现扩容冲突的情况，比如多个线程领用了同一区段的桶，这时任何一个线程都不能进行数据迁移。</p>
+<pre><code class="java">if (i &lt; 0 || i &gt;= n || i + n &gt;= nextn) &#123;    // CASE1：当前是处理最后一个tranfer任务的线程或出现扩容冲突
+    int sc;
+    if (finishing) &#123;    // 所有桶迁移均已完成
+        nextTable = null;
+        table = nextTab;
+        sizeCtl = (n &lt;&lt; 1) - (n &gt;&gt;&gt; 1);
+        return;
+    &#125;
+
+    // 扩容线程数减1,表示当前线程已完成自己的transfer任务
+    if (U.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) &#123;
+        // 判断当前线程是否是本轮扩容中的最后一个线程，如果不是，则直接退出
+        if ((sc - 2) != resizeStamp(n) &lt;&lt; RESIZE_STAMP_SHIFT)
+            return;
+        finishing = advance = true;
+
+        /**
+         * 最后一个数据迁移线程要重新检查一次旧table中的所有桶，看是否都被正确迁移到新table了：
+         * ①正常情况下，重新检查时，旧table的所有桶都应该是ForwardingNode;
+         * ②特殊情况下，比如扩容冲突(多个线程申请到了同一个transfer任务)，此时当前线程领取的任务会作废，那么最后检查时，
+         * 还要处理因为作废而没有被迁移的桶，把它们正确迁移到新table中
+         */
+        i = n; // recheck before commit
+    &#125;
+&#125;
+</code></pre>
+<h2 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h2><ol>
+<li>首先把原数组的值全部拷贝到扩容之后的新数组，先从数组的队尾开始拷贝</li>
+<li>拷贝数组的槽点时，先把原数组槽点锁住，成功拷贝到新数组时，把原数组槽点赋值为转移节点</li>
+<li>这时如果有新数据正好需要 put 到该槽点时，发现槽点为转移节点，就会一直等待，所以在扩容完成之前，该槽点对应的数据是不会发生变化的</li>
+<li>从数组的尾部拷贝到头部，每拷贝成功一次，就把原数组中的节点设置成转移节点<br>直到所有数组数据都拷贝到新数组时，直接把新数组整个赋值给数组容器，拷贝完成。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+              <a href="/tags/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" rel="tag"># 深入并发</a>
+              <a href="/tags/juc/" rel="tag"># juc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/" rel="prev" title="juc_sync同步器框架">
+      <i class="fa fa-chevron-left"></i> juc_sync同步器框架
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/28/juc_collections%E6%A1%86%E6%9E%B6-2-ConcurrentSkipListMap/" rel="next" title="juc_collections框架#2-ConcurrentSkipListMap">
+      juc_collections框架#2-ConcurrentSkipListMap <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E7%B1%BB%E7%AE%80%E4%BB%8B"><span class="nav-text">一、类简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="nav-text">二、基本结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="nav-text">基本结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E7%82%B9%E5%AE%9A%E4%B9%89"><span class="nav-text">结点定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Node%E7%BB%93%E7%82%B9"><span class="nav-text">Node结点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TreeNode%E7%BB%93%E7%82%B9"><span class="nav-text">TreeNode结点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TreeBin%E7%BB%93%E7%82%B9"><span class="nav-text">TreeBin结点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ForwardingNode%E7%BB%93%E7%82%B9"><span class="nav-text">ForwardingNode结点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-text">三、构造器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%84%E9%80%A0%E5%99%A8%E5%AE%9A%E4%B9%89"><span class="nav-text">构造器定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#null%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-text">null构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initialCapacity%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-text">initialCapacity构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Map%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-text">Map构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#init-factor%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-text">init+factor构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#init-factor-Level%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-text">init+factor+Level构造器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E9%87%8F-%E5%AD%97%E6%AE%B5%E5%AE%9A%E4%B9%89"><span class="nav-text">常量&#x2F;字段定义</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81put%E6%93%8D%E4%BD%9C"><span class="nav-text">四、put操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%E3%80%81%E9%A6%96%E6%AC%A1%E5%88%9D%E5%A7%8B%E5%8C%96table-%E2%80%94%E2%80%94-%E6%87%92%E5%8A%A0%E8%BD%BD"><span class="nav-text">1、首次初始化table —— 懒加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2%E3%80%81table-i-%E5%AF%B9%E5%BA%94%E7%9A%84%E6%A1%B6%E4%B8%BA%E7%A9%BA"><span class="nav-text">2、table[i]对应的桶为空</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3%E3%80%81%E5%8F%91%E7%8E%B0ForwardingNode%E7%BB%93%E7%82%B9"><span class="nav-text">3、发现ForwardingNode结点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4%E3%80%81%E5%87%BA%E7%8E%B0hash%E5%86%B2%E7%AA%81"><span class="nav-text">4、出现hash冲突</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%94%E3%80%81get%E6%93%8D%E4%BD%9C"><span class="nav-text">五、get操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Node%E7%BB%93%E7%82%B9%E7%9A%84%E6%9F%A5%E6%89%BE"><span class="nav-text">Node结点的查找</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TreeBin%E7%BB%93%E7%82%B9%E7%9A%84%E6%9F%A5%E6%89%BE"><span class="nav-text">TreeBin结点的查找</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ForwardingNode%E7%BB%93%E7%82%B9%E7%9A%84%E6%9F%A5%E6%89%BE"><span class="nav-text">ForwardingNode结点的查找</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ReservationNode%E7%BB%93%E7%82%B9%E7%9A%84%E6%9F%A5%E6%89%BE"><span class="nav-text">ReservationNode结点的查找</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E8%AE%A1%E6%95%B0"><span class="nav-text">六、计数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E6%95%B0%E5%8E%9F%E7%90%86"><span class="nav-text">计数原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#addCount%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">addCount的实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E6%89%A9%E5%AE%B9"><span class="nav-text">七、扩容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A9%E5%AE%B9%E6%80%9D%E8%B7%AF"><span class="nav-text">扩容思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A9%E5%AE%B9%E6%97%B6%E6%9C%BA"><span class="nav-text">扩容时机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A9%E5%AE%B9%E5%8E%9F%E7%90%86"><span class="nav-text">扩容原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CASE2%EF%BC%9A%E6%A1%B6table-i-%E4%B8%BA%E7%A9%BA"><span class="nav-text">CASE2：桶table[i]为空</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CASE3%EF%BC%9A%E6%A1%B6table-i-%E5%B7%B2%E8%BF%81%E7%A7%BB%E5%AE%8C%E6%88%90"><span class="nav-text">CASE3：桶table[i]已迁移完成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CASE4%EF%BC%9A%E6%A1%B6table-i-%E6%9C%AA%E8%BF%81%E7%A7%BB%E5%AE%8C%E6%88%90"><span class="nav-text">CASE4：桶table[i]未迁移完成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CASE1%EF%BC%9A%E5%BD%93%E5%89%8D%E6%98%AF%E6%9C%80%E5%90%8E%E4%B8%80%E4%B8%AA%E8%BF%81%E7%A7%BB%E4%BB%BB%E5%8A%A1%E6%88%96%E5%87%BA%E7%8E%B0%E6%89%A9%E5%AE%B9%E5%86%B2%E7%AA%81"><span class="nav-text">CASE1：当前是最后一个迁移任务或出现扩容冲突</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93-1"><span class="nav-text">小结</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

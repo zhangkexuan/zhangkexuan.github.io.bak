@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="目前电商的架构中，SPU和SKU数据结构极为重要，本文重点讲解了：  规格参数及其数据结构 SPU和SKU及其数据结构 后台系统的商品查询">
+<meta property="og:type" content="article">
+<meta property="og:title" content="leyou后台管理#5-SPU和SKU">
+<meta property="og:url" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="目前电商的架构中，SPU和SKU数据结构极为重要，本文重点讲解了：  规格参数及其数据结构 SPU和SKU及其数据结构 后台系统的商品查询">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526085541996.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526086539789.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526087063700.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526087142454.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526088981953.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526090072535.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526090228171.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526091216124.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526092179381.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1529549099049.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1529549521623.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528423299102.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1529550402376.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1529550694218.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1529550775415.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528427514717.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528428028513.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528428221957.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528428308113.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528428617046.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528428699027.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528429029149.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528433648595.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528429342796.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528433697492.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528433733340.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528433821121.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528429949504.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528429988410.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528430052736.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528430100166.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528430147829.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528430319461.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528430407298.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1543383516456.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528442972016.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1529554390912.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1529554916252.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526267828817.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526266901335.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526267180997.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528445149890.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528479229165.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526268595873.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528447301687.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528447431959.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528447591939.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1543414148030.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1543413983147.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1528450054541.png">
+<meta property="article:published_time" content="2020-05-23T18:20:44.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:09:15.508Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="SPU和SKU">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/1526085541996.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>leyou后台管理#5-SPU和SKU | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/24/leyou%E5%90%8E%E5%8F%B0-5-SPU%E5%92%8CSKU/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          leyou后台管理#5-SPU和SKU
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-24 02:20:44" itemprop="dateCreated datePublished" datetime="2020-05-24T02:20:44+08:00">2020-05-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leyou/" itemprop="url" rel="index"><span itemprop="name">leyou</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>目前电商的架构中，SPU和SKU数据结构极为重要，本文重点讲解了：</p>
+<ul>
+<li>规格参数及其数据结构</li>
+<li>SPU和SKU及其数据结构</li>
+<li>后台系统的商品查询</li>
+</ul>
+<span id="more"></span>
+
+<h1 id="1-商品规格数据结构"><a href="#1-商品规格数据结构" class="headerlink" title="1.商品规格数据结构"></a>1.商品规格数据结构</h1><p>乐优商城是一个全品类的电商网站，因此商品的种类繁多，每一件商品，其属性又有差别。为了更准确描述商品及细分差别，抽象出两个概念：SPU和SKU，了解一下：</p>
+<h2 id="1-1-SPU和SKU"><a href="#1-1-SPU和SKU" class="headerlink" title="1.1.SPU和SKU"></a>1.1.SPU和SKU</h2><p>SPU：Standard Product Unit （标准产品单位） ，一组具有共同属性的商品集</p>
+<p>SKU：Stock Keeping Unit（库存量单位），SPU商品集因具体特性不同而细分的每个商品</p>
+<p>以图为例来看：</p>
+<p><img src="1526085541996.png" alt="1526085541996"></p>
+<ul>
+<li>本页的 华为Mate10 就是一个商品集（SPU）</li>
+<li>因为颜色、内存等不同，而细分出不同的Mate10，如亮黑色128G版。（SKU）</li>
+</ul>
+<p>可以看出：</p>
+<ul>
+<li>SPU是一个抽象的商品集概念，为了方便后台的管理。</li>
+<li>SKU才是具体要销售的商品，每一个SKU的价格、库存可能会不一样，用户购买的是SKU而不是SPU</li>
+</ul>
+<h2 id="1-2-数据库设计分析"><a href="#1-2-数据库设计分析" class="headerlink" title="1.2.数据库设计分析"></a>1.2.数据库设计分析</h2><h3 id="1-2-1-思考并发现问题"><a href="#1-2-1-思考并发现问题" class="headerlink" title="1.2.1.思考并发现问题"></a>1.2.1.思考并发现问题</h3><p>弄清楚了SPU和SKU的概念区分，接下来我们一起思考一下该如何设计数据库表。</p>
+<p>首先来看SPU，大家一起思考下SPU应该有哪些字段来描述？</p>
+<pre><code>id:主键
+title：标题
+description：描述
+specification：规格
+packaging_list：包装
+after_service：售后服务
+comment：评价
+category_id：商品分类
+brand_id：品牌
+</code></pre>
+<p>似乎并不复杂，但是大家仔细思考一下，商品的规格字段你如何填写？</p>
+<p> <img src="1526086539789.png" alt="1526086539789"></p>
+<p>不同商品的规格不一定相同，数据库中要如何保存？</p>
+<p>再看下SKU，大家觉得应该有什么字段？</p>
+<pre><code>id：主键
+spu_id：关联的spu
+price：价格
+images：图片
+stock：库存
+颜色？
+内存？
+硬盘？
+</code></pre>
+<p>碰到难题了，不同的商品分类，可能属性是不一样的，比如手机有内存，衣服有尺码，我们是全品类的电商网站，这些不同的商品的不同属性，如何设计到一张表中？</p>
+<p>其实颜色、内存、硬盘属性都是规格参数中的字段。所以，要解决这个问题，首先要能清楚规格参数。</p>
+<h3 id="1-2-2-分析规格参数"><a href="#1-2-2-分析规格参数" class="headerlink" title="1.2.2.分析规格参数"></a>1.2.2.分析规格参数</h3><p>仔细查看每一种商品的规格你会发现：</p>
+<p>虽然商品规格千变万化，但是同一类商品（如手机）的规格是统一的，有图为证：</p>
+<blockquote>
+<p>华为的规格：</p>
+</blockquote>
+<p> <img src="1526087063700.png" alt="1526087063700"></p>
+<blockquote>
+<p>三星的规格：</p>
+</blockquote>
+<p> <img src="1526087142454.png" alt="1526087142454"></p>
+<h3 id="1-2-3-SKU的特有属性"><a href="#1-2-3-SKU的特有属性" class="headerlink" title="1.2.3.SKU的特有属性"></a>1.2.3.SKU的特有属性</h3><p>SPU中会有一些特殊属性，用来区分不同的SKU，我们称为SKU特有属性。如华为META10的颜色、内存属性。</p>
+<p>不同种类的商品，一个手机，一个衣服，其SKU属性不相同。</p>
+<p>同一种类的商品，比如都是衣服，SKU属性基本是一样的，都是颜色、尺码等。</p>
+<p>这样说起来，似乎SKU的特有属性也是与分类相关的？事实上，仔细观察你会发现，<strong>SKU的特有属性是商品规格参数的一部分</strong>：</p>
+<p><img src="1526088981953.png" alt="1526088981953"></p>
+<p>也就是说，我们没必要单独对SKU的特有属性进行设计，它可以看做是规格参数中的一部分。这样规格参数中的属性可以标记成两部分：</p>
+<ul>
+<li>spu下所有sku共享的规格属性（称为全局属性）</li>
+<li>每个sku不同的规格属性（称为特有属性）</li>
+</ul>
+<h3 id="1-2-4-搜索属性"><a href="#1-2-4-搜索属性" class="headerlink" title="1.2.4.搜索属性"></a>1.2.4.搜索属性</h3><p>打开一个搜索页，我们来看看过滤的条件：</p>
+<p><img src="1526090072535.png" alt="1526090072535"></p>
+<p>你会发现，过滤条件中的屏幕尺寸、运行内存、网路、机身内存、电池容量、CPU核数等，在规格参数中都能找到：</p>
+<p> <img src="1526090228171.png" alt="1526090228171"></p>
+<p>也就是说，规格参数中的数据，将来会有一部分作为搜索条件来使用。我们可以在设计时，将这部分属性标记出来，将来做搜索的时候，作为过滤条件。要注意的是，无论是SPU的全局属性，还是SKU的特有属性，都有可能作为搜索过滤条件的，并不冲突，而是有一个交集：</p>
+<p> <img src="1526091216124.png" alt="1526091216124"></p>
+<h2 id="1-3-规格参数表"><a href="#1-3-规格参数表" class="headerlink" title="1.3.规格参数表"></a>1.3.规格参数表</h2><h3 id="1-3-1-表结构"><a href="#1-3-1-表结构" class="headerlink" title="1.3.1.表结构"></a>1.3.1.表结构</h3><p>我们看下规格参数的格式：</p>
+<p> <img src="1526092179381.png" alt="1526092179381"></p>
+<p>可以看到规格参数是分组的，每一组都有多个参数键值对。不过对于规格参数的模板而言，其值现在是不确定的，不同的商品值肯定不同，模板中只要保存组信息、组内参数信息即可。</p>
+<p>因此我们设计了两张表：</p>
+<ul>
+<li>tb_spec_group：组，与商品分类关联</li>
+<li>tb_spec_param：参数名，与组关联，一对多</li>
+</ul>
+<h3 id="1-3-2-规格组"><a href="#1-3-2-规格组" class="headerlink" title="1.3.2.规格组"></a>1.3.2.规格组</h3><p>规格参数分组表：tb_spec_group</p>
+<pre><code class="mysql">CREATE TABLE `tb_spec_group` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT &#39;主键&#39;,
+  `cid` bigint(20) NOT NULL COMMENT &#39;商品分类id，一个分类下有多个规格组&#39;,
+  `name` varchar(50) NOT NULL COMMENT &#39;规格组的名称&#39;,
+  PRIMARY KEY (`id`),
+  KEY `key_category` (`cid`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8 COMMENT=&#39;规格参数的分组表，每个商品分类下有多个规格参数组&#39;;
+</code></pre>
+<p>规格组有3个字段：</p>
+<ul>
+<li>id：主键</li>
+<li>cid：商品分类id，一个分类下有多个模板</li>
+<li>name：该规格组的名称。</li>
+</ul>
+<h3 id="1-3-2-规格参数"><a href="#1-3-2-规格参数" class="headerlink" title="1.3.2.规格参数"></a>1.3.2.规格参数</h3><p>规格参数表：tb_spec_param</p>
+<pre><code class="mysql">CREATE TABLE `tb_spec_param` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT &#39;主键&#39;,
+  `cid` bigint(20) NOT NULL COMMENT &#39;商品分类id&#39;,
+  `group_id` bigint(20) NOT NULL,
+  `name` varchar(255) NOT NULL COMMENT &#39;参数名&#39;,
+  `numeric` tinyint(1) NOT NULL COMMENT &#39;是否是数字类型参数，true或false&#39;,
+  `unit` varchar(255) DEFAULT &#39;&#39; COMMENT &#39;数字类型参数的单位，非数字类型可以为空&#39;,
+  `generic` tinyint(1) NOT NULL COMMENT &#39;是否是sku通用属性，true或false&#39;,
+  `searching` tinyint(1) NOT NULL COMMENT &#39;是否用于搜索过滤，true或false&#39;,
+  `segments` varchar(1000) DEFAULT &#39;&#39; COMMENT &#39;数值类型参数，如果需要搜索，则添加分段间隔值，如CPU频率间隔：0.5-1.0&#39;,
+  PRIMARY KEY (`id`),
+  KEY `key_group` (`group_id`),
+  KEY `key_category` (`cid`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8 COMMENT=&#39;规格参数组下的参数名&#39;;
+</code></pre>
+<p>按道理来说，我们的规格参数就只需要记录参数名、组id、商品分类id即可。但是这里却多出了很多字段，为什么？</p>
+<p>还记得我们之前的分析吧，规格参数中有一部分是 SKU的通用属性，一部分是SKU的特有属性，而且其中会有一些将来用作搜索过滤，这些信息都需要标记出来。</p>
+<blockquote>
+<p>通用属性</p>
+</blockquote>
+<p>用一个布尔类型字段来标记是否为通用：</p>
+<ul>
+<li>generic来标记是否为通用属性：<ul>
+<li>true：代表通用属性</li>
+<li>false：代表sku特有属性</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>搜索过滤</p>
+</blockquote>
+<p>与搜索相关的有两个字段：</p>
+<ul>
+<li>searching：标记是否用作过滤<ul>
+<li>true：用于过滤搜索</li>
+<li>false：不用于过滤</li>
+</ul>
+</li>
+<li>segments：某些数值类型的参数，在搜索时需要按区间划分，这里提前确定好划分区间<ul>
+<li>比如电池容量，0<del>2000mAh，2000mAh</del>3000mAh，3000mAh~4000mAh</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>数值类型</p>
+</blockquote>
+<p>某些规格参数可能为数值类型，这样的数据才需要划分区间，我们有两个字段来描述：</p>
+<ul>
+<li>numberic：是否为数值类型<ul>
+<li>true：数值类型</li>
+<li>false：不是数值类型</li>
+</ul>
+</li>
+<li>unit：参数的单位</li>
+</ul>
+<h1 id="2-商品规格参数管理"><a href="#2-商品规格参数管理" class="headerlink" title="2.商品规格参数管理"></a>2.商品规格参数管理</h1><h2 id="2-1-页面布局"><a href="#2-1-页面布局" class="headerlink" title="2.1.页面布局"></a>2.1.页面布局</h2><h3 id="2-1-1-整体布局"><a href="#2-1-1-整体布局" class="headerlink" title="2.1.1.整体布局"></a>2.1.1.整体布局</h3><p>打开规格参数页面，看到如下内容：</p>
+<p><img src="1529549099049.png" alt="1529549099049"></p>
+<p>商品分类树我们之前已经做过，所以这里可以直接展示出来。</p>
+<p>因为规格是跟商品分类绑定的，因此首先会展现商品分类树，并且提示你要选择商品分类，才能看到规格参数的模板。一起了解下页面的实现：</p>
+<p> <img src="1529549521623.png" alt="1529549521623"></p>
+<p>页面结构：</p>
+<p><img src="1528423299102.png" alt="1528423299102"></p>
+<p>这里使用了<code>v-layout</code>来完成页面布局，并且添加了row属性，代表接下来的内容是行布局（左右）。</p>
+<p>可以看出页面分成2个部分：</p>
+<ul>
+<li><code>&lt;v-flex xs3&gt;</code>：左侧，内部又分上下两部分：商品分类树及标题<ul>
+<li><code>v-card-title</code>：标题部分，这里是提示信息，告诉用户要先选择分类，才能看到模板</li>
+<li><code>v-tree</code>：这里用到的是我们之前讲过的树组件，展示商品分类树，</li>
+</ul>
+</li>
+<li><code>&lt;v-flex xs9 class=&quot;px-1&quot;&gt;</code>：右侧：内部是规格参数展示</li>
+</ul>
+<h3 id="2-1-2-右侧规格"><a href="#2-1-2-右侧规格" class="headerlink" title="2.1.2.右侧规格"></a>2.1.2.右侧规格</h3><p>当我们点击一个分类时，最终要达到的效果：</p>
+<p><img src="1529550402376.png" alt="1529550402376"></p>
+<p>可以看到右侧分为上下两部分：</p>
+<ul>
+<li>上部：面包屑，显示当前选中的分类</li>
+<li>下部：table，显示规格参数信息</li>
+</ul>
+<p>页面实现：</p>
+<p><img src="1529550694218.png" alt="1529550694218"></p>
+<p>可以看到右侧并不是我们熟悉的 <code>v-data-table</code>，而是一个<code>spec-group</code>组件（规格组）和<code>spec-param</code>组件（规格参数），这是我们定义的独立组件：</p>
+<p> <img src="1529550775415.png" alt="1529550775415"></p>
+<p>在SpecGroup中定义了表格：</p>
+<p><img src="1528427514717.png" alt="1528427514717"></p>
+<h2 id="2-2-规格组的查询"><a href="#2-2-规格组的查询" class="headerlink" title="2.2.规格组的查询"></a>2.2.规格组的查询</h2><h3 id="2-2-1-树节点的点击事件"><a href="#2-2-1-树节点的点击事件" class="headerlink" title="2.2.1.树节点的点击事件"></a>2.2.1.树节点的点击事件</h3><p>当我们点击树节点时，要将<code>v-dialog</code>打开，因此必须绑定一个点击事件：（Specification.vue）</p>
+<p><img src="1528428028513.png" alt="1528428028513"></p>
+<p>我们来看下<code>handleClick</code>方法：（Specification.vue）</p>
+<p><img src="1528428221957.png" alt="1528428221957"></p>
+<p>点击事件发生时，发生了两件事：</p>
+<ul>
+<li>记录当前选中的节点，选中的就是商品分类</li>
+<li><code>showGroup</code>被置为true，则规格组就会显示了。</li>
+</ul>
+<p>同时，我们把被选中的节点（商品分类）的id传递给了<code>SpecGroup</code>组件：（Specification.vue）</p>
+<p><img src="1528428308113.png" alt="1528428308113"></p>
+<h3 id="2-2-2-页面查询规格组"><a href="#2-2-2-页面查询规格组" class="headerlink" title="2.2.2.页面查询规格组"></a>2.2.2.页面查询规格组</h3><p>来看下<code>SpecGroup.vue</code>中的实现：</p>
+<p><img src="1528428617046.png" alt="1528428617046"></p>
+<p>我们查看页面控制台，可以看到请求已经发出：</p>
+<p><img src="1528428699027.png" alt="1528428699027"></p>
+<h3 id="2-2-3-后端代码"><a href="#2-2-3-后端代码" class="headerlink" title="2.2.3.后端代码"></a>2.2.3.后端代码</h3><blockquote>
+<p>实体类</p>
+</blockquote>
+<p>在<code>leyou-item-interface</code>中添加实体类：</p>
+<p> <img src="1528429029149.png" alt="1528429029149"></p>
+<p>内容：</p>
+<pre><code class="java">@Table(name = &quot;tb_spec_group&quot;)
+public class SpecGroup &#123;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Long cid;
+
+    private String name;
+
+    @Transient
+    private List&lt;SpecParam&gt; params;
+
+   // getter和setter省略
+&#125;
+</code></pre>
+<pre><code class="java">@Table(name = &quot;tb_spec_param&quot;)
+public class SpecParam &#123;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long cid;
+    private Long groupId;
+    private String name;
+    @Column(name = &quot;`numeric`&quot;)
+    private Boolean numeric;
+    private String unit;
+    private Boolean generic;
+    private Boolean searching;
+    private String segments;
+    
+    // getter和setter ...
+&#125;
+</code></pre>
+<p>在<code>leyou-item-service</code>中编写业务：</p>
+<p> <img src="1528433648595.png" alt="1528433648595"></p>
+<blockquote>
+<p>mapper</p>
+</blockquote>
+<pre><code class="java">public interface SpecGroupMapper extends Mapper&lt;SpecGroup&gt; &#123;
+&#125;
+</code></pre>
+<blockquote>
+<p>controller</p>
+</blockquote>
+<p>先分析下需要的东西，在页面的ajax请求中可以看出：</p>
+<ul>
+<li><p>请求方式：get</p>
+</li>
+<li><p>请求路径：/spec/groups/{cid} ，这里通过路径占位符传递商品分类的id</p>
+</li>
+<li><p>请求参数：商品分类id</p>
+</li>
+<li><p>返回结果：页面是直接把<code>resp.data</code>赋值给了groups：</p>
+<p><img src="1528429342796.png" alt="1528429342796"></p>
+<p>那么我们返回的应该是规格组SpecGroup的集合</p>
+</li>
+</ul>
+<p>代码：</p>
+<pre><code class="java">@RestController
+@RequestMapping(&quot;spec&quot;)
+public class SpecificationController &#123;
+
+    @Autowired
+    private SpecificationService specificationService;
+
+    /**
+     * 根据分类id查询分组
+     * @param cid
+     * @return
+     */
+    @GetMapping(&quot;groups/&#123;cid&#125;&quot;)
+    public ResponseEntity&lt;List&lt;SpecGroup&gt;&gt; queryGroupsByCid(@PathVariable(&quot;cid&quot;)Long cid)&#123;
+        List&lt;SpecGroup&gt; groups = this.specificationService.queryGroupsByCid(cid);
+        if (CollectionUtils.isEmpty(groups))&#123;
+            return ResponseEntity.notFound().build();
+        &#125;
+        return ResponseEntity.ok(groups);
+    &#125;
+&#125;
+</code></pre>
+<blockquote>
+<p>service</p>
+</blockquote>
+<pre><code class="java">@Service
+public class SpecificationService &#123;
+
+    @Autowired
+    private SpecGroupMapper groupMapper;
+
+    /**
+     * 根据分类id查询分组
+     * @param cid
+     * @return
+     */
+    public List&lt;SpecGroup&gt; queryGroupsByCid(Long cid) &#123;
+        SpecGroup specGroup = new SpecGroup();
+        specGroup.setCid(cid);
+        return this.groupMapper.select(specGroup);
+    &#125;
+&#125;
+</code></pre>
+<blockquote>
+<p>页面访问测试：</p>
+</blockquote>
+<p>目前，我们数据库只为手机分类（76）提供了规格组：</p>
+<p><img src="1528433697492.png" alt="1528433697492"></p>
+<p>我们访问：<a target="_blank" rel="noopener" href="http://api.leyou.com/api/item/spec/groups/76">http://api.leyou.com/api/item/spec/groups/76</a></p>
+<p><img src="1528433733340.png" alt="1528433733340"></p>
+<p>然后在后台系统中测试：<br><img src="1528433821121.png" alt="1528433821121"></p>
+<h2 id="2-3-规格参数查询"><a href="#2-3-规格参数查询" class="headerlink" title="2.3.规格参数查询"></a>2.3.规格参数查询</h2><h3 id="2-3-1-表格切换"><a href="#2-3-1-表格切换" class="headerlink" title="2.3.1.表格切换"></a>2.3.1.表格切换</h3><p>当我们点击规格组，会切换到规格参数显示，肯定是在规格组中绑定了点击事件：</p>
+<p><img src="1528429949504.png" alt="1528429949504"></p>
+<p>我们看下事件处理：</p>
+<p><img src="1528429988410.png" alt="1528429988410"></p>
+<p>可以看到这里是使用了父子通信，子组件触发了select事件：</p>
+<p>再来看下父组件的事件绑定：</p>
+<p><img src="1528430052736.png" alt="1528430052736"></p>
+<p>事件处理：</p>
+<p><img src="1528430100166.png" alt="1528430100166"></p>
+<p>这里我们记录了选中的分组，并且把标记设置为false，这样规格组就不显示了，而是显示：<code>SpecParam</code></p>
+<p>并且，我们把group也传递到<code>spec-param</code>组件：</p>
+<p><img src="1528430147829.png" alt="1528430147829"></p>
+<h3 id="2-3-2-页面查询规格参数"><a href="#2-3-2-页面查询规格参数" class="headerlink" title="2.3.2.页面查询规格参数"></a>2.3.2.页面查询规格参数</h3><p>我们来看<code>SpecParam.vue</code>的实现：</p>
+<p><img src="1528430319461.png" alt="1528430319461"></p>
+<p>查看页面控制台，发现请求已经发出：</p>
+<p><img src="1528430407298.png" alt="1528430407298"></p>
+<p>报404，因为我们还没有实现后台逻辑，接下来就去实现。</p>
+<h3 id="2-3-3-后台实现"><a href="#2-3-3-后台实现" class="headerlink" title="2.3.3.后台实现"></a>2.3.3.后台实现</h3><blockquote>
+<p>SpecificationController</p>
+</blockquote>
+<p>分析：</p>
+<ul>
+<li>请求方式：GET</li>
+<li>请求路径：/spec/params</li>
+<li>请求参数：gid，分组id</li>
+<li>返回结果：该分组下的规格参数集合<code>List&lt;SpecParam&gt;</code></li>
+</ul>
+<p>代码：</p>
+<pre><code class="java">/**
+     * 根据条件查询规格参数
+     * @param gid
+     * @return
+     */
+@GetMapping(&quot;params&quot;)
+public ResponseEntity&lt;List&lt;SpecParam&gt;&gt; queryParams(@RequestParam(&quot;gid&quot;)Long gid)&#123;
+    List&lt;SpecParam&gt;  params = this.specificationService.queryParams(gid);
+    if (CollectionUtils.isEmpty(params))&#123;
+        return ResponseEntity.notFound().build();
+    &#125;
+    return ResponseEntity.ok(params);
+&#125;
+</code></pre>
+<blockquote>
+<p>SpecificationService</p>
+</blockquote>
+<pre><code class="java">@Autowired
+private SpecParamMapper paramMapper;
+
+/**
+     * 根据条件查询规格参数
+     * @param gid
+     * @return
+     */
+public List&lt;SpecParam&gt; queryParams(Long gid) &#123;
+    SpecParam param = new SpecParam();
+    param.setGroupId(gid);
+    return this.paramMapper.select(param);
+&#125;
+</code></pre>
+<blockquote>
+<p>SpecParamMapper</p>
+</blockquote>
+<p> <img src="1543383516456.png" alt="1543383516456"></p>
+<pre><code class="java">public interface SpecParamMapper extends Mapper&lt;SpecParam&gt; &#123;
+&#125;
+</code></pre>
+<p>测试：</p>
+<p><img src="1528442972016.png" alt="1528442972016"></p>
+<h2 id="2-4-增、删、改（作业）"><a href="#2-4-增、删、改（作业）" class="headerlink" title="2.4.增、删、改（作业）"></a>2.4.增、删、改（作业）</h2><p>增删改的作业就留给大家去完成了。页面中接口都已定义，你要做的就是实现后台接口。</p>
+<h1 id="3-SPU和SKU数据结构"><a href="#3-SPU和SKU数据结构" class="headerlink" title="3.SPU和SKU数据结构"></a>3.SPU和SKU数据结构</h1><p>规格确定以后，就可以添加商品了,先看下数据库表</p>
+<h2 id="3-1-SPU表"><a href="#3-1-SPU表" class="headerlink" title="3.1.SPU表"></a>3.1.SPU表</h2><p>SPU表：</p>
+<pre><code class="mysql">CREATE TABLE `tb_spu` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT &#39;spu id&#39;,
+  `title` varchar(255) NOT NULL DEFAULT &#39;&#39; COMMENT &#39;标题&#39;,
+  `sub_title` varchar(255) DEFAULT &#39;&#39; COMMENT &#39;子标题&#39;,
+  `cid1` bigint(20) NOT NULL COMMENT &#39;1级类目id&#39;,
+  `cid2` bigint(20) NOT NULL COMMENT &#39;2级类目id&#39;,
+  `cid3` bigint(20) NOT NULL COMMENT &#39;3级类目id&#39;,
+  `brand_id` bigint(20) NOT NULL COMMENT &#39;商品所属品牌id&#39;,
+  `saleable` tinyint(1) NOT NULL DEFAULT &#39;1&#39; COMMENT &#39;是否上架，0下架，1上架&#39;,
+  `valid` tinyint(1) NOT NULL DEFAULT &#39;1&#39; COMMENT &#39;是否有效，0已删除，1有效&#39;,
+  `create_time` datetime DEFAULT NULL COMMENT &#39;添加时间&#39;,
+  `last_update_time` datetime DEFAULT NULL COMMENT &#39;最后修改时间&#39;,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=208 DEFAULT CHARSET=utf8 COMMENT=&#39;spu表，该表描述的是一个抽象的商品，比如 iphone8&#39;;
+</code></pre>
+<p>与我们前面分析的基本类似，但是似乎少了一些字段，比如商品描述。</p>
+<p>我们做了表的垂直拆分，将SPU的详情放到了另一张表：tb_spu_detail</p>
+<pre><code class="mysql">CREATE TABLE `tb_spu_detail` (
+  `spu_id` bigint(20) NOT NULL,
+  `description` text COMMENT &#39;商品描述信息&#39;,
+  `generic_spec` varchar(10000) NOT NULL DEFAULT &#39;&#39; COMMENT &#39;通用规格参数数据&#39;,
+  `special_spec` varchar(1000) NOT NULL COMMENT &#39;特有规格参数及可选值信息，json格式&#39;,
+  `packing_list` varchar(3000) DEFAULT &#39;&#39; COMMENT &#39;包装清单&#39;,
+  `after_service` varchar(3000) DEFAULT &#39;&#39; COMMENT &#39;售后服务&#39;,
+  PRIMARY KEY (`spu_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+</code></pre>
+<p>这张表中的数据都比较大，为了不影响主表的查询效率我们拆分出这张表。</p>
+<p>需要注意的是这两个字段：generic_spec和special_spec。</p>
+<p>前面讲过规格参数与商品分类绑定，一个分类下的所有SPU具有类似的规格参数。SPU下的SKU可能会有不同的规格参数信息，因此我们计划是这样：</p>
+<ul>
+<li>SPUDetail中保存通用的规格参数信息。</li>
+<li>SKU中保存特有规格参数。</li>
+</ul>
+<p>来看下我们的表如何存储这些信息。</p>
+<h3 id="3-1-1-generic-spec字段"><a href="#3-1-1-generic-spec字段" class="headerlink" title="3.1.1.generic_spec字段"></a>3.1.1.generic_spec字段</h3><p>首先是<code>generic_spec</code>，其中保存通用规格参数信息的值，这里为了方便查询，使用了json格式：</p>
+<blockquote>
+<p>整体来看：</p>
+</blockquote>
+<p> <img src="1529554390912.png" alt="1529554390912"></p>
+<p>json结构，其中都是键值对：</p>
+<ul>
+<li>key：对应的规格参数的<code>spec_param</code>的id</li>
+<li>value：对应规格参数的值</li>
+</ul>
+<h3 id="3-1-2-special-spec字段"><a href="#3-1-2-special-spec字段" class="headerlink" title="3.1.2.special_spec字段"></a>3.1.2.special_spec字段</h3><p>我们说spu中只保存通用规格参数，那么为什么有多出了一个<code>special_spec</code>字段呢？</p>
+<p>以手机为例，品牌、操作系统等肯定是全局通用属性，内存、颜色等肯定是特有属性。</p>
+<p>当你确定了一个SPU，比如小米的：红米4X</p>
+<p>全局属性值都是固定的了：</p>
+<pre><code>品牌：小米
+型号：红米4X
+</code></pre>
+<p>特有属性举例：</p>
+<pre><code>颜色：[香槟金, 樱花粉, 磨砂黑]
+内存：[2G, 3G]
+机身存储：[16GB, 32GB]
+</code></pre>
+<p>颜色、内存、机身存储，作为SKU特有属性，key虽然一样，但是SPU下的每一个SKU，其值都不一样，所以值会有很多，形成数组。</p>
+<p>我们在SPU中，会把特有属性的所有值都记录下来，形成一个数组：</p>
+<p>里面又有哪些内容呢？</p>
+<p>来看数据格式：</p>
+<p> <img src="1529554916252.png" alt="1529554916252"></p>
+<p>也是json结构：</p>
+<ul>
+<li>key：规格参数id</li>
+<li>value：spu属性的数组</li>
+</ul>
+<p>那么问题来：特有规格参数应该在sku中记录才对，为什么在spu中也要记录一份？</p>
+<p>因为我们有时候需要把所有规格参数都查询出来，而不是只查询1个sku的属性。比如，商品详情页展示可选的规格参数时：</p>
+<p> <img src="1526267828817.png" alt="1526267828817"></p>
+<p>刚好符合我们的结构，这样页面渲染就非常方便了。</p>
+<h2 id="3-2-SKU表"><a href="#3-2-SKU表" class="headerlink" title="3.2.SKU表"></a>3.2.SKU表</h2><pre><code class="mysql">CREATE TABLE `tb_sku` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT &#39;sku id&#39;,
+  `spu_id` bigint(20) NOT NULL COMMENT &#39;spu id&#39;,
+  `title` varchar(255) NOT NULL COMMENT &#39;商品标题&#39;,
+  `images` varchar(1000) DEFAULT &#39;&#39; COMMENT &#39;商品的图片，多个图片以‘,’分割&#39;,
+  `price` bigint(15) NOT NULL DEFAULT &#39;0&#39; COMMENT &#39;销售价格，单位为分&#39;,
+  `indexes` varchar(100) COMMENT &#39;特有规格属性在spu属性模板中的对应下标组合&#39;,
+  `own_spec` varchar(1000) COMMENT &#39;sku的特有规格参数，json格式&#39;,
+  `enable` tinyint(1) NOT NULL DEFAULT &#39;1&#39; COMMENT &#39;是否有效，0无效，1有效&#39;,
+  `create_time` datetime NOT NULL COMMENT &#39;添加时间&#39;,
+  `last_update_time` datetime NOT NULL COMMENT &#39;最后修改时间&#39;,
+  PRIMARY KEY (`id`),
+  KEY `key_spu_id` (`spu_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT=&#39;sku表,该表表示具体的商品实体,如黑色的64GB的iphone 8&#39;;
+</code></pre>
+<p>还有一张表，代表库存：</p>
+<pre><code class="mysql">CREATE TABLE `tb_stock` (
+  `sku_id` bigint(20) NOT NULL COMMENT &#39;库存对应的商品sku id&#39;,
+  `seckill_stock` int(9) DEFAULT &#39;0&#39; COMMENT &#39;可秒杀库存&#39;,
+  `seckill_total` int(9) DEFAULT &#39;0&#39; COMMENT &#39;秒杀总数量&#39;,
+  `stock` int(9) NOT NULL COMMENT &#39;库存数量&#39;,
+  PRIMARY KEY (`sku_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT=&#39;库存表，代表库存，秒杀库存等信息&#39;;
+</code></pre>
+<p>问题：为什么要将库存独立一张表？</p>
+<p>因为库存字段写频率较高，而SKU的其它字段以读为主，因此我们将两张表分离，读写不会干扰。</p>
+<p>特别需要注意的是sku表中的<code>indexes</code>字段和<code>own_spec</code>字段。sku中应该保存特有规格参数的值，就在这两个字段中。</p>
+<h3 id="3-2-1-indexes字段"><a href="#3-2-1-indexes字段" class="headerlink" title="3.2.1.indexes字段"></a>3.2.1.indexes字段</h3><p>在SPU表中，已经对特有规格参数及可选项进行了保存，结构如下：</p>
+<pre><code class="json">&#123;
+    &quot;4&quot;: [
+        &quot;香槟金&quot;,
+        &quot;樱花粉&quot;,
+        &quot;磨砂黑&quot;
+    ],
+    &quot;12&quot;: [
+        &quot;2GB&quot;,
+        &quot;3GB&quot;
+    ],
+    &quot;13&quot;: [
+        &quot;16GB&quot;,
+        &quot;32GB&quot;
+    ]
+&#125;
+</code></pre>
+<p>这些特有属性如果排列组合，会产生12个不同的SKU，而不同的SKU，其属性就是上面备选项中的一个。</p>
+<p>比如：</p>
+<ul>
+<li>红米4X，香槟金，2GB内存，16GB存储</li>
+<li>红米4X，磨砂黑，2GB内存，32GB存储</li>
+</ul>
+<p>你会发现，每一个属性值，对应于SPUoptions数组的一个选项，如果我们记录下角标，就是这样：</p>
+<ul>
+<li>红米4X，0,0,0</li>
+<li>红米4X，2,0,1</li>
+</ul>
+<p>既然如此，我们是不是可以将不同角标串联起来，作为SPU下不同SKU的标示。这就是我们的indexes字段。</p>
+<p> <img src="1526266901335.png" alt="1526266901335"></p>
+<p>这个设计在商品详情页会特别有用：</p>
+<p> <img src="1526267180997.png" alt="1526267180997"></p>
+<p>当用户点击选中一个特有属性，你就能根据 角标快速定位到sku。</p>
+<h3 id="3-2-2-own-spec字段"><a href="#3-2-2-own-spec字段" class="headerlink" title="3.2.2.own_spec字段"></a>3.2.2.own_spec字段</h3><p>看结构：</p>
+<pre><code class="json">&#123;&quot;4&quot;:&quot;香槟金&quot;,&quot;12&quot;:&quot;2GB&quot;,&quot;13&quot;:&quot;16GB&quot;&#125;
+</code></pre>
+<p>保存的是特有属性的键值对。</p>
+<p>SPU中保存的是可选项，但不确定具体的值，而SKU中的保存的就是具体的值。</p>
+<h2 id="3-3-导入图片信息"><a href="#3-3-导入图片信息" class="headerlink" title="3.3.导入图片信息"></a>3.3.导入图片信息</h2><p>现在商品表中虽然有数据，但是所有的图片信息都是无法访问的，我们需要把图片导入到虚拟机：</p>
+<p>首先，把课前资料提供的数据上传到虚拟机下：<code>/leyou/static</code>目录：在leyou下创建static目录</p>
+<p><img src="1528445149890.png" alt="1528445149890"></p>
+<p><img src="1528479229165.png" alt="1528479229165"></p>
+<p>然后，使用命令解压缩：</p>
+<pre><code class="sh">unzip images.zip
+</code></pre>
+<p>修改Nginx配置，使nginx反向代理这些图片地址：</p>
+<pre><code class="sh">vim /opt/nginx/config/nginx.conf
+</code></pre>
+<p>修改成如下配置：</p>
+<pre><code class="nginx">server &#123;
+    listen       80;
+    server_name  image.leyou.com;
+
+    # 监听域名中带有group的，交给FastDFS模块处理
+    location ~/group([0-9])/ &#123;
+        ngx_fastdfs_module;
+    &#125;
+    # 将其它图片代理指向本地的/leyou/static目录
+    location / &#123;
+        root   /leyou/static/;
+    &#125;
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html &#123;
+        root   html;
+    &#125;
+
+&#125;
+</code></pre>
+<p>不要忘记重新加载nginx配置</p>
+<pre><code>nginx -s reload
+</code></pre>
+<h1 id="4-商品查询"><a href="#4-商品查询" class="headerlink" title="4.商品查询"></a>4.商品查询</h1><h2 id="4-1-效果预览"><a href="#4-1-效果预览" class="headerlink" title="4.1.效果预览"></a>4.1.效果预览</h2><p>接下来，我们实现商品管理的页面，先看下我们要实现的效果：</p>
+<p><img src="1526268595873.png" alt="1526268595873"></p>
+<p>可以看出整体是一个table，然后有新增按钮。是不是跟昨天写品牌管理很像？</p>
+<h2 id="4-2-页面请求"><a href="#4-2-页面请求" class="headerlink" title="4.2.页面请求"></a>4.2.页面请求</h2><p>先看整体页面结构（Goods.vue）：</p>
+<p><img src="1528447301687.png" alt="1528447301687"></p>
+<p>并且在Vue实例挂载后就会发起查询(mounted调用getDataFromServer方法初始化数据)：</p>
+<p><img src="1528447431959.png" alt="1528447431959"></p>
+<p>我们刷新页面，可以看到浏览器发起已经发起了查询商品数据的请求：</p>
+<p><img src="1528447591939.png" alt="1528447591939"></p>
+<p>因此接下来，我们编写接口即可。</p>
+<h2 id="4-3-后台提供接口"><a href="#4-3-后台提供接口" class="headerlink" title="4.3.后台提供接口"></a>4.3.后台提供接口</h2><p>页面已经准备好，接下来在后台提供分页查询SPU的功能。</p>
+<p> <img src="1543414148030.png" alt="1543414148030"></p>
+<p> <img src="1543413983147.png" alt="1543413983147"></p>
+<h3 id="4-3-1-实体类"><a href="#4-3-1-实体类" class="headerlink" title="4.3.1.实体类"></a>4.3.1.实体类</h3><p>在leyou-item-interface工程中添加实体类：</p>
+<blockquote>
+<p>SPU</p>
+</blockquote>
+<pre><code class="java">@Table(name = &quot;tb_spu&quot;)
+public class Spu &#123;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long brandId;
+    private Long cid1;// 1级类目
+    private Long cid2;// 2级类目
+    private Long cid3;// 3级类目
+    private String title;// 标题
+    private String subTitle;// 子标题
+    private Boolean saleable;// 是否上架
+    private Boolean valid;// 是否有效，逻辑删除用
+    private Date createTime;// 创建时间
+    private Date lastUpdateTime;// 最后修改时间
+    // 省略getter和setter
+&#125;
+</code></pre>
+<blockquote>
+<p>SPU详情</p>
+</blockquote>
+<pre><code class="java">@Table(name=&quot;tb_spu_detail&quot;)
+public class SpuDetail &#123;
+    @Id
+    private Long spuId;// 对应的SPU的id
+    private String description;// 商品描述
+    private String specialSpec;// 商品特殊规格的名称及可选值模板
+    private String genericSpec;// 商品的全局规格属性
+    private String packingList;// 包装清单
+    private String afterService;// 售后服务
+    // 省略getter和setter
+&#125;
+</code></pre>
+<h3 id="4-4-2-mapper"><a href="#4-4-2-mapper" class="headerlink" title="4.4.2.mapper"></a>4.4.2.mapper</h3><pre><code class="java">public interface SpuMapper extends Mapper&lt;Spu&gt; &#123;
+&#125;
+</code></pre>
+<h3 id="4-3-3-controller"><a href="#4-3-3-controller" class="headerlink" title="4.3.3.controller"></a>4.3.3.controller</h3><p>先分析：</p>
+<ul>
+<li><p>请求方式：GET</p>
+</li>
+<li><p>请求路径：/spu/page</p>
+</li>
+<li><p>请求参数：</p>
+<ul>
+<li>page：当前页</li>
+<li>rows：每页大小</li>
+<li>key：过滤条件</li>
+<li>saleable：上架或下架</li>
+</ul>
+</li>
+<li><p>返回结果：商品SPU的分页信息。</p>
+<ul>
+<li><p>要注意，页面展示的是商品分类和品牌名称，而数据库中保存的是id，怎么办？</p>
+<p>我们可以新建一个类，继承SPU，并且拓展cname和bname属性，写到<code>leyou-item-interface</code></p>
+<pre><code class="java">public class SpuBo extends Spu &#123;
+
+    String cname;// 商品分类名称
+    
+    String bname;// 品牌名称
+    
+    // 略 。。
+&#125;
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<p>编写controller代码：</p>
+<p>我们把与商品相关的一切业务接口都放到一起，起名为GoodsController，业务层也是这样</p>
+<pre><code class="java">@Controller
+public class GoodsController &#123;
+
+    @Autowired
+    private GoodsService goodsService;
+
+    @GetMapping(&quot;spu/page&quot;)
+    public ResponseEntity&lt;PageResult&lt;SpuBo&gt;&gt; querySpuBoByPage(
+            @RequestParam(value = &quot;key&quot;, required = false)String key,
+            @RequestParam(value = &quot;saleable&quot;, required = false)Boolean saleable,
+            @RequestParam(value = &quot;page&quot;, defaultValue = &quot;1&quot;)Integer page,
+            @RequestParam(value = &quot;rows&quot;, defaultValue = &quot;5&quot;)Integer rows
+    )&#123;
+        PageResult&lt;SpuBo&gt; pageResult = this.goodsService.querySpuBoByPage(key, saleable, page, rows);
+        if(CollectionUtils.isEmpty(pageResult.getItems()))&#123;
+            return ResponseEntity.notFound().build();
+        &#125;
+        return ResponseEntity.ok(pageResult);
+    &#125;
+
+&#125;
+</code></pre>
+<h3 id="4-4-4-service"><a href="#4-4-4-service" class="headerlink" title="4.4.4.service"></a>4.4.4.service</h3><p>所有商品相关的业务（包括SPU和SKU）放到一个业务下：GoodsService。</p>
+<pre><code class="java">@Service
+public class GoodsService &#123;
+
+    @Autowired
+    private SpuMapper spuMapper;
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private BrandMapper brandMapper;
+
+    public PageResult&lt;SpuBo&gt; querySpuBoByPage(String key, Boolean saleable, Integer page, Integer rows) &#123;
+
+        Example example = new Example(Spu.class);
+        Example.Criteria criteria = example.createCriteria();
+        // 搜索条件
+        if (StringUtils.isNotBlank(key)) &#123;
+            criteria.andLike(&quot;title&quot;, &quot;%&quot; + key + &quot;%&quot;);
+        &#125;
+        if (saleable != null) &#123;
+            criteria.andEqualTo(&quot;saleable&quot;, saleable);
+        &#125;
+
+        // 分页条件
+        PageHelper.startPage(page, rows);
+
+        // 执行查询
+        List&lt;Spu&gt; spus = this.spuMapper.selectByExample(example);
+        PageInfo&lt;Spu&gt; pageInfo = new PageInfo&lt;&gt;(spus);
+
+        List&lt;SpuBo&gt; spuBos = new ArrayList&lt;&gt;();
+        spus.forEach(spu-&gt;&#123;
+            SpuBo spuBo = new SpuBo();
+            // copy共同属性的值到新的对象
+            BeanUtils.copyProperties(spu, spuBo);
+            // 查询分类名称
+            List&lt;String&gt; names = this.categoryService.queryNamesByIds(Arrays.asList(spu.getCid1(), spu.getCid2(), spu.getCid3()));
+            spuBo.setCname(StringUtils.join(names, &quot;/&quot;));
+
+            // 查询品牌的名称
+            spuBo.setBname(this.brandMapper.selectByPrimaryKey(spu.getBrandId()).getName());
+
+            spuBos.add(spuBo);
+        &#125;);
+
+        return new PageResult&lt;&gt;(pageInfo.getTotal(), spuBos);
+
+    &#125;
+&#125;
+</code></pre>
+<h3 id="4-4-5-Category中拓展查询名称的功能"><a href="#4-4-5-Category中拓展查询名称的功能" class="headerlink" title="4.4.5.Category中拓展查询名称的功能"></a>4.4.5.Category中拓展查询名称的功能</h3><p>页面需要商品的分类名称需要在这里查询，因此要额外提供查询分类名称的功能，</p>
+<p>在CategoryService中添加功能：</p>
+<pre><code class="java">public List&lt;String&gt; queryNamesByIds(List&lt;Long&gt; ids) &#123;
+    List&lt;Category&gt; list = this.categoryMapper.selectByIdList(ids);
+    List&lt;String&gt; names = new ArrayList&lt;&gt;();
+    for (Category category : list) &#123;
+        names.add(category.getName());
+    &#125;
+    return names;
+    // return list.stream().map(category -&gt; category.getName()).collect(Collectors.toList());
+&#125;
+</code></pre>
+<p>mapper的selectByIdList方法是来自于通用mapper。不过需要我们在mapper上继承一个通用mapper接口：</p>
+<pre><code class="java">public interface CategoryMapper extends Mapper&lt;Category&gt;, SelectByIdListMapper&lt;Category, Long&gt; &#123; 
+
+&#125;
+</code></pre>
+<h2 id="4-5-测试"><a href="#4-5-测试" class="headerlink" title="4.5.测试"></a>4.5.测试</h2><p>刷新页面，查看效果：</p>
+<p><img src="1528450054541.png" alt="1528450054541"></p>
+<p>基本与预览的效果一致，OK！</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/SPU%E5%92%8CSKU/" rel="tag"># SPU和SKU</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/23/FDFS%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%90%AD%E5%BB%BA/" rel="prev" title="FastDFS服务器搭建">
+      <i class="fa fa-chevron-left"></i> FastDFS服务器搭建
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/25/leyou%E5%90%8E%E5%8F%B0-6-%E5%95%86%E5%93%81%E6%93%8D%E4%BD%9C/" rel="next" title="leyou后台管理#6-商品操作">
+      leyou后台管理#6-商品操作 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%95%86%E5%93%81%E8%A7%84%E6%A0%BC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">1.商品规格数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-SPU%E5%92%8CSKU"><span class="nav-text">1.1.SPU和SKU</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1%E5%88%86%E6%9E%90"><span class="nav-text">1.2.数据库设计分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-1-%E6%80%9D%E8%80%83%E5%B9%B6%E5%8F%91%E7%8E%B0%E9%97%AE%E9%A2%98"><span class="nav-text">1.2.1.思考并发现问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-2-%E5%88%86%E6%9E%90%E8%A7%84%E6%A0%BC%E5%8F%82%E6%95%B0"><span class="nav-text">1.2.2.分析规格参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-3-SKU%E7%9A%84%E7%89%B9%E6%9C%89%E5%B1%9E%E6%80%A7"><span class="nav-text">1.2.3.SKU的特有属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-4-%E6%90%9C%E7%B4%A2%E5%B1%9E%E6%80%A7"><span class="nav-text">1.2.4.搜索属性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-%E8%A7%84%E6%A0%BC%E5%8F%82%E6%95%B0%E8%A1%A8"><span class="nav-text">1.3.规格参数表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-1-%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="nav-text">1.3.1.表结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-2-%E8%A7%84%E6%A0%BC%E7%BB%84"><span class="nav-text">1.3.2.规格组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-2-%E8%A7%84%E6%A0%BC%E5%8F%82%E6%95%B0"><span class="nav-text">1.3.2.规格参数</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%95%86%E5%93%81%E8%A7%84%E6%A0%BC%E5%8F%82%E6%95%B0%E7%AE%A1%E7%90%86"><span class="nav-text">2.商品规格参数管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E9%A1%B5%E9%9D%A2%E5%B8%83%E5%B1%80"><span class="nav-text">2.1.页面布局</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-1-%E6%95%B4%E4%BD%93%E5%B8%83%E5%B1%80"><span class="nav-text">2.1.1.整体布局</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-2-%E5%8F%B3%E4%BE%A7%E8%A7%84%E6%A0%BC"><span class="nav-text">2.1.2.右侧规格</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E8%A7%84%E6%A0%BC%E7%BB%84%E7%9A%84%E6%9F%A5%E8%AF%A2"><span class="nav-text">2.2.规格组的查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-1-%E6%A0%91%E8%8A%82%E7%82%B9%E7%9A%84%E7%82%B9%E5%87%BB%E4%BA%8B%E4%BB%B6"><span class="nav-text">2.2.1.树节点的点击事件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-2-%E9%A1%B5%E9%9D%A2%E6%9F%A5%E8%AF%A2%E8%A7%84%E6%A0%BC%E7%BB%84"><span class="nav-text">2.2.2.页面查询规格组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-3-%E5%90%8E%E7%AB%AF%E4%BB%A3%E7%A0%81"><span class="nav-text">2.2.3.后端代码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E8%A7%84%E6%A0%BC%E5%8F%82%E6%95%B0%E6%9F%A5%E8%AF%A2"><span class="nav-text">2.3.规格参数查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-1-%E8%A1%A8%E6%A0%BC%E5%88%87%E6%8D%A2"><span class="nav-text">2.3.1.表格切换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-2-%E9%A1%B5%E9%9D%A2%E6%9F%A5%E8%AF%A2%E8%A7%84%E6%A0%BC%E5%8F%82%E6%95%B0"><span class="nav-text">2.3.2.页面查询规格参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-3-%E5%90%8E%E5%8F%B0%E5%AE%9E%E7%8E%B0"><span class="nav-text">2.3.3.后台实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-%E5%A2%9E%E3%80%81%E5%88%A0%E3%80%81%E6%94%B9%EF%BC%88%E4%BD%9C%E4%B8%9A%EF%BC%89"><span class="nav-text">2.4.增、删、改（作业）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-SPU%E5%92%8CSKU%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">3.SPU和SKU数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-SPU%E8%A1%A8"><span class="nav-text">3.1.SPU表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-1-generic-spec%E5%AD%97%E6%AE%B5"><span class="nav-text">3.1.1.generic_spec字段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-2-special-spec%E5%AD%97%E6%AE%B5"><span class="nav-text">3.1.2.special_spec字段</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-SKU%E8%A1%A8"><span class="nav-text">3.2.SKU表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-1-indexes%E5%AD%97%E6%AE%B5"><span class="nav-text">3.2.1.indexes字段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-2-own-spec%E5%AD%97%E6%AE%B5"><span class="nav-text">3.2.2.own_spec字段</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-%E5%AF%BC%E5%85%A5%E5%9B%BE%E7%89%87%E4%BF%A1%E6%81%AF"><span class="nav-text">3.3.导入图片信息</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%95%86%E5%93%81%E6%9F%A5%E8%AF%A2"><span class="nav-text">4.商品查询</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E6%95%88%E6%9E%9C%E9%A2%84%E8%A7%88"><span class="nav-text">4.1.效果预览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E9%A1%B5%E9%9D%A2%E8%AF%B7%E6%B1%82"><span class="nav-text">4.2.页面请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E5%90%8E%E5%8F%B0%E6%8F%90%E4%BE%9B%E6%8E%A5%E5%8F%A3"><span class="nav-text">4.3.后台提供接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-1-%E5%AE%9E%E4%BD%93%E7%B1%BB"><span class="nav-text">4.3.1.实体类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-2-mapper"><span class="nav-text">4.4.2.mapper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-3-controller"><span class="nav-text">4.3.3.controller</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-4-service"><span class="nav-text">4.4.4.service</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-5-Category%E4%B8%AD%E6%8B%93%E5%B1%95%E6%9F%A5%E8%AF%A2%E5%90%8D%E7%A7%B0%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="nav-text">4.4.5.Category中拓展查询名称的功能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5-%E6%B5%8B%E8%AF%95"><span class="nav-text">4.5.测试</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

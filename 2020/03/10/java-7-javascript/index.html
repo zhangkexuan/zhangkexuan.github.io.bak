@@ -1,0 +1,2151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="JavaScript运行在客户端浏览器中，可以来增强用户和html页面的交互过程，可以来控制html元素，让页面有一些动态的效果，增强用户的体验。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="javaweb#7-javascript">
+<meta property="og:url" content="http://yoursite.com/2020/03/10/java-7-javascript/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="JavaScript运行在客户端浏览器中，可以来增强用户和html页面的交互过程，可以来控制html元素，让页面有一些动态的效果，增强用户的体验。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-10T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T01:56:00.771Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="javaweb">
+<meta property="article:tag" content="js">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/10/java-7-javascript/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>javaweb#7-javascript | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/10/java-7-javascript/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          javaweb#7-javascript
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-10 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-10T09:34:33+08:00">2020-03-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>JavaScript运行在客户端浏览器中，可以来增强用户和html页面的交互过程，可以来控制html元素，让页面有一些动态的效果，增强用户的体验。</p>
+<span id="more"></span>
+
+
+<p>[TOC]</p>
+<h1 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h1><ul>
+<li>客户端脚本语言</li>
+</ul>
+<p>运行在客户端浏览器中的。每一个浏览器都有JavaScript的解析引擎<br>脚本语言：不需要编译，直接就可以被浏览器解析执行了</p>
+<ul>
+<li>功能</li>
+</ul>
+<p>可以来增强用户和html页面的交互过程，可以来控制html元素，让页面有一些动态的效果，增强用户的体验。</p>
+<ul>
+<li>发展史</li>
+</ul>
+<ol>
+<li>1992年，Nombase公司，开发出第一门客户端脚本语言，专门用于表单的校验。命名为 ： C–，后来更名为：ScriptEase</li>
+<li>1995年，Netscape(网景)公司，开发了一门客户端脚本语言：LiveScript。后来，请来SUN公司的专家，修改LiveScript，命名为JavaScript</li>
+<li>1996年，微软抄袭JavaScript开发出JScript语言</li>
+<li>1997年，ECMA(欧洲计算机制造商协会)，制定出客户端脚本语言的标准：ECMAScript，就是统一了所有客户端脚本语言的编码方式。</li>
+</ol>
+<p>** JavaScript = ECMAScript + JavaScript自己特有的东西(BOM+DOM)**</p>
+<h1 id="ECMAScript"><a href="#ECMAScript" class="headerlink" title="ECMAScript"></a>ECMAScript</h1><h2 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h2><h3 id="与html结合方式"><a href="#与html结合方式" class="headerlink" title="与html结合方式"></a>与html结合方式</h3><ol>
+<li>内部JS：<ul>
+<li>定义&lt;script&gt;，标签体内容就是js代码</li>
+</ul>
+</li>
+<li>外部JS：<ul>
+<li>定义&lt;script&gt;，通过src属性引入外部的js文件</li>
+</ul>
+</li>
+</ol>
+<ul>
+<li>注意：<ol>
+<li>&lt;script&gt;可以定义在html页面的任何地方。但是定义的位置会影响执行顺序。</li>
+<li>&lt;script&gt;可以定义多个。<br>```html<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title >Title</title>
+<!--
+内部JS
+外部JS</li>
+</ol>
+ –&gt;  <script>
+      alert("Hello JS");
+  </script>
+  <script src="js/a.js"></script>
+</head>
+<body>
+<input type="text">
+</body>
+</html>
+```
+```js
+// js/a.js文件
+alert("我是外部的js文件");
+```</li>
+</ul>
+<h3 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h3><ol>
+<li>单行注释：//注释内容</li>
+<li>多行注释：/<em>注释内容</em>/</li>
+</ol>
+<h3 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h3><ol>
+<li>原始数据类型(基本数据类型)：<ol>
+<li>number：数字。 整数/小数/NaN(not a number 一个不是数字的数字类型)</li>
+<li>string：字符串。 字符串  “abc” “a” ‘abc’</li>
+<li>boolean: true和false</li>
+<li>null：一个对象为空的占位符</li>
+<li>undefined：未定义。如果一个变量没有给初始化值，则会被默认赋值为undefined</li>
+</ol>
+</li>
+<li>引用数据类型：对象</li>
+</ol>
+<h3 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h3><p>变量：一小块存储数据的内存空间。Java语言是强类型语言，而JavaScript是弱类型语言。</p>
+<blockquote>
+<p>强类型：在开辟变量存储空间时，定义了空间将来存储的数据的数据类型。只能存储固定类型的数据<br>弱类型：在开辟变量存储空间时，不定义空间将来的存储数据类型，可以存放任意类型的数据。</p>
+</blockquote>
+<p>语法：</p>
+<ul>
+<li>var 变量名 = 初始化值;</li>
+<li>typeof运算符：获取变量的类型。<ul>
+<li>注：null运算后得到的是object</li>
+</ul>
+</li>
+</ul>
+<h3 id="运算符"><a href="#运算符" class="headerlink" title="运算符"></a>运算符</h3><ol>
+<li><p>一元运算符：只有一个运算数的运算符<br> ++，– ， +(正号)  </p>
+<ul>
+<li>++ –: 自增(自减)<ul>
+<li>++(–) 在前，先自增(自减)，再运算</li>
+<li>++(–) 在后，先运算，再自增(自减)</li>
+</ul>
+</li>
+<li>+(-)：正负号</li>
+<li>注意：在JS中，如果运算数不是运算符所要求的类型，那么js引擎会自动的将运算数进行类型转换<ul>
+<li>其他类型转number：<ul>
+<li>string转number：按照字面值转换。如果字面值不是数字，则转为NaN（不是数字的数字）</li>
+<li>boolean转number：true转为1，false转为0</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>算数运算符</p>
+<ul>
+<li><ul>
+<li><ul>
+<li>/ % …</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>赋值运算符<br> = += -+….</p>
+</li>
+<li><p>比较运算符<br> &gt; &lt; &gt;= &lt;= == ===(全等于)</p>
+<ul>
+<li>比较方式<ol>
+<li>类型相同：直接比较<ul>
+<li>字符串：按照字典顺序比较。按位逐一比较，直到得出大小为止。</li>
+</ul>
+</li>
+<li>类型不同：先进行类型转换，再比较<ul>
+<li>===：全等于。在比较之前，先判断类型，如果类型不一样，则直接返回false</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><p>逻辑运算符<br> &amp;&amp; || !</p>
+<ul>
+<li>其他类型转boolean：<ol>
+<li>number：0或NaN为假，其他为真</li>
+<li>string：除了空字符串(“”)，其他都是true</li>
+<li>null&amp;undefined:都是false</li>
+<li>对象：所有对象都为true</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><p>三元运算符<br> ? : 表达式</p>
+</li>
+</ol>
+<h3 id="流程控制语句"><a href="#流程控制语句" class="headerlink" title="流程控制语句"></a>流程控制语句</h3><ol>
+<li>if…else…</li>
+<li>switch:<ul>
+<li>在java中，switch语句可以接受的数据类型： byte int shor char,枚举(1.5) ,String(1.7)<ul>
+<li>switch(变量):<br>  case 值:</li>
+<li>在JS中,switch语句可以接受任意的原始数据类型</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>while</li>
+<li>do…while</li>
+<li>for<h3 id="JS特殊语法"><a href="#JS特殊语法" class="headerlink" title="JS特殊语法"></a>JS特殊语法</h3></li>
+<li>语句以;结尾，如果一行只有一条语句则 ;可以省略 (不建议)</li>
+<li>变量的定义使用var关键字，也可以不使用<ul>
+<li>用： 定义的变量是局部变量</li>
+<li>不用：定义的变量是全局变量(不建议)</li>
+</ul>
+</li>
+</ol>
+<h3 id="练习：99乘法表"><a href="#练习：99乘法表" class="headerlink" title="练习：99乘法表"></a>练习：99乘法表</h3><pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;99乘法表&lt;/title&gt;
+    &lt;style&gt;
+        td&#123;
+            border: 1px solid;
+        &#125;
+
+    &lt;/style&gt;
+
+    &lt;script&gt;
+
+        document.write(&quot;&lt;table  align=&#39;center&#39;&gt;&quot;);
+
+        //1.完成基本的for循环嵌套，展示乘法表
+        for (var i = 1; i &lt;= 9 ; i++) &#123;
+            document.write(&quot;&lt;tr&gt;&quot;);
+            for (var j = 1; j &lt;=i ; j++) &#123;
+                document.write(&quot;&lt;td&gt;&quot;);
+
+                //输出  1 * 1 = 1
+                document.write(i + &quot; * &quot; + j + &quot; = &quot; + ( i*j) +&quot;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot;);
+
+                document.write(&quot;&lt;/td&gt;&quot;);
+            &#125;
+            /*//输出换行
+            document.write(&quot;&lt;br&gt;&quot;);*/
+
+            document.write(&quot;&lt;/tr&gt;&quot;);
+        &#125;
+
+        //2.完成表格嵌套
+        document.write(&quot;&lt;/table&gt;&quot;);
+
+    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h2 id="基本对象"><a href="#基本对象" class="headerlink" title="基本对象"></a>基本对象</h2><h3 id="Function：函数-方法-对象"><a href="#Function：函数-方法-对象" class="headerlink" title="Function：函数(方法)对象"></a>Function：函数(方法)对象</h3><ol>
+<li><p>创建：</p>
+<ol>
+<li><pre><code> function 方法名称(形式参数列表)&#123;
+ 方法体
+ &#125;
+</code></pre>
+</li>
+<li><pre><code> var 方法名 = function(形式参数列表)&#123;
+ 方法体
+ &#125;
+</code></pre>
+</li>
+</ol>
+</li>
+<li><p>方法：</p>
+</li>
+<li><p>属性：<br> length:代表形参的个数</p>
+</li>
+<li><p>特点：</p>
+<ol>
+<li>方法定义是，形参的类型不用写,返回值类型也不写。</li>
+<li>方法是一个对象，如果定义名称相同的方法，会覆盖</li>
+<li>在JS中，方法的调用只与方法的名称有关，和参数列表无关</li>
+<li>在方法声明中有一个隐藏的内置对象（数组），arguments,封装所有的实际参数</li>
+</ol>
+</li>
+<li><p>调用：<br> 方法名称(实际参数列表);<br>```HTML</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>Function对象</title>
+ <script>
+     /*</li>
+</ol>
+<pre><code>            //1.创建方式1
+            var fun1 = new Function(&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;alert(a);&quot;);
+            //调用方法
+           // fun1(3,4);
+           // alert(fun1.length);
+           //2. 创建方式2
+            function fun2(a , b)&#123;
+                alert(a + b);
+            &#125;
+
+            //fun2(3,4);
+
+            //alert(fun2.length);
+            var fun3 = function(a,b)&#123;
+                alert(a+b);
+
+            &#125;
+            //alert(fun3.length);
+           // fun3(3,4);
+
+
+            /!*fun2 = function(a , b)&#123;
+                alert(a - b);
+            &#125;*!/
+            function fun2(a , b)&#123;
+                //alert(a - b);
+                alert(a);
+                alert(b);
+            &#125;
+
+            //fun2(3,4);
+
+            //方法调用
+            //fun2(1,2);
+            //fun2(1);
+            //fun2();
+            //fun2(1,2,3);
+
+            /!*
+             * 求两个数的和
+             *!/
+            /!*function  add(a , b)&#123;
+                return a + b;
+            &#125;*!/
+            /!**
+             * 求任意个数的和
+             *!/
+            function add ()&#123;
+               var sum = 0;
+                for (var i = 0; i &lt; arguments.length; i++) &#123;
+                    sum += arguments[i];
+                &#125;
+                return sum;
+            &#125;
+
+            var sum = add(1,2,3,4);
+            alert(sum);
+            //add(1,3);
+</code></pre>
+<p>*/<br>        function add() {<br>            let sum = 0;<br>            for (let i = 0; i &lt; arguments.length; i++) {<br>                sum += arguments[i];<br>            }<br>            return sum;<br>        }</p>
+<pre><code>    const sum = add(1, 3, 4);
+    alert(sum);
+
+&lt;/script&gt;
+</code></pre>
+</head>
+<body>
+
+</body>
+</html>
+```
+
+<h3 id="Array-数组对象"><a href="#Array-数组对象" class="headerlink" title="Array:数组对象"></a>Array:数组对象</h3><ol>
+<li><p>创建：</p>
+<ol>
+<li>var arr = new Array(元素列表);</li>
+<li>var arr = new Array(默认长度);</li>
+<li>var arr = [元素列表];</li>
+</ol>
+</li>
+<li><p>方法<br> join(参数):将数组中的元素按照指定的分隔符拼接为字符串<br> push()    向数组的末尾添加一个或更多元素，并返回新的长度。</p>
+</li>
+<li><p>属性<br> length:数组的长度</p>
+</li>
+<li><p>特点：</p>
+<ol>
+<li>JS中，数组元素的类型可变的。</li>
+<li>JS中，数组长度可变的。</li>
+</ol>
+</li>
+<li><p>实例<br>```html</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Array对象</title>
+  <script>
+      /*
+
+<pre><code>      Array:数组对象
+          1. 创建：
+              1. var arr = new Array(元素列表);
+              2. var arr = new Array(默认长度);
+              3. var arr = [元素列表];
+          2. 方法
+              join(参数):将数组中的元素按照指定的分隔符拼接为字符串
+              push()    向数组的末尾添加一个或更多元素，并返回新的长度。
+          3. 属性
+              length:数组的长度
+          4. 特点：
+              1. JS中，数组元素的类型可变的。
+              2. JS中，数组长度可变的。
+</code></pre>
+</li>
+</ol>
+<pre><code>     *
+     */
+    //1.创建方式1
+    /* var arr1 = new Array(1,2,3);
+     var arr2 = new Array(5);
+     var arr3 = [1,2,3,4];
+
+     var arr4 = new Array();
+
+     document.write(arr1 +&quot;&lt;br&gt;&quot;);
+     document.write(arr2 +&quot;&lt;br&gt;&quot;);
+     document.write(arr3 +&quot;&lt;br&gt;&quot;);
+     document.write(arr4 +&quot;&lt;br&gt;&quot;);*/
+
+
+    var arr = [1, &quot;abc&quot;, true];
+    document.write(arr + &quot;&lt;br&gt;&quot;);
+
+    document.write(arr[0] + &quot;&lt;br&gt;&quot;);
+    document.write(arr[1] + &quot;&lt;br&gt;&quot;);
+    document.write(arr[2] + &quot;&lt;br&gt;&quot;);
+
+    //document.write(arr[10] +&quot;&lt;br&gt;&quot;);
+    arr[10] = &quot;hebe&quot;;
+    document.write(arr[10] + &quot;&lt;br&gt;&quot;);
+    document.write(arr[9] + &quot;&lt;br&gt;&quot;);
+
+    //alert(arr.length);//11
+    document.write(arr.join(&quot;--&quot;) + &quot;&lt;br&gt;&quot;);
+    arr.push(11);
+    document.write(arr.join(&quot;--&quot;) + &quot;&lt;br&gt;&quot;);
+
+
+&lt;/script&gt;
+</code></pre>
+</head>
+<body>
+
+</body>
+</html>
+```
+
+<h3 id="Date：日期对象"><a href="#Date：日期对象" class="headerlink" title="Date：日期对象"></a>Date：日期对象</h3><ol>
+<li><p>创建：<br> var date = new Date();</p>
+</li>
+<li><p>方法：<br> toLocaleString()：返回当前date对象对应的时间本地字符串格式<br> getTime():获取毫秒值。返回当前如期对象描述的时间到1970年1月1日零点的毫秒值差<br>```html</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>Date对象</title>
+ <script >
+
+<pre><code> /*
+
+    Date：日期对象
+         1. 创建：
+             var date = new Date();
+
+         2. 方法：
+             toLocaleString()：返回当前date对象对应的时间本地字符串格式
+             getTime():获取毫秒值。返回当前如期对象描述的时间到1970年1月1日零点的毫秒值差
+  *
+  */
+
+ var date = new Date();
+
+ document.write(date + &quot;&lt;br&gt;&quot;);
+
+ document.write(date.toLocaleString() + &quot;&lt;br&gt;&quot;);
+
+ document.write(date.getTime() + &quot;&lt;br&gt;&quot;);
+</code></pre>
+<p> </script></p>
+</head>
+<body></li>
+</ol>
+</body>
+</html>
+```
+
+<h3 id="Math：数学对象"><a href="#Math：数学对象" class="headerlink" title="Math：数学对象"></a>Math：数学对象</h3><ol>
+<li><p>创建：</p>
+<ul>
+<li>特点：Math对象不用创建，直接使用。  Math.方法名();</li>
+</ul>
+</li>
+<li><p>方法：<br> random():返回 0 ~ 1 之间的随机数。 含0不含1<br> ceil(x)：对数进行上舍入。<br> floor(x)：对数进行下舍入。<br> round(x)：把数四舍五入为最接近的整数。</p>
+</li>
+<li><p>属性：<br> PI<br>```html</p>
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <title>Math对象</title>
+     <script >
+
+<pre><code>     /*
+
+    Math：数学对象
+         1. 创建：
+             * 特点：Math对象不用创建，直接使用。  Math.方法名();
+
+         2. 方法：
+             random():返回 0 ~ 1 之间的随机数。 含0不含1
+             ceil(x)：对数进行上舍入。
+             floor(x)：对数进行下舍入。
+             round(x)：把数四舍五入为最接近的整数。
+         3. 属性：
+             PI
+
+  *
+  */
+
+     document.write(Math.PI +&quot;&lt;br&gt;&quot;);
+     document.write(Math.random() +&quot;&lt;br&gt;&quot;);
+     document.write(Math.round(3.14) +&quot;&lt;br&gt;&quot;);
+     document.write(Math.ceil(3.14) +&quot;&lt;br&gt;&quot;);
+     document.write(Math.floor(3.14) +&quot;&lt;br&gt;&quot;);
+
+     /**
+  * 取 1~100之间的随机整数
+  *      1. Math.random()产生随机数：范围 [0,1)小数
+  *      2. 乘以 100 --&gt; [0,99.9999] 小数
+  *      3. 舍弃小数部分 ：floor --&gt; [0,99] 整数
+  *      4. +1 --&gt;[0,99] 整数 [1,100]
+  *
+  *
+  */
+
+     var number =  Math.floor((Math.random() * 100)) + 1;
+     document.write(number);
+</code></pre>
+</li>
+</ol>
+<pre><code>    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;/body&gt;
+</code></pre>
+</html>
+```
+
+<h3 id="RegExp：正则表达式对象"><a href="#RegExp：正则表达式对象" class="headerlink" title="RegExp：正则表达式对象"></a>RegExp：正则表达式对象</h3><ol>
+<li><p>正则表达式：定义字符串的组成规则。</p>
+<ol>
+<li>单个字符:[]<br> 如： [a] [ab] [a-zA-Z0-9_]<ul>
+<li>特殊符号代表特殊含义的单个字符:<br>  \d:单个数字字符 [0-9]<br>  \w:单个单词字符[a-zA-Z0-9_]</li>
+</ul>
+</li>
+<li>量词符号：<br> ?：表示出现0次或1次<br> *：表示出现0次或多次<br> +：出现1次或多次<br> {m,n}:表示 m&lt;= 数量 &lt;= n<pre><code> * m如果缺省： &#123;,n&#125;:最多n次
+ * n如果缺省：&#123;m,&#125; 最少m次
+</code></pre>
+</li>
+<li>开始结束符号<ul>
+<li>^:开始</li>
+<li>$:结束</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>正则对象：</p>
+<ol>
+<li>创建<ol>
+<li>var reg = new RegExp(“正则表达式”);</li>
+<li>var reg = /正则表达式/;<br>  方法<br> est(参数):验证指定的字符串是否符合正则定义的规范    </li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>实例</p>
+<pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;RegExp对象&lt;/title&gt;
+        &lt;script &gt;
+
+            /*
+
+           2. 正则对象：
+                1. 创建
+                    1. var reg = new RegExp(&quot;正则表达式&quot;);
+                    2. var reg = /正则表达式/;
+                2. 方法
+                    1. test(参数):验证指定的字符串是否符合正则定义的规范
+
+         *
+         */
+
+            //1.
+            var reg = new RegExp(&quot;^\\w&#123;6,12&#125;$&quot;);
+            //2.
+            var reg2= /^\w&#123;6,12&#125;$/;
+
+            /*alert(reg);
+        alert(reg2);*/
+
+            var username = &quot;zhangsan&quot;;
+
+            //验证
+            var flag = reg.test(username);
+            alert(flag);
+
+
+        &lt;/script&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+</li>
+</ol>
+<h3 id="Global：全局编码对象"><a href="#Global：全局编码对象" class="headerlink" title="Global：全局编码对象"></a>Global：全局编码对象</h3><ol>
+<li><p>特点：全局对象，这个Global中封装的方法不需要对象就可以直接调用。  方法名();</p>
+</li>
+<li><p>方法：<br> encodeURI():url编码<br> decodeURI():url解码</p>
+<p> encodeURIComponent():url编码,编码的字符更多<br> decodeURIComponent():url解码</p>
+<p> parseInt():将字符串转为数字</p>
+<pre><code> * 逐一判断每一个字符是否是数字，直到不是数字为止，将前边数字部分转为number
+</code></pre>
+<p> isNaN():判断一个值是否是NaN</p>
+<pre><code> * NaN六亲不认，连自己都不认。NaN参与的==比较全部问false
+</code></pre>
+<p> eval():讲 JavaScript 字符串，并把它作为脚本代码来执行。</p>
+</li>
+<li><p>URL编码<br> 传智播客 =  %E4%BC%A0%E6%99%BA%E6%92%AD%E5%AE%A2</p>
+</li>
+</ol>
+<pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;Global对象&lt;/title&gt;
+        &lt;script &gt;
+
+            /*
+
+           Global
+                1. 特点：全局对象，这个Global中封装的方法不需要对象就可以直接调用。  方法名();
+                2. 方法：
+                    encodeURI():url编码
+                    decodeURI():url解码
+
+                    encodeURIComponent():url编码,编码的字符更多
+                    decodeURIComponent():url解码
+
+                    parseInt():将字符串转为数字
+                        * 逐一判断每一个字符是否是数字，直到不是数字为止，将前边数字部分转为number
+                    isNaN():判断一个值是否是NaN
+                        * NaN六亲不认，连自己都不认。NaN参与的==比较全部问false
+
+                    eval():讲 JavaScript 字符串，并把它作为脚本代码来执行。
+                3. URL编码
+                   传智播客 =  %E4%BC%A0%E6%99%BA%E6%92%AD%E5%AE%A2
+
+
+
+         *
+         */
+            var str = &quot;http://www.baidu.com?wd=传智播客&quot;;
+            var encode = encodeURI(str);
+            document.write(encode +&quot;&lt;br&gt;&quot;);//%E4%BC%A0%E6%99%BA%E6%92%AD%E5%AE%A2
+            var s = decodeURI(encode);
+            document.write(s +&quot;&lt;br&gt;&quot;);//传智播客
+
+
+            var str1 = &quot;http://www.baidu.com?wd=传智播客&quot;;
+            var encode1 = encodeURIComponent(str1);
+            document.write(encode1 +&quot;&lt;br&gt;&quot;);//%E4%BC%A0%E6%99%BA%E6%92%AD%E5%AE%A2
+            var s1 = decodeURIComponent(encode);
+            document.write(s1 +&quot;&lt;br&gt;&quot;);//传智播客
+
+
+            var str = &quot;a234abc&quot;;
+            var number = parseInt(str);
+            //alert(number + 1);
+
+            var a = NaN;
+
+            document.write(a == NaN);
+            document.write(isNaN(a));
+
+            var jscode = &quot;alert(123)&quot;;
+            eval(jscode);
+
+        &lt;/script&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h1 id="BOM"><a href="#BOM" class="headerlink" title="BOM"></a>BOM</h1><h2 id="概念和组成"><a href="#概念和组成" class="headerlink" title="概念和组成"></a>概念和组成</h2><p>Browser Object Model 浏览器对象模型，将浏览器的各个组成部分封装成对象。</p>
+<p>组成：</p>
+<ul>
+<li>Window：窗口对象</li>
+<li>Navigator：浏览器对象</li>
+<li>Screen：显示器屏幕对象</li>
+<li>History：历史记录对象</li>
+<li>Location：地址栏对象</li>
+</ul>
+<h2 id="核心对象"><a href="#核心对象" class="headerlink" title="核心对象"></a>核心对象</h2><h3 id="Window：窗口对象"><a href="#Window：窗口对象" class="headerlink" title="Window：窗口对象"></a>Window：窗口对象</h3><ol>
+<li><p>创建</p>
+</li>
+<li><p>方法</p>
+<ol>
+<li><p>与弹出框有关的方法：</p>
+<ul>
+<li>alert()显示带有一段消息和一个确认按钮的警告框。<br>   confirm()    显示带有一段消息以及确认按钮和取消按钮的对话框。<ul>
+<li>如果用户点击确定按钮，则方法返回true</li>
+<li>如果用户点击取消按钮，则方法返回false<br>  prompt()    显示可提示用户输入的对话框。</li>
+<li>返回值：获取用户输入的值</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>与打开关闭有关的方法：</p>
+<ul>
+<li>close()    关闭浏览器窗口。<ul>
+<li>谁调用我 ，我关谁<br>  open()    打开一个新的浏览器窗口</li>
+<li>返回新的Window对象</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>与定时器有关的方法：</p>
+<ul>
+<li>setTimeout()    在指定的毫秒数后调用函数或计算表达式。<ul>
+<li>参数：<ol>
+<li>js代码或者方法对象</li>
+<li>毫秒值</li>
+</ol>
+</li>
+<li>返回值：唯一标识，用于取消定时器<br>  clearTimeout()    取消由 setTimeout() 方法设置的 timeout。<br>  setInterval()    按照指定的周期（以毫秒计）来调用函数或计算表达式。<br>  clearInterval()    取消由 setInterval() 设置的 timeout。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>属性：</p>
+<ol>
+<li>获取其他BOM对象：<br> history<br> location<br> Navigator<br> Screen:</li>
+<li>获取DOM对象：<br> document</li>
+</ol>
+</li>
+<li><p>特点</p>
+<ul>
+<li>Window对象不需要创建可以直接使用 window使用。 window.方法名();</li>
+<li>window引用可以省略。  方法名();<h3 id="Location：地址栏对象"><a href="#Location：地址栏对象" class="headerlink" title="Location：地址栏对象"></a>Location：地址栏对象</h3></li>
+</ul>
+</li>
+<li><p>创建(获取)：</p>
+<ol>
+<li>window.location</li>
+<li>location</li>
+</ol>
+</li>
+<li><p>方法：</p>
+<ul>
+<li>reload()    重新加载当前文档。刷新</li>
+</ul>
+</li>
+<li><p>属性</p>
+<ul>
+<li>href    设置或返回完整的 URL。</li>
+</ul>
+</li>
+</ol>
+<h3 id="History：历史记录对象"><a href="#History：历史记录对象" class="headerlink" title="History：历史记录对象"></a>History：历史记录对象</h3><ol>
+<li><p>创建(获取)：</p>
+<ol>
+<li>window.history</li>
+<li>history</li>
+</ol>
+</li>
+<li><p>方法：</p>
+<ul>
+<li>back()    加载 history 列表中的前一个 URL。<br>   forward()    加载 history 列表中的下一个 URL。<br>   go(参数)    加载 history 列表中的某个具体页面。<ul>
+<li>参数：<ul>
+<li>正数：前进几个历史记录</li>
+<li>负数：后退几个历史记录</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>属性：</p>
+<ul>
+<li>length    返回当前窗口历史列表中的 URL 数量。</li>
+</ul>
+</li>
+</ol>
+<h1 id="DOM"><a href="#DOM" class="headerlink" title="DOM"></a>DOM</h1><h2 id="概念和组成-1"><a href="#概念和组成-1" class="headerlink" title="概念和组成"></a>概念和组成</h2><ul>
+<li><p>概念： Document Object Model 文档对象模型</p>
+<ul>
+<li>将标记语言文档的各个组成部分，封装为对象。可以使用这些对象，对标记语言文档进行CRUD的动态操作</li>
+</ul>
+</li>
+<li><p>W3C DOM 标准被分为 3 个不同的部分：</p>
+<ul>
+<li><p>核心 DOM - 针对任何结构化文档的标准模型</p>
+<ul>
+<li><p>Document：文档对象</p>
+</li>
+<li><p>Element：元素对象</p>
+</li>
+<li><p>Attribute：属性对象</p>
+</li>
+<li><p>Text：文本对象</p>
+</li>
+<li><p>Comment:注释对象</p>
+</li>
+<li><p>Node：节点对象，其他5个的父对象</p>
+</li>
+</ul>
+</li>
+<li><p>XML DOM - 针对 XML 文档的标准模型</p>
+</li>
+<li><p>HTML DOM - 针对 HTML 文档的标准模型</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="核心对象-1"><a href="#核心对象-1" class="headerlink" title="核心对象"></a>核心对象</h2><h3 id="Document：文档对象"><a href="#Document：文档对象" class="headerlink" title="Document：文档对象"></a>Document：文档对象</h3><ol>
+<li><p>创建(获取)：在html dom模型中可以使用window对象来获取</p>
+<ol>
+<li>window.document</li>
+<li>document</li>
+</ol>
+</li>
+<li><p>方法：</p>
+<ol>
+<li>获取Element对象：<ol>
+<li>getElementById()    ： 根据id属性值获取元素对象。id属性值一般唯一</li>
+<li>getElementsByTagName()：根据元素名称获取元素对象们。返回值是一个数组</li>
+<li>getElementsByClassName():根据Class属性值获取元素对象们。返回值是一个数组</li>
+<li>getElementsByName(): 根据name属性值获取元素对象们。返回值是一个数组</li>
+</ol>
+</li>
+<li>创建其他DOM对象：<br> createAttribute(name)<br>createComment()<br>createElement()<br>createTextNode()</li>
+</ol>
+</li>
+<li><p>属性</p>
+</li>
+<li><p>实例</p>
+</li>
+</ol>
+<pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;Document对象&lt;/title&gt;
+
+    &lt;/head&gt;
+    &lt;body&gt;
+
+
+        &lt;div id=&quot;div1&quot;&gt;div1&lt;/div&gt;
+        &lt;div id=&quot;div2&quot;&gt;div2&lt;/div&gt;
+
+        &lt;div id=&quot;div3&quot;&gt;div3&lt;/div&gt;
+
+        &lt;div class=&quot;cls1&quot;&gt;div4&lt;/div&gt;
+        &lt;div class=&quot;cls1&quot;&gt;div5&lt;/div&gt;
+
+        &lt;input type=&quot;text&quot; name=&quot;username&quot;&gt;
+
+        &lt;script&gt;
+
+            //2.根据元素名称获取元素对象们。返回值是一个数组
+            var divs = document.getElementsByTagName(&quot;div&quot;);
+            //alert(divs.length);
+            //3.根据Class属性值获取元素对象们。返回值是一个数组
+            var div_cls = document.getElementsByClassName(&quot;cls1&quot;);
+            // alert(div_cls.length);
+            //4.根据name属性值获取元素对象们。返回值是一个数组
+            var ele_username = document.getElementsByName(&quot;username&quot;);
+            //alert(ele_username.length);
+
+            var table = document.createElement(&quot;table&quot;);
+            alert(table);
+
+        &lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3 id="Element：元素对象"><a href="#Element：元素对象" class="headerlink" title="Element：元素对象"></a>Element：元素对象</h3><ol>
+<li>获取/创建：通过document来获取和创建</li>
+<li>方法：<ol>
+<li>removeAttribute()：删除属性</li>
+<li>setAttribute()：设置属性</li>
+</ol>
+</li>
+</ol>
+<p>3.实例</p>
+<pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Element对象&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;a&gt;点我试一试&lt;/a&gt;
+    &lt;input type=&quot;button&quot; id=&quot;btn_set&quot; value=&quot;设置属性&quot;&gt;
+    &lt;input type=&quot;button&quot; id=&quot;btn_remove&quot; value=&quot;删除属性&quot;&gt;
+
+&lt;script&gt;
+    //获取btn
+    var btn_set =document.getElementById(&quot;btn_set&quot;);
+    btn_set.onclick = function()&#123;
+        //1.获取a标签
+        var element_a = document.getElementsByTagName(&quot;a&quot;)[0];
+        element_a.setAttribute(&quot;href&quot;,&quot;https://www.baidu.com&quot;);
+    &#125;
+
+
+    //获取btn
+    var btn_remove =document.getElementById(&quot;btn_remove&quot;);
+    btn_remove.onclick = function()&#123;
+        //1.获取a标签
+        var element_a = document.getElementsByTagName(&quot;a&quot;)[0];
+        element_a.removeAttribute(&quot;href&quot;);
+    &#125;
+    
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3 id="Node：节点对象"><a href="#Node：节点对象" class="headerlink" title="Node：节点对象"></a>Node：节点对象</h3><ol>
+<li>特点：所有dom对象都可以被认为是一个节点，其他5个的父对象</li>
+<li>方法：<ul>
+<li>CRUD dom树：<ul>
+<li>appendChild()：向节点的子节点列表的结尾添加新的子节点。<br>   removeChild()    ：删除（并返回）当前节点的指定子节点。</li>
+<li>replaceChild()：用新节点替换一个子节点。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>属性：<ul>
+<li>parentNode 返回节点的父节点。</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>超链接功能：<br>1.可以被点击：样式<br>    2.点击后跳转到href指定的url<br>    需求：保留1功能，去掉2功能<br>实现：href=”javascript:void(0);”<br>4. 实例</p>
+</blockquote>
+<pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Node对象&lt;/title&gt;
+    &lt;style&gt;
+
+        div&#123;
+
+            border: 1px solid red;
+
+        &#125;
+        #div1&#123;
+            width: 200px;
+            height: 200px;
+        &#125;
+
+        #div2&#123;
+            width: 100px;
+            height: 100px;
+        &#125;
+
+
+        #div3&#123;
+            width: 100px;
+            height: 100px;
+        &#125;
+
+    &lt;/style&gt;
+
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id=&quot;div1&quot;&gt;
+        &lt;div id=&quot;div2&quot;&gt;div2&lt;/div&gt;
+        div1
+    &lt;/div&gt;
+    &lt;a href=&quot;javascript:void(0);&quot; id=&quot;del&quot;&gt;删除子节点&lt;/a&gt;
+    &lt;a href=&quot;javascript:void(0);&quot; id=&quot;add&quot;&gt;添加子节点&lt;/a&gt;
+    &lt;!--&lt;input type=&quot;button&quot; id=&quot;del&quot; value=&quot;删除子节点&quot;&gt;--&gt;
+&lt;script&gt;
+    //1.获取超链接
+    var element_a = document.getElementById(&quot;del&quot;);
+    //2.绑定单击事件
+    element_a.onclick = function()&#123;
+        var div1 = document.getElementById(&quot;div1&quot;);
+        var div2 = document.getElementById(&quot;div2&quot;);
+        div1.removeChild(div2);
+    &#125;
+
+    //1.获取超链接
+    var element_add = document.getElementById(&quot;add&quot;);
+    //2.绑定单击事件
+    element_add.onclick = function()&#123;
+        var div1 = document.getElementById(&quot;div1&quot;);
+       //给div1添加子节点
+        //创建div节点
+        var div3 = document.createElement(&quot;div&quot;);
+        div3.setAttribute(&quot;id&quot;,&quot;div3&quot;);
+
+        div1.appendChild(div3);
+    &#125;
+
+
+    /*
+        超链接功能：
+            1.可以被点击：样式
+            2.点击后跳转到href指定的url
+
+        需求：保留1功能，去掉2功能
+        实现：href=&quot;javascript:void(0);&quot;
+     */
+
+    var div2 = document.getElementById(&quot;div2&quot;);
+    var div1 = div2.parentNode;
+    alert(div1);
+
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3 id="HTML-DOM"><a href="#HTML-DOM" class="headerlink" title="HTML DOM"></a>HTML DOM</h3><ol>
+<li>标签体的设置和获取：innerHTML</li>
+<li>使用html元素对象的属性</li>
+<li>控制元素样式<ol>
+<li>使用元素的style属性来设置<br> 如：<pre><code class="javascript">    //修改样式方式1
+    div1.style.border = &quot;1px solid red&quot;;
+    div1.style.width = &quot;200px&quot;;
+    //font-size--&gt; fontSize
+    div1.style.fontSize = &quot;20px&quot;;
+</code></pre>
+</li>
+<li>提前定义好类选择器的样式，通过元素的className属性来设置其class属性值。</li>
+</ol>
+</li>
+<li>实例<br>```html<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>HTMLDOM</title>
+</head>
+<body>
+ <div id="div1">
+     div
+ </div></li>
+</ol>
+<pre><code>&lt;script &gt;
+    var div = document.getElementById(&quot;div1&quot;);
+    var innerHTML = div.innerHTML;
+    //alert(innerHTML);
+    //div标签中替换一个文本输入框
+   // div.innerHTML = &quot;&lt;input type=&#39;text&#39;&gt;&quot;;
+    //div标签中追加一个文本输入框
+    div.innerHTML += &quot;&lt;input type=&#39;text&#39;&gt;&quot;;
+
+
+&lt;/script&gt;
+</code></pre>
+</body>
+</html>
+```
+
+<pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;控制样式&lt;/title&gt;
+
+
+    &lt;style&gt;
+        .d1&#123;
+            border: 1px solid red;
+            width: 100px;
+            height: 100px;
+        &#125;
+
+        .d2&#123;
+            border: 1px solid blue;
+            width: 200px;
+            height: 200px;
+        &#125;
+
+
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;div id=&quot;div1&quot;&gt;
+        div1
+    &lt;/div&gt;
+
+    &lt;div id=&quot;div2&quot;&gt;
+        div2
+    &lt;/div&gt;
+
+
+&lt;script&gt;
+    var div1 = document.getElementById(&quot;div1&quot;);
+    div1.onclick = function()&#123;
+        //修改样式方式1
+        div1.style.border = &quot;1px solid red&quot;;
+
+        div1.style.width = &quot;200px&quot;;
+
+        //font-size--&gt; fontSize
+        div1.style.fontSize = &quot;20px&quot;;
+
+    &#125;
+
+
+    var div2 = document.getElementById(&quot;div2&quot;);
+    div2.onclick = function()&#123;
+        div2.className = &quot;d1&quot;;
+    &#125;
+
+
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h1 id="事件监听机制"><a href="#事件监听机制" class="headerlink" title="事件监听机制"></a>事件监听机制</h1><h2 id="概念-1"><a href="#概念-1" class="headerlink" title="概念"></a>概念</h2><p>某些组件被执行了某些操作后，触发某些代码的执行。    </p>
+<ul>
+<li>事件：某些操作。如： 单击，双击，键盘按下了，鼠标移动了</li>
+<li>事件源：组件。如： 按钮 文本输入框…</li>
+<li>监听器：代码。</li>
+<li>注册监听：将事件，事件源，监听器结合在一起。 当事件源上发生了某个事件，则触发执行某个监听器代码。</li>
+</ul>
+<h2 id="常见的事件"><a href="#常见的事件" class="headerlink" title="常见的事件"></a>常见的事件</h2><ol>
+<li><p>点击事件：</p>
+<ol>
+<li>onclick：单击事件</li>
+<li>ondblclick：双击事件</li>
+</ol>
+</li>
+<li><p>焦点事件</p>
+<ol>
+<li>onblur：失去焦点</li>
+<li>onfocus:元素获得焦点。</li>
+</ol>
+</li>
+<li><p>加载事件：</p>
+<ol>
+<li>onload：一张页面或一幅图像完成加载。</li>
+</ol>
+</li>
+<li><p>鼠标事件：</p>
+<ol>
+<li>onmousedown    鼠标按钮被按下。<br> . onmouseup    鼠标按键被松开。<br> . onmousemove    鼠标被移动。<br> . onmouseover    鼠标移到某元素之上。<br> . onmouseout    鼠标从某元素移开。</li>
+</ol>
+</li>
+<li><p>键盘事件：</p>
+<ol>
+<li>onkeydown    某个键盘按键被按下。<br> . onkeyup        某个键盘按键被松开。<br> . onkeypress    某个键盘按键被按下并松开。</li>
+</ol>
+</li>
+<li><p>选择和改变</p>
+<ol>
+<li>onchange    域的内容被改变。<br> . onselect    文本被选中。</li>
+</ol>
+</li>
+<li><p>表单事件：</p>
+<ol>
+<li>onsubmit    确认按钮被点击。<br> . onreset    重置按钮被点击。</li>
+</ol>
+</li>
+</ol>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;常见事件&lt;/title&gt;
+
+        &lt;script&gt;
+            /*
+
+
+        常见的事件：
+            1. 点击事件：
+                1. onclick：单击事件
+                2. ondblclick：双击事件
+            2. 焦点事件
+                1. onblur：失去焦点。
+                    * 一般用于表单验证
+                2. onfocus:元素获得焦点。
+
+            3. 加载事件：
+                1. onload：一张页面或一幅图像完成加载。
+
+            4. 鼠标事件：
+                1. onmousedown 鼠标按钮被按下。
+                    * 定义方法时，定义一个形参，接受event对象。
+                    * event对象的button属性可以获取鼠标按钮键被点击了。
+                2. onmouseup   鼠标按键被松开。
+                3. onmousemove 鼠标被移动。
+                4. onmouseover 鼠标移到某元素之上。
+                5. onmouseout  鼠标从某元素移开。
+
+
+            5. 键盘事件：
+                1. onkeydown   某个键盘按键被按下。
+                2. onkeyup    某个键盘按键被松开。
+                3. onkeypress  某个键盘按键被按下并松开。
+
+            6. 选择和改变
+                1. onchange    域的内容被改变。
+                2. onselect    文本被选中。
+
+            7. 表单事件：
+                1. onsubmit    确认按钮被点击。
+                    * 可以阻止表单的提交
+                        * 方法返回false则表单被阻止提交。
+                2. onreset 重置按钮被点击。
+         */
+
+
+
+
+
+            //2.加载完成事件  onload
+            window.onload = function()&#123;
+                /*//1.失去焦点事件
+            document.getElementById(&quot;username&quot;).onblur = function()&#123;
+                alert(&quot;失去焦点了...&quot;);
+            &#125;*/
+                /*//3.绑定鼠标移动到元素之上事件
+            document.getElementById(&quot;username&quot;).onmouseover = function()&#123;
+                alert(&quot;鼠标来了....&quot;);
+            &#125;*/
+
+                /* //3.绑定鼠标点击事件
+            document.getElementById(&quot;username&quot;).onmousedown = function(event)&#123;
+               // alert(&quot;鼠标点击了....&quot;);
+                alert(event.button);
+            &#125;*/
+
+                /*  document.getElementById(&quot;username&quot;).onkeydown = function(event)&#123;
+                // alert(&quot;鼠标点击了....&quot;);
+               // alert(event.button);
+                if(event.keyCode == 13)&#123;
+                    alert(&quot;提交表单&quot;);
+                &#125;
+
+            &#125;*/
+
+                /* document.getElementById(&quot;username&quot;).onchange = function(event)&#123;
+
+                alert(&quot;改变了...&quot;)
+
+            &#125;
+
+            document.getElementById(&quot;city&quot;).onchange = function(event)&#123;
+
+                alert(&quot;改变了...&quot;)
+
+            &#125;*/
+
+                /*document.getElementById(&quot;form&quot;).onsubmit = function()&#123;
+                //校验用户名格式是否正确
+                var flag = false;
+
+
+                return flag;
+            &#125;*/
+            &#125;
+
+            function checkForm()&#123;
+                return true;
+            &#125;
+
+
+        &lt;/script&gt;
+
+    &lt;/head&gt;
+    &lt;body&gt;
+
+        &lt;!--
+function fun()&#123;
+return  checkForm();
+&#125;
+
+--&gt;
+
+
+
+        &lt;form action=&quot;#&quot; id=&quot;form&quot; onclick=&quot;return  checkForm();&quot;&gt;
+            &lt;input name=&quot;username&quot; id=&quot;username&quot;&gt;
+
+            &lt;select id=&quot;city&quot;&gt;
+                &lt;option&gt;--请选择--&lt;/option&gt;
+                &lt;option&gt;北京&lt;/option&gt;
+                &lt;option&gt;上海&lt;/option&gt;
+                &lt;option&gt;西安&lt;/option&gt;
+            &lt;/select&gt;
+            &lt;input type=&quot;submit&quot; value=&quot;提交&quot;&gt;
+        &lt;/form&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h1 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h1><h2 id="表单全选"><a href="#表单全选" class="headerlink" title="表单全选"></a>表单全选</h2><pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;表格全选&lt;/title&gt;
+        &lt;style&gt;
+            table&#123;
+                border: 1px solid;
+                width: 500px;
+                margin-left: 30%;
+            &#125;
+
+            td,th&#123;
+                text-align: center;
+                border: 1px solid;
+            &#125;
+            div&#123;
+                margin-top: 10px;
+                margin-left: 30%;
+            &#125;
+
+            .out&#123;
+                background-color: white;
+            &#125;
+            .over&#123;
+                background-color: pink;
+            &#125;
+        &lt;/style&gt;
+
+        &lt;script&gt;
+            /*
+        分析：
+            1.全选：
+                * 获取所有的checkbox
+                * 遍历cb，设置每一个cb的状态为选中  checked
+
+       */
+
+
+            //1.在页面加载完后绑定事件
+            window.onload = function()&#123;
+                //2.给全选按钮绑定单击事件
+                document.getElementById(&quot;selectAll&quot;).onclick = function()&#123;
+                    //全选
+                    //1.获取所有的checkbox
+                    var cbs = document.getElementsByName(&quot;cb&quot;);
+                    //2.遍历
+                    for (var i = 0; i &lt; cbs.length; i++) &#123;
+                        //3.设置每一个cb的状态为选中  checked
+                        cbs[i].checked = true;
+                    &#125;
+                &#125;
+
+                document.getElementById(&quot;unSelectAll&quot;).onclick = function()&#123;
+                    //全不选
+                    //1.获取所有的checkbox
+                    var cbs = document.getElementsByName(&quot;cb&quot;);
+                    //2.遍历
+                    for (var i = 0; i &lt; cbs.length; i++) &#123;
+                        //3.设置每一个cb的状态为未选中  checked
+                        cbs[i].checked = false;
+                    &#125;
+                &#125;
+
+                document.getElementById(&quot;selectRev&quot;).onclick = function()&#123;
+                    //反选
+                    //1.获取所有的checkbox
+                    var cbs = document.getElementsByName(&quot;cb&quot;);
+                    //2.遍历
+                    for (var i = 0; i &lt; cbs.length; i++) &#123;
+                        //3.设置每一个cb的状态为相反
+                        cbs[i].checked = !cbs[i].checked;
+                    &#125;
+                &#125;
+
+                document.getElementById(&quot;firstCb&quot;).onclick = function()&#123;
+                    //第一个cb点击
+                    //1.获取所有的checkbox
+                    var cbs = document.getElementsByName(&quot;cb&quot;);
+                    //获取第一个cb
+
+                    //2.遍历
+                    for (var i = 0; i &lt; cbs.length; i++) &#123;
+                        //3.设置每一个cb的状态和第一个cb的状态一样
+                        cbs[i].checked =  this.checked;
+                    &#125;
+                &#125;
+
+                //给所有tr绑定鼠标移到元素之上和移出元素事件
+                var trs = document.getElementsByTagName(&quot;tr&quot;);
+                //2.遍历
+                for (var i = 0; i &lt; trs.length; i++) &#123;
+                    //移到元素之上
+                    trs[i].onmouseover = function()&#123;
+                        this.className = &quot;over&quot;;
+                    &#125;
+
+                    //移出元素
+                    trs[i].onmouseout = function()&#123;
+                        this.className = &quot;out&quot;;
+                    &#125;
+
+                &#125;
+
+            &#125;
+
+
+
+        &lt;/script&gt;
+
+    &lt;/head&gt;
+    &lt;body&gt;
+
+        &lt;table&gt;
+            &lt;caption&gt;学生信息表&lt;/caption&gt;
+            &lt;tr&gt;
+                &lt;th&gt;&lt;input type=&quot;checkbox&quot; name=&quot;cb&quot; id=&quot;firstCb&quot;&gt;&lt;/th&gt;
+                &lt;th&gt;编号&lt;/th&gt;
+                &lt;th&gt;姓名&lt;/th&gt;
+                &lt;th&gt;性别&lt;/th&gt;
+                &lt;th&gt;操作&lt;/th&gt;
+            &lt;/tr&gt;
+
+            &lt;tr&gt;
+                &lt;td&gt;&lt;input type=&quot;checkbox&quot;  name=&quot;cb&quot; &gt;&lt;/td&gt;
+                &lt;td&gt;1&lt;/td&gt;
+                &lt;td&gt;令狐冲&lt;/td&gt;
+                &lt;td&gt;男&lt;/td&gt;
+                &lt;td&gt;&lt;a href=&quot;javascript:void(0);&quot;&gt;删除&lt;/a&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+
+            &lt;tr&gt;
+                &lt;td&gt;&lt;input type=&quot;checkbox&quot;  name=&quot;cb&quot; &gt;&lt;/td&gt;
+                &lt;td&gt;2&lt;/td&gt;
+                &lt;td&gt;任我行&lt;/td&gt;
+                &lt;td&gt;男&lt;/td&gt;
+                &lt;td&gt;&lt;a href=&quot;javascript:void(0);&quot;&gt;删除&lt;/a&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+
+            &lt;tr&gt;
+                &lt;td&gt;&lt;input type=&quot;checkbox&quot;  name=&quot;cb&quot; &gt;&lt;/td&gt;
+                &lt;td&gt;3&lt;/td&gt;
+                &lt;td&gt;岳不群&lt;/td&gt;
+                &lt;td&gt;?&lt;/td&gt;
+                &lt;td&gt;&lt;a href=&quot;javascript:void(0);&quot;&gt;删除&lt;/a&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+
+        &lt;/table&gt;
+        &lt;div&gt;
+            &lt;input type=&quot;button&quot; id=&quot;selectAll&quot; value=&quot;全选&quot;&gt;
+            &lt;input type=&quot;button&quot; id=&quot;unSelectAll&quot; value=&quot;全不选&quot;&gt;
+            &lt;input type=&quot;button&quot; id=&quot;selectRev&quot; value=&quot;反选&quot;&gt;
+        &lt;/div&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h2 id="表单验证"><a href="#表单验证" class="headerlink" title="表单验证"></a>表单验证</h2><pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;注册页面&lt;/title&gt;
+&lt;style&gt;
+    *&#123;
+        margin: 0px;
+        padding: 0px;
+        box-sizing: border-box;
+    &#125;
+    body&#123;
+        background: url(&quot;img/register_bg.png&quot;) no-repeat center;
+        padding-top: 25px;
+    &#125;
+
+    .rg_layout&#123;
+        width: 900px;
+        height: 500px;
+        border: 8px solid #EEEEEE;
+        background-color: white;
+        /*让div水平居中*/
+        margin: auto;
+    &#125;
+
+    .rg_left&#123;
+        /*border: 1px solid red;*/
+        float: left;
+        margin: 15px;
+    &#125;
+    .rg_left &gt; p:first-child&#123;
+        color:#FFD026;
+        font-size: 20px;
+    &#125;
+
+    .rg_left &gt; p:last-child&#123;
+        color:#A6A6A6;
+        font-size: 20px;
+
+    &#125;
+
+
+    .rg_center&#123;
+        float: left;
+       /* border: 1px solid red;*/
+
+    &#125;
+
+    .rg_right&#123;
+        /*border: 1px solid red;*/
+        float: right;
+        margin: 15px;
+    &#125;
+
+    .rg_right &gt; p:first-child&#123;
+        font-size: 15px;
+
+    &#125;
+    .rg_right p a &#123;
+        color:pink;
+    &#125;
+
+    .td_left&#123;
+        width: 100px;
+        text-align: right;
+        height: 45px;
+    &#125;
+    .td_right&#123;
+        padding-left: 50px ;
+    &#125;
+
+    #username,#password,#email,#name,#tel,#birthday,#checkcode&#123;
+        width: 251px;
+        height: 32px;
+        border: 1px solid #A6A6A6 ;
+        /*设置边框圆角*/
+        border-radius: 5px;
+        padding-left: 10px;
+    &#125;
+    #checkcode&#123;
+        width: 110px;
+    &#125;
+
+    #img_check&#123;
+        height: 32px;
+        vertical-align: middle;
+    &#125;
+
+    #btn_sub&#123;
+        width: 150px;
+        height: 40px;
+        background-color: #FFD026;
+        border: 1px solid #FFD026 ;
+    &#125;
+    .error&#123;
+        color:red;
+    &#125;
+    #td_sub&#123;
+        padding-left: 150px;
+    &#125;
+
+&lt;/style&gt;
+&lt;script&gt;
+
+    /*
+        分析：
+            1.给表单绑定onsubmit事件。监听器中判断每一个方法校验的结果。
+                如果都为true，则监听器方法返回true
+                如果有一个为false，则监听器方法返回false
+
+            2.定义一些方法分别校验各个表单项。
+            3.给各个表单项绑定onblur事件。
+
+
+
+     */
+
+    window.onload = function()&#123;
+        //1.给表单绑定onsubmit事件
+        document.getElementById(&quot;form&quot;).onsubmit = function()&#123;
+            //调用用户校验方法   chekUsername();
+            //调用密码校验方法   chekPassword();
+            //return checkUsername() &amp;&amp; checkPassword();
+
+            return checkUsername() &amp;&amp; checkPassword();
+        &#125;
+
+        //给用户名和密码框分别绑定离焦事件
+        document.getElementById(&quot;username&quot;).onblur = checkUsername;
+        document.getElementById(&quot;password&quot;).onblur = checkPassword;
+    &#125;
+
+    //校验用户名
+    function checkUsername()&#123;
+        //1.获取用户名的值
+        var username = document.getElementById(&quot;username&quot;).value;
+        //2.定义正则表达式
+        var reg_username = /^\w&#123;6,12&#125;$/;
+        //3.判断值是否符合正则的规则
+        var flag = reg_username.test(username);
+        //4.提示信息
+        var s_username = document.getElementById(&quot;s_username&quot;);
+
+        if(flag)&#123;
+            //提示绿色对勾
+            s_username.innerHTML = &quot;&lt;img width=&#39;35&#39; height=&#39;25&#39; src=&#39;img/gou.png&#39;/&gt;&quot;;
+        &#125;else&#123;
+            //提示红色用户名有误
+            s_username.innerHTML = &quot;用户名格式有误&quot;;
+        &#125;
+        return flag;
+    &#125;
+
+    //校验密码
+    function checkPassword()&#123;
+        //1.获取用户名的值
+        var password = document.getElementById(&quot;password&quot;).value;
+        //2.定义正则表达式
+        var reg_password = /^\w&#123;6,12&#125;$/;
+        //3.判断值是否符合正则的规则
+        var flag = reg_password.test(password);
+        //4.提示信息
+        var s_password = document.getElementById(&quot;s_password&quot;);
+
+        if(flag)&#123;
+            //提示绿色对勾
+            s_password.innerHTML = &quot;&lt;img width=&#39;35&#39; height=&#39;25&#39; src=&#39;img/gou.png&#39;/&gt;&quot;;
+        &#125;else&#123;
+            //提示红色用户名有误
+            s_password.innerHTML = &quot;密码格式有误&quot;;
+        &#125;
+        return flag;
+    &#125;
+
+
+
+&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div class=&quot;rg_layout&quot;&gt;
+    &lt;div class=&quot;rg_left&quot;&gt;
+        &lt;p&gt;新用户注册&lt;/p&gt;
+        &lt;p&gt;USER REGISTER&lt;/p&gt;
+
+    &lt;/div&gt;
+
+    &lt;div class=&quot;rg_center&quot;&gt;
+        &lt;div class=&quot;rg_form&quot;&gt;
+            &lt;!--定义表单 form--&gt;
+            &lt;form action=&quot;#&quot; id=&quot;form&quot; method=&quot;get&quot;&gt;
+                &lt;table&gt;
+                    &lt;tr&gt;
+                        &lt;td class=&quot;td_left&quot;&gt;&lt;label for=&quot;username&quot;&gt;用户名&lt;/label&gt;&lt;/td&gt;
+                        &lt;td class=&quot;td_right&quot;&gt;
+                            &lt;input type=&quot;text&quot; name=&quot;username&quot; id=&quot;username&quot; placeholder=&quot;请输入用户名&quot;&gt;
+                            &lt;span id=&quot;s_username&quot; class=&quot;error&quot;&gt;&lt;/span&gt;
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+
+                    &lt;tr&gt;
+                        &lt;td class=&quot;td_left&quot;&gt;&lt;label for=&quot;password&quot;&gt;密码&lt;/label&gt;&lt;/td&gt;
+                        &lt;td class=&quot;td_right&quot;&gt;
+                            &lt;input type=&quot;password&quot; name=&quot;password&quot; id=&quot;password&quot; placeholder=&quot;请输入密码&quot;&gt;
+                            &lt;span id=&quot;s_password&quot; class=&quot;error&quot;&gt;&lt;/span&gt;
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+
+                    &lt;tr&gt;
+                        &lt;td class=&quot;td_left&quot;&gt;&lt;label for=&quot;email&quot;&gt;Email&lt;/label&gt;&lt;/td&gt;
+                        &lt;td class=&quot;td_right&quot;&gt;&lt;input type=&quot;email&quot; name=&quot;email&quot; id=&quot;email&quot; placeholder=&quot;请输入邮箱&quot;&gt;&lt;/td&gt;
+                    &lt;/tr&gt;
+
+                    &lt;tr&gt;
+                        &lt;td class=&quot;td_left&quot;&gt;&lt;label for=&quot;name&quot;&gt;姓名&lt;/label&gt;&lt;/td&gt;
+                        &lt;td class=&quot;td_right&quot;&gt;&lt;input type=&quot;text&quot; name=&quot;name&quot; id=&quot;name&quot; placeholder=&quot;请输入姓名&quot;&gt;&lt;/td&gt;
+                    &lt;/tr&gt;
+
+                    &lt;tr&gt;
+                        &lt;td class=&quot;td_left&quot;&gt;&lt;label for=&quot;tel&quot;&gt;手机号&lt;/label&gt;&lt;/td&gt;
+                        &lt;td class=&quot;td_right&quot;&gt;&lt;input type=&quot;text&quot; name=&quot;tel&quot; id=&quot;tel&quot; placeholder=&quot;请输入手机号&quot;&gt;&lt;/td&gt;
+                    &lt;/tr&gt;
+
+                    &lt;tr&gt;
+                        &lt;td class=&quot;td_left&quot;&gt;&lt;label&gt;性别&lt;/label&gt;&lt;/td&gt;
+                        &lt;td class=&quot;td_right&quot;&gt;
+                            &lt;input type=&quot;radio&quot; name=&quot;gender&quot; value=&quot;male&quot; checked&gt; 男
+                            &lt;input type=&quot;radio&quot; name=&quot;gender&quot; value=&quot;female&quot;&gt; 女
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+
+                    &lt;tr&gt;
+                        &lt;td class=&quot;td_left&quot;&gt;&lt;label for=&quot;birthday&quot;&gt;出生日期&lt;/label&gt;&lt;/td&gt;
+                        &lt;td class=&quot;td_right&quot;&gt;&lt;input type=&quot;date&quot; name=&quot;birthday&quot; id=&quot;birthday&quot; placeholder=&quot;请输入出生日期&quot;&gt;&lt;/td&gt;
+                    &lt;/tr&gt;
+
+                    &lt;tr&gt;
+                        &lt;td class=&quot;td_left&quot;&gt;&lt;label for=&quot;checkcode&quot; &gt;验证码&lt;/label&gt;&lt;/td&gt;
+                        &lt;td class=&quot;td_right&quot;&gt;&lt;input type=&quot;text&quot; name=&quot;checkcode&quot; id=&quot;checkcode&quot; placeholder=&quot;请输入验证码&quot;&gt;
+                            &lt;img id=&quot;img_check&quot; src=&quot;img/verify_code.jpg&quot;&gt;
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+
+
+                    &lt;tr&gt;
+                        &lt;td colspan=&quot;2&quot; id=&quot;td_sub&quot;&gt;&lt;input type=&quot;submit&quot; id=&quot;btn_sub&quot; value=&quot;注册&quot;&gt;&lt;/td&gt;
+                    &lt;/tr&gt;
+                &lt;/table&gt;
+
+            &lt;/form&gt;
+
+
+        &lt;/div&gt;
+
+    &lt;/div&gt;
+
+    &lt;div class=&quot;rg_right&quot;&gt;
+        &lt;p&gt;已有账号?&lt;a href=&quot;#&quot;&gt;立即登录&lt;/a&gt;&lt;/p&gt;
+    &lt;/div&gt;
+
+
+&lt;/div&gt;
+
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag"># 前端</a>
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/javaweb/" rel="tag"># javaweb</a>
+              <a href="/tags/js/" rel="tag"># js</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/09/java-6-css/" rel="prev" title="javaweb#6-css">
+      <i class="fa fa-chevron-left"></i> javaweb#6-css
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/11/java-8-XML/" rel="next" title="javaweb#8-XML">
+      javaweb#8-XML <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-text">概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ECMAScript"><span class="nav-text">ECMAScript</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-text">基本语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8Ehtml%E7%BB%93%E5%90%88%E6%96%B9%E5%BC%8F"><span class="nav-text">与html结合方式</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

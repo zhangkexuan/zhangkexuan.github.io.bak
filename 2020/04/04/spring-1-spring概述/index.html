@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Spring 是分层的 Java SE&#x2F;EE 应用 full-stack 轻量级开源框架,以 IoC(Inverse Of Control:反转控制)和 AOP(Aspect Oriented Programming:面向切面编程)为内核,提供了展现层 SpringMVC 和持久层 Spring JDBC 以及业务层事务管理等众多的企业级应用技术,还能整合开源世界众多著名的第三方框架和类库,逐渐成">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring#1-spring概述">
+<meta property="og:url" content="http://yoursite.com/2020/04/04/spring-1-spring%E6%A6%82%E8%BF%B0/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="Spring 是分层的 Java SE&#x2F;EE 应用 full-stack 轻量级开源框架,以 IoC(Inverse Of Control:反转控制)和 AOP(Aspect Oriented Programming:面向切面编程)为内核,提供了展现层 SpringMVC 和持久层 Spring JDBC 以及业务层事务管理等众多的企业级应用技术,还能整合开源世界众多著名的第三方框架和类库,逐渐成">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/04/04/spring-1-spring%E6%A6%82%E8%BF%B0/1586226624055.png">
+<meta property="og:image" content="http://yoursite.com/2020/04/04/spring-1-spring%E6%A6%82%E8%BF%B0/1586226529419.png">
+<meta property="og:image" content="http://yoursite.com/2020/04/04/spring-1-spring%E6%A6%82%E8%BF%B0/1586226548386.png">
+<meta property="article:published_time" content="2020-04-04T14:31:55.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:17:33.388Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/04/04/spring-1-spring%E6%A6%82%E8%BF%B0/1586226624055.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/04/04/spring-1-spring%E6%A6%82%E8%BF%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>spring#1-spring概述 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/04/spring-1-spring%E6%A6%82%E8%BF%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spring#1-spring概述
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-04 22:31:55" itemprop="dateCreated datePublished" datetime="2020-04-04T22:31:55+08:00">2020-04-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Spring 是分层的 Java SE/EE 应用 full-stack 轻量级开源框架,以 IoC(Inverse Of Control:反转控制)和 AOP(Aspect Oriented Programming:面向切面编程)为内核,提供了展现层 SpringMVC 和持久层 Spring JDBC 以及业务层事务管理等众多的企业级应用技术,还能整合开源世界众多著名的第三方框架和类库,逐渐成为使用最多的 Java EE 企业应用开源框架。</p>
+<span id="more"></span>
+
+<h1 id="spring-概述"><a href="#spring-概述" class="headerlink" title="spring 概述"></a>spring 概述</h1><h2 id="spring-是什么"><a href="#spring-是什么" class="headerlink" title="spring 是什么"></a>spring 是什么</h2><p>Spring 是分层的 Java SE/EE 应用 full-stack 轻量级开源框架,以 IoC(Inverse Of Control:反转控制)和 AOP(Aspect Oriented Programming:面向切面编程)为内核,提供了展现层 SpringMVC 和持久层 Spring JDBC 以及业务层事务管理等众多的企业级应用技术,还能整合开源世界众多著名的第三方框架和类库,逐渐成为使用最多的 Java EE 企业应用开源框架。</p>
+<h2 id="Spring-的发展历程"><a href="#Spring-的发展历程" class="headerlink" title="Spring 的发展历程"></a>Spring 的发展历程</h2><p>1997 年 IBM 提出了 EJB 的思想<br>1998 年,SUN 制定开发标准规范 EJB1.0<br>1999 年,EJB1.1 发布<br>2001 年,EJB2.0 发布<br>2003 年,EJB2.1 发布<br>2006 年,EJB3.0 发布<br>Rod Johnson(spring 之父)<br>    Expert One-to-One J2EE Design and Development(2002)<br>    阐述了 J2EE 使用 EJB 开发设计的优点及解决方案<br>    Expert One-to-One J2EE Development without EJB(2004)<br>    阐述了 J2EE 开发不使用 EJB 的解决方式(Spring 雏形)<br><em>2017 年 9 月份发布了 spring 的最新版本 spring 5.0 通用版(GA)</em></p>
+<h2 id="spring-的优势"><a href="#spring-的优势" class="headerlink" title="spring 的优势"></a>spring 的优势</h2><p><strong>方便解耦,简化开发</strong></p>
+<p>通过 Spring 提供的 IoC 容器,可以将对象间的依赖关系交由 Spring 进行控制,避免硬编码所造成的过度程序耦合。用户也不必再为单例模式类、属性文件解析等这些很底层的需求编写代码,可以更专注于上层的应用。</p>
+<p><strong>AOP 编程的支持</strong></p>
+<p>通过 Spring 的 AOP 功能,方便进行面向切面的编程,许多不容易用传统 OOP 实现的功能可以通过 AOP 轻松应付。</p>
+<p><strong>声明式事务的支持</strong></p>
+<p>可以将我们从单调烦闷的事务管理代码中解脱出来,通过声明式方式灵活的进行事务的管理,提高开发效率和质量。</p>
+<p><strong>方便程序的测试</strong></p>
+<p>可以用非容器依赖的编程方式进行几乎所有的测试工作,测试不再是昂贵的操作,而是随手可做的事情。</p>
+<p><strong>方便集成各种优秀框架</strong></p>
+<p>Spring 可以降低各种框架的使用难度,提供了对各种优秀框架(Struts、 Hibernate、 Hessian、 Quartz等)的直接支持。</p>
+<p><strong>降低 JavaEE API 的使用难度</strong></p>
+<p>Spring 对 JavaEE API(如 JDBC、JavaMail、远程调用等)进行了薄薄的封装层,使这些 API 的使用难度大为降低。</p>
+<p><strong>Java 源码是经典学习范例</strong></p>
+<p>Spring 的源代码设计精妙、结构清晰、匠心独用,处处体现着大师对 Java 设计模式灵活运用以及对 Java 技术的高深造诣。它的源代码无意是 Java 技术的最佳实践的范例。</p>
+<h2 id="spring-的体系结构"><a href="#spring-的体系结构" class="headerlink" title="spring 的体系结构"></a>spring 的体系结构</h2><p><img src="1586226624055.png" alt="1586226624055"></p>
+<h1 id="IoC-的概念和作用"><a href="#IoC-的概念和作用" class="headerlink" title="IoC 的概念和作用"></a>IoC 的概念和作用</h1><h2 id="程序的耦合和解耦"><a href="#程序的耦合和解耦" class="headerlink" title="程序的耦合和解耦"></a>程序的耦合和解耦</h2><h3 id="什么是程序的耦合"><a href="#什么是程序的耦合" class="headerlink" title="什么是程序的耦合"></a>什么是程序的耦合</h3><p>耦合性(Coupling),也叫耦合度,是对模块间关联程度的度量。耦合的强弱取决于模块间接口的复杂性、调用模块的方式以及通过界面传送数据的多少。模块间的耦合度是指模块之间的依赖关系,包括控制关系、调用关系、数据传递关系。模块间联系越多,其耦合性越强,同时表明其独立性越差 ( 降低耦合性,可以提高其独立性)。耦合性存在于各个领域,而非软件设计中独有的,但是我们只讨论软件工程中的耦合。</p>
+<p>在软件工程中,耦合指的就是就是对象之间的依赖性。对象之间的耦合越高,维护成本越高。因此对象的设计应使类和构件之间的耦合最小。软件设计中通常用耦合度和内聚度作为衡量模块独立程度的标准。划分模块的一个准则就是高内聚低耦合。</p>
+<p>它有如下分类:</p>
+<p>(1) 内容耦合。当一个模块直接修改或操作另一个模块的数据时,或一个模块不通过正常入口而转入另一个模块时,这样的耦合被称为内容耦合。内容耦合是最高程度的耦合,应该避免使用之。</p>
+<p>(2) 公共耦合。两个或两个以上的模块共同引用一个全局数据项,这种耦合被称为公共耦合。在具有大量公共耦合的结构中,确定究竟是哪个模块给全局变量赋了一个特定的值是十分困难的。</p>
+<p>(3) 外部耦合 。一组模块都访问同一全局简单变量而不是同一全局数据结构,而且不是通过参数表传递该全局变量的信息,则称之为外部耦合。</p>
+<p>(4) 控制耦合 。一个模块通过接口向另一个模块传递一个控制信号,接受信号的模块根据信号值而进行适当的动作,这种耦合被称为控制耦合。</p>
+<p>(5) 标记耦合 。若一个模块 A 通过接口向两个模块 B 和 C 传递一个公共参数,那么称模块 B 和 C 之间存在一个标记耦合。</p>
+<p>(6) 数据耦合。模块之间通过参数来传递数据,那么被称为数据耦合。数据耦合是最低的一种耦合形式,系统中一般都存在这种类型的耦合,因为为了完成一些有意义的功能,往往需要将某些模块的输出数据作为另一些模块的输入数据。</p>
+<p>(7) 非直接耦合 。两个模块之间没有直接关系,它们之间的联系完全是通过主模块的控制和调用来实现的。</p>
+<p><strong>总结:</strong><br>耦合是影响软件复杂程度和设计质量的一个重要因素,在设计上我们应采用以下原则:如果模块间必须存在耦合,就尽量使用数据耦合,少用控制耦合,限制公共耦合的范围,尽量避免使用内容耦合。</p>
+<p><strong>内聚与耦合</strong><br>内聚标志一个模块内各个元素彼此结合的紧密程度,它是信息隐蔽和局部化概念的自然扩展。内聚是从功能角度来度量模块内的联系,一个好的内聚模块应当恰好做一件事。它描述的是模块内的功能联系。耦合是软件结构中各模块之间相互连接的一种度量,耦合强弱取决于模块间接口的复杂程度、进入或访问一个模块的点以及通过接口的数据。 程序讲究的是低耦合,高内聚。就是同一个模块内的各个元素之间要高度紧密,但是各个模块之间的相互依存度却要不那么紧密。</p>
+<p>内聚和耦合是密切相关的,同其他模块存在高耦合的模块意味着低内聚,而高内聚的模块意味着该模块同其他模块之间是低耦合。在进行软件设计时,应力争做到高内聚,低耦合。</p>
+<h3 id="怎么看待耦合"><a href="#怎么看待耦合" class="headerlink" title="怎么看待耦合"></a>怎么看待耦合</h3><p><strong>耦合：程序间的依赖关系</strong></p>
+<p>包括：<br>    类之间的依赖<br>    方法间的依赖</p>
+<p><strong>解耦：降低程序间的依赖关系</strong></p>
+<p><strong>实际开发中应该：编译期不依赖，运行时才依赖。</strong></p>
+<p><strong>解耦的思路：</strong></p>
+<p><strong>第一步：使用反射来创建对象，而避免使用new关键字。</strong></p>
+<p><strong>第二步：通过读取配置文件来获取要创建的对象全限定类名</strong></p>
+<h3 id="耦合无处不在"><a href="#耦合无处不在" class="headerlink" title="耦合无处不在"></a>耦合无处不在</h3><p>我们在开发中,有些依赖关系是必须的,有些依赖关系可以通过优化代码来解除的。<br>请看下面的示例代码:</p>
+<pre><code class="java">/**
+* 账户的业务层实现类
+* @Version 1.0
+*/
+public class AccountServiceImpl implements IAccountService &#123;
+    private IAccountDao accountDao = new AccountDaoImpl();
+&#125;
+</code></pre>
+<p>业务层调用持久层,并且此时业务层在依赖持久层的接口和实现类。如果此时没有持久层实现类,编译将不能通过。这种编译期依赖关系,应该在我们开发中杜绝。我们需要优化代码解决。</p>
+<p>再比如:<br>早期我们的 JDBC 操作,注册驱动时,我们为什么不使用 <code>DriverManager</code> 的 register 方法,而是采用 <code>Class.forName</code> 的方式?</p>
+<pre><code class="java">public class JdbcDemo1 &#123;
+    /**
+* @param args
+* @throws Exception
+*/
+    public static void main(String[] args) throws Exception &#123;
+        //1.注册驱动
+        //DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+        Class.forName(&quot;com.mysql.jdbc.Driver&quot;);
+        //2.获取连接
+        //3.获取预处理 sql 语句对象
+        //4.获取结果集
+        //5.遍历结果集
+    &#125;
+&#125;
+</code></pre>
+<p>原因就是:<br>我们的类依赖了数据库的具体驱动类(MySQL),如果这时候更换了数据库品牌(比如 Oracle),需要修改源码来重新数据库驱动。这显然不是我们想要的。</p>
+<h3 id="解耦的思路"><a href="#解耦的思路" class="headerlink" title="解耦的思路"></a>解耦的思路</h3><p>当是我们讲解 jdbc 时,是通过反射来注册驱动的,代码如下:<br><code>Class.forName(&quot;com.mysql.jdbc.Driver&quot;);//此处只是一个字符串</code></p>
+<p>此时的好处是,我们的类中不再依赖具体的驱动类,此时就算删除 mysql 的驱动 jar 包,依然可以编译(运行就不要想了,没有驱动不可能运行成功的)。<br>同时,也产生了一个新的问题,mysql 驱动的全限定类名字符串是在 java 类中写死的,一旦要改还是要修改源码。<br>解决这个问题也很简单,使用配置文件配置。</p>
+<h3 id="解耦的案例"><a href="#解耦的案例" class="headerlink" title="解耦的案例"></a>解耦的案例</h3><h4 id="耦合的产生"><a href="#耦合的产生" class="headerlink" title="耦合的产生"></a>耦合的产生</h4><pre><code class="java">package uestc.zhangkx.dao;
+
+/**
+ * 账户的持久层接口
+ */
+public interface IAccountDao &#123;
+
+    /**
+     * 模拟保存账户
+     */
+    void saveAccount();
+&#125;
+
+--------------------------------------------
+
+    package uestc.zhangkx.service;
+
+/**
+ * 账户业务层的接口
+ */
+public interface IAccountService &#123;
+
+    /**
+     * 模拟保存账户
+     */
+    void saveAccount();
+&#125;
+
+--------------------------------------------
+    package uestc.zhangkx.service.impl;
+
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.service.IAccountService;
+
+/**
+ * 账户的业务层实现类
+ */
+public class AccountServiceImpl implements IAccountService &#123;
+
+    private IAccountDao accountDao = new AccountDaoImpl();
+
+    public void  saveAccount()&#123;
+        accountDao.saveAccount();
+    &#125;
+&#125;
+
+-------------------------------------------
+    package uestc.zhangkx.ui;
+
+
+import uestc.zhangkx.service.IAccountService;
+
+/**
+ * 模拟一个表现层，用于调用业务层
+ */
+public class Client &#123;
+
+    public static void main(String[] args) &#123;
+        IAccountService as = new AccountServiceImpl();
+    &#125;
+&#125;
+</code></pre>
+<p>上述代码中有大量的耦合，各个方法之间相互依赖，耦合度极大。得想办法解耦。根据解耦的思路，我们可以使用工厂解耦！</p>
+<h4 id="建立工厂"><a href="#建立工厂" class="headerlink" title="建立工厂"></a>建立工厂</h4><blockquote>
+<p>Bean:可重用的组件</p>
+<p>javabean：用java语言编写的可重用组件</p>
+<p>​            javabean&gt;实体类</p>
+</blockquote>
+<p>我们可以创建BeanFactory来创建dao和service对象！</p>
+<p>步骤和前文的思路一致：</p>
+<p><strong>第一步：需要一个配置文件来配置我们的service和dao</strong></p>
+<p>​        配置的内容：唯一标志 = 全限定名</p>
+<p><strong>第二步：通过配置文件配置的内容来反射创建对象</strong></p>
+<p>在这里，配置文件可以用<code>xml</code>写（我不熟悉，今后再学习），也可以用<code>properties</code>写（选这个）。</p>
+<p>直接建立<code>bean.properties</code>:</p>
+<pre><code class="properties">accountService=uestc.zhangkx.service.impl.AccountServiceImpl
+accountDao=uestc.zhangkx.dao.impl.AccountDaoImpl
+</code></pre>
+<p>再建立工厂：</p>
+<pre><code class="java">package uestc.zhangkx.factory;
+
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+public class BeanFactory &#123;
+    //定义一个Properties对象
+    private static Properties props;
+    //使用静态代码块为Properties对象赋值
+    static &#123;
+        try &#123;
+            //实例化对象
+            props = new Properties();
+            InputStream in = BeanFactory.class.getClassLoader().getResourceAsStream(&quot;bean.properties&quot;);
+            props.load(in);
+        &#125;catch(Exception e)&#123;
+            throw new ExceptionInInitializerError(&quot;初始化properties失败！&quot;);
+        &#125;
+    &#125;
+
+    public static Object getBean(String beanName)&#123;
+        Object bean = null;
+        try&#123;
+            String beanPath = props.getProperty(beanName);
+            bean = Class.forName(beanPath).newInstance();
+        &#125;catch (Exception e)&#123;
+            e.printStackTrace();
+        &#125;
+        return bean;
+    &#125;
+&#125;
+</code></pre>
+<h4 id="改造业务层、表现层"><a href="#改造业务层、表现层" class="headerlink" title="改造业务层、表现层"></a>改造业务层、表现层</h4><pre><code class="java">业务层
+//private IAccountDao accountDao = new AccountDaoImpl();
+private IAccountDao accountDao = (IAccountDao)BeanFactory.getBean(&quot;accountDao&quot;);
+
+-------------------------------------------
+表现层
+//IAccountService as = new AccountServiceImpl();
+private IAccountService as = (IAccountService) BeanFactory.getBean(&quot;accountService&quot;);
+</code></pre>
+<p>代码已经解耦，但还是有缺陷。创建的bean是多例的。多例性能低，想把反法成为单例的。</p>
+<h4 id="改造工厂"><a href="#改造工厂" class="headerlink" title="改造工厂"></a>改造工厂</h4><pre><code class="java">package uestc.zhangkx.factory;
+
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+public class BeanFactory &#123;
+    //定义一个Properties对象
+    private static Properties props;
+
+    //定义一个Map,用于存放我们要创建的对象。我们把它称之为容器
+    private static Map&lt;String,Object&gt; beans;
+
+    //使用静态代码块为Properties对象赋值
+    static &#123;
+        try &#123;
+            //实例化对象
+            props = new Properties();
+            //获取properties文件的流对象
+            InputStream in = BeanFactory.class.getClassLoader().getResourceAsStream(&quot;bean.properties&quot;);
+            props.load(in);
+            //实例化容器
+            beans = new HashMap&lt;String,Object&gt;();
+            //取出配置文件中所有的Key
+            Enumeration keys = props.keys();
+            //遍历枚举
+            while (keys.hasMoreElements())&#123;
+                //取出每个Key
+                String key = keys.nextElement().toString();
+                //根据key获取value
+                String beanPath = props.getProperty(key);
+                //反射创建对象
+                Object value = Class.forName(beanPath).newInstance();
+                //把key和value存入容器中
+                beans.put(key,value);
+            &#125;
+        &#125;catch(Exception e)&#123;
+            throw new ExceptionInInitializerError(&quot;初始化properties失败！&quot;);
+        &#125;
+    &#125;
+
+    /**
+     * 根据bean的名称获取对象
+     * @param beanName
+     * @return
+     */
+    public static Object getBean(String beanName)&#123;
+        return beans.get(beanName);
+    &#125;
+
+    /**
+     * 根据Bean的名称获取bean对象
+     * @param beanName
+     * @return
+
+    public static Object getBean(String beanName)&#123;
+        Object bean = null;
+        try &#123;
+            String beanPath = props.getProperty(beanName);
+//            System.out.println(beanPath);
+            bean = Class.forName(beanPath).newInstance();//每次都会调用默认构造函数创建对象
+        &#125;catch (Exception e)&#123;
+            e.printStackTrace();
+        &#125;
+        return bean;
+    &#125;*/
+&#125;
+</code></pre>
+<h3 id="工厂模式解耦"><a href="#工厂模式解耦" class="headerlink" title="工厂模式解耦"></a>工厂模式解耦</h3><p>在实际开发中我们可以把三层的对象都使用配置文件配置起来,当启动服务器应用加载的时候,让一个类中的方法通过读取配置文件,把这些对象创建出来并存起来。在接下来的使用的时候,直接拿过来用就好了。那么,这个读取配置文件,创建和获取三层对象的类就是工厂。</p>
+<h2 id="控制反转-Inversion-Of-Control"><a href="#控制反转-Inversion-Of-Control" class="headerlink" title="控制反转-Inversion Of Control"></a>控制反转-Inversion Of Control</h2><p>解耦的思路有 2 个问题:</p>
+<p><strong>1、存哪去?</strong></p>
+<p>分析:由于我们是很多对象,肯定要找个集合来存。这时候有 Map 和 List 供选择。<br>到底选 Map 还是 List 就看我们有没有查找需求。有查找需求,选 Map。</p>
+<p>所以我们的答案就是</p>
+<p><strong>在应用加载时,创建一个 Map,用于存放三层对象。我们把这个 map 称之为容器。</strong></p>
+<p><strong>2、什么是工厂?</strong></p>
+<p>工厂就是负责给我们从容器中获取指定对象的类。这时候我们获取对象的方式发生了改变。<br>原来:<br>我们在获取对象时,都是采用 new 的方式。是主动的。</p>
+<p><img src="1586226529419.png" alt="1586226529419"></p>
+<p>现在:<br>我们获取对象时,同时跟工厂要,有工厂为我们查找或者创建对象。是被动的。</p>
+<p><img src="1586226548386.png" alt="1586226548386"></p>
+<p>这种被动接收的方式获取对象的思想就是控制反转,它是 spring 框架的核心之一。</p>
+<p><strong>明确 ioc 的作用:</strong></p>
+<p><strong>削减计算机程序的耦合(解除我们代码中的依赖关系)。</strong></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/spring/" rel="tag"># spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/03/mybatis-7-%E6%B3%A8%E8%A7%A3%E5%BC%80%E5%8F%91/" rel="prev" title="mybatis#7-注解开发">
+      <i class="fa fa-chevron-left"></i> mybatis#7-注解开发
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/05/spring-2-IOC/" rel="next" title="spring#2-IOC和DI">
+      spring#2-IOC和DI <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#spring-%E6%A6%82%E8%BF%B0"><span class="nav-text">spring 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#spring-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">spring 是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-%E7%9A%84%E5%8F%91%E5%B1%95%E5%8E%86%E7%A8%8B"><span class="nav-text">Spring 的发展历程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spring-%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="nav-text">spring 的优势</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spring-%E7%9A%84%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="nav-text">spring 的体系结构</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IoC-%E7%9A%84%E6%A6%82%E5%BF%B5%E5%92%8C%E4%BD%9C%E7%94%A8"><span class="nav-text">IoC 的概念和作用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%80%A6%E5%90%88%E5%92%8C%E8%A7%A3%E8%80%A6"><span class="nav-text">程序的耦合和解耦</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%80%A6%E5%90%88"><span class="nav-text">什么是程序的耦合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E7%9C%8B%E5%BE%85%E8%80%A6%E5%90%88"><span class="nav-text">怎么看待耦合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%80%A6%E5%90%88%E6%97%A0%E5%A4%84%E4%B8%8D%E5%9C%A8"><span class="nav-text">耦合无处不在</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E8%80%A6%E7%9A%84%E6%80%9D%E8%B7%AF"><span class="nav-text">解耦的思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E8%80%A6%E7%9A%84%E6%A1%88%E4%BE%8B"><span class="nav-text">解耦的案例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%80%A6%E5%90%88%E7%9A%84%E4%BA%A7%E7%94%9F"><span class="nav-text">耦合的产生</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BB%BA%E7%AB%8B%E5%B7%A5%E5%8E%82"><span class="nav-text">建立工厂</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%94%B9%E9%80%A0%E4%B8%9A%E5%8A%A1%E5%B1%82%E3%80%81%E8%A1%A8%E7%8E%B0%E5%B1%82"><span class="nav-text">改造业务层、表现层</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%94%B9%E9%80%A0%E5%B7%A5%E5%8E%82"><span class="nav-text">改造工厂</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F%E8%A7%A3%E8%80%A6"><span class="nav-text">工厂模式解耦</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A7%E5%88%B6%E5%8F%8D%E8%BD%AC-Inversion-Of-Control"><span class="nav-text">控制反转-Inversion Of Control</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

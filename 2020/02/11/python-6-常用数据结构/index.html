@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="字符串的使用 - 计算长度 &#x2F; 下标运算 &#x2F; 切片 &#x2F; 常用方法列表基本用法 - 定义列表 &#x2F; 用下表访问元素 &#x2F; 下标越界 &#x2F; 添加元素 &#x2F; 删除元素 &#x2F; 修改元素 &#x2F; 切片 &#x2F; 循环遍历列表常用操作 - 连接 &#x2F; 复制(复制元素和复制数组) &#x2F; 长度 &#x2F; 排序 &#x2F; 倒转 &#x2F; 查找生成列表 - 使用range创建数字列表 &#x2F; 生成表达式 &#x2F; 生成器元组的使用 - 定义元组 &#x2F; 使用元组中的值 &#x2F;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python#6-常用数据结构">
+<meta property="og:url" content="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="字符串的使用 - 计算长度 &#x2F; 下标运算 &#x2F; 切片 &#x2F; 常用方法列表基本用法 - 定义列表 &#x2F; 用下表访问元素 &#x2F; 下标越界 &#x2F; 添加元素 &#x2F; 删除元素 &#x2F; 修改元素 &#x2F; 切片 &#x2F; 循环遍历列表常用操作 - 连接 &#x2F; 复制(复制元素和复制数组) &#x2F; 长度 &#x2F; 排序 &#x2F; 倒转 &#x2F; 查找生成列表 - 使用range创建数字列表 &#x2F; 生成表达式 &#x2F; 生成器元组的使用 - 定义元组 &#x2F; 使用元组中的值 &#x2F;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/formula_5.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/formula_6.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/formula_7.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/formula_8.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/fibonacci-blocks.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/ipython-timeit.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/python-set.png">
+<meta property="article:published_time" content="2020-02-11T11:21:22.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:16:49.708Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/formula_5.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>python#6-常用数据结构 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          python#6-常用数据结构
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-11 19:21:22" itemprop="dateCreated datePublished" datetime="2020-02-11T19:21:22+08:00">2020-02-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>字符串的使用 - 计算长度 / 下标运算 / 切片 / 常用方法<br>列表基本用法 - 定义列表 / 用下表访问元素 / 下标越界 / 添加元素 / 删除元素 / 修改元素 / 切片 / 循环遍历<br>列表常用操作 - 连接 / 复制(复制元素和复制数组) / 长度 / 排序 / 倒转 / 查找<br>生成列表 - 使用range创建数字列表 / 生成表达式 / 生成器<br>元组的使用 - 定义元组 / 使用元组中的值 / 修改元组变量 / 元组和列表转换<br>集合基本用法 - 集合和列表的区别 / 创建集合 / 添加元素 / 删除元素 / 清空<br>集合常用操作 - 交集 / 并集 / 差集 / 对称差 / 子集 / 超集<br>字典的基本用法 - 字典的特点 / 创建字典 / 添加元素 / 删除元素 / 取值 / 清空<br>字典常用操作 - keys()方法 / values()方法 / items()方法 / setdefault()方法<br>基础练习 - 跑马灯效果 / 列表找最大元素 / 统计考试成绩的平均分 / Fibonacci数列 / 杨辉三角<br>综合案例 - 双色球选号 / 井字棋</p>
+<span id="more"></span>
+
+<h2 id="字符串和常用数据结构"><a href="#字符串和常用数据结构" class="headerlink" title="字符串和常用数据结构"></a>字符串和常用数据结构</h2><h3 id="使用字符串"><a href="#使用字符串" class="headerlink" title="使用字符串"></a>使用字符串</h3><p>第二次世界大战促使了现代电子计算机的诞生，最初的目的用计算机来快速的完成导弹弹道的计算，因此在计算机刚刚诞生的那个年代，计算机处理的信息基本上都是数值型的信息，而世界上的第一台电子计算机ENIAC每秒钟能够完成约5000次浮点运算。随着时间的推移，虽然数值运算仍然是计算机日常工作中最为重要的事情之一，但是今天的计算机更多的时间需要处理的数据可能都是以文本的方式存在的，如果我们希望通过Python程序操作本这些文本信息，就必须要先了解字符串类型以及与它相关的知识。</p>
+<p>所谓<strong>字符串</strong>，就是由零个或多个字符组成的有限序列，一般记为<img src="formula_5.png" alt="$${\displaystyle s=a_{1}a_{2}\dots a_{n}(0\leq n \leq \infty)}$$">。在Python程序中，如果我们把单个或多个字符用单引号或者双引号包围起来，就可以表示一个字符串。</p>
+<pre><code class="Python">s1 = &#39;hello, world!&#39;
+s2 = &quot;hello, world!&quot;
+# 以三个双引号或单引号开头的字符串可以折行
+s3 = &quot;&quot;&quot;
+hello, 
+world!
+&quot;&quot;&quot;
+print(s1, s2, s3, end=&#39;&#39;)
+</code></pre>
+<p>可以在字符串中使用<code>\</code>（反斜杠）来表示转义，也就是说<code>\</code>后面的字符不再是它原来的意义，例如：<code>\n</code>不是代表反斜杠和字符n，而是表示换行；而<code>\t</code>也不是代表反斜杠和字符t，而是表示制表符。所以如果想在字符串中表示<code>&#39;</code>要写成<code>\&#39;</code>，同理想表示<code>\</code>要写成<code>\\</code>。可以运行下面的代码看看会输出什么。</p>
+<pre><code class="Python">s1 = &#39;\&#39;hello, world!\&#39;&#39;
+s2 = &#39;\n\\hello, world!\\\n&#39;
+print(s1, s2, end=&#39;&#39;)
+</code></pre>
+<p>在<code>\</code>后面还可以跟一个八进制或者十六进制数来表示字符，例如<code>\141</code>和<code>\x61</code>都代表小写字母<code>a</code>，前者是八进制的表示法，后者是十六进制的表示法。也可以在<code>\</code>后面跟Unicode字符编码来表示字符，。运行下面的代码，看看输出了什么。</p>
+<pre><code class="Python">s1 = &#39;\141\142\143\x61\x62\x63&#39;
+s2 = &#39;\u9a86\u660a&#39;
+print(s1, s2)
+</code></pre>
+<p>如果不希望字符串中的<code>\</code>表示转义，我们可以通过在字符串的最前面加上字母<code>r</code>来加以说明，再看看下面的代码又会输出什么。</p>
+<pre><code class="Python">s1 = r&#39;\&#39;hello, world!\&#39;&#39;
+s2 = r&#39;\n\\hello, world!\\\n&#39;
+print(s1, s2, end=&#39;&#39;)
+</code></pre>
+<p>Python为字符串类型提供了非常丰富的运算符，我们可以使用<code>+</code>运算符来实现字符串的拼接，可以使用<code>*</code>运算符来重复一个字符串的内容，可以使用<code>in</code>和<code>not in</code>来判断一个字符串是否包含另外一个字符串（成员运算），我们也可以用<code>[]</code>和<code>[:]</code>运算符从字符串取出某个字符或某些字符（切片运算），代码如下所示。</p>
+<pre><code class="Python">s1 = &#39;hello &#39; * 3
+print(s1) # hello hello hello 
+s2 = &#39;world&#39;
+s1 += s2
+print(s1) # hello hello hello world
+print(&#39;ll&#39; in s1) # True
+print(&#39;good&#39; in s1) # False
+str2 = &#39;abc123456&#39;
+# 从字符串中取出指定位置的字符(下标运算)
+print(str2[2]) # c
+# 字符串切片(从指定的开始索引到指定的结束索引)
+print(str2[2:5]) # c12
+print(str2[2:]) # c123456
+print(str2[2::2]) # c246
+print(str2[::2]) # ac246
+print(str2[::-1]) # 654321cba
+print(str2[-3:-1]) # 45
+</code></pre>
+<p>在Python中，我们还可以通过一系列的方法来完成对字符串的处理，代码如下所示。</p>
+<pre><code class="Python">str1 = &#39;hello, world!&#39;
+# 通过内置函数len计算字符串的长度
+print(len(str1)) # 13
+# 获得字符串首字母大写的拷贝
+print(str1.capitalize()) # Hello, world!
+# 获得字符串每个单词首字母大写的拷贝
+print(str1.title()) # Hello, World!
+# 获得字符串变大写后的拷贝
+print(str1.upper()) # HELLO, WORLD!
+# 从字符串中查找子串所在位置
+print(str1.find(&#39;or&#39;)) # 8
+print(str1.find(&#39;shit&#39;)) # -1
+# 与find类似但找不到子串时会引发异常
+# print(str1.index(&#39;or&#39;))
+# print(str1.index(&#39;shit&#39;))
+# 检查字符串是否以指定的字符串开头
+print(str1.startswith(&#39;He&#39;)) # False
+print(str1.startswith(&#39;hel&#39;)) # True
+# 检查字符串是否以指定的字符串结尾
+print(str1.endswith(&#39;!&#39;)) # True
+# 将字符串以指定的宽度居中并在两侧填充指定的字符
+print(str1.center(50, &#39;*&#39;))
+# 将字符串以指定的宽度靠右放置左侧填充指定的字符
+print(str1.rjust(50, &#39; &#39;))
+str2 = &#39;abc123456&#39;
+# 检查字符串是否由数字构成
+print(str2.isdigit())  # False
+# 检查字符串是否以字母构成
+print(str2.isalpha())  # False
+# 检查字符串是否以数字和字母构成
+print(str2.isalnum())  # True
+str3 = &#39;  jackfrued@126.com &#39;
+print(str3)
+# 获得字符串修剪左右两侧空格之后的拷贝
+print(str3.strip())
+</code></pre>
+<p>我们之前讲过，可以用下面的方式来格式化输出字符串。</p>
+<pre><code class="Python">a, b = 5, 10
+print(&#39;%d * %d = %d&#39; % (a, b, a * b))
+</code></pre>
+<p>当然，我们也可以用字符串提供的方法来完成字符串的格式，代码如下所示。</p>
+<pre><code class="Python">a, b = 5, 10
+print(&#39;&#123;0&#125; * &#123;1&#125; = &#123;2&#125;&#39;.format(a, b, a * b))
+</code></pre>
+<p>Python 3.6以后，格式化字符串还有更为简洁的书写方式，就是在字符串前加上字母<code>f</code>，我们可以使用下面的语法糖来简化上面的代码。</p>
+<pre><code class="Python">a, b = 5, 10
+print(f&#39;&#123;a&#125; * &#123;b&#125; = &#123;a * b&#125;&#39;)
+</code></pre>
+<p>除了字符串，Python还内置了多种类型的数据结构，如果要在程序中保存和操作数据，绝大多数时候可以利用现有的数据结构来实现，最常用的包括列表、元组、集合和字典。</p>
+<h3 id="使用列表"><a href="#使用列表" class="headerlink" title="使用列表"></a>使用列表</h3><p>下面的代码演示了如何定义列表、使用下标访问列表元素以及添加和删除元素的操作。</p>
+<pre><code class="Python">list1 = [1, 3, 5, 7, 100]
+print(list1)
+list2 = [&#39;hello&#39;] * 5
+print(list2)
+# 计算列表长度(元素个数)
+print(len(list1))
+# 下标(索引)运算
+print(list1[0])
+print(list1[4])
+# print(list1[5])  # IndexError: list index out of range
+print(list1[-1])
+print(list1[-3])
+list1[2] = 300
+print(list1)
+# 添加元素
+list1.append(200)
+list1.insert(1, 400)
+list1 += [1000, 2000]
+print(list1)
+print(len(list1))
+# 删除元素
+list1.remove(3)
+if 1234 in list1:
+    list1.remove(1234)
+del list1[0]
+print(list1)
+# 清空列表元素
+list1.clear()
+print(list1)
+</code></pre>
+<p>和字符串一样，列表也可以做切片操作，通过切片操作我们可以实现对列表的复制或者将列表中的一部分取出来创建出新的列表，代码如下所示。</p>
+<pre><code class="Python">fruits = [&#39;grape&#39;, &#39;apple&#39;, &#39;strawberry&#39;, &#39;waxberry&#39;]
+fruits += [&#39;pitaya&#39;, &#39;pear&#39;, &#39;mango&#39;]
+# 循环遍历列表元素
+for fruit in fruits:
+    print(fruit.title(), end=&#39; &#39;)
+print()
+# 列表切片
+fruits2 = fruits[1:4]
+print(fruits2)
+# fruit3 = fruits  # 没有复制列表只创建了新的引用
+# 可以通过完整切片操作来复制列表
+fruits3 = fruits[:]
+print(fruits3)
+fruits4 = fruits[-3:-1]
+print(fruits4)
+# 可以通过反向切片操作来获得倒转后的列表的拷贝
+fruits5 = fruits[::-1]
+print(fruits5)
+</code></pre>
+<p>下面的代码实现了对列表的排序操作。</p>
+<pre><code class="Python">list1 = [&#39;orange&#39;, &#39;apple&#39;, &#39;zoo&#39;, &#39;internationalization&#39;, &#39;blueberry&#39;]
+list2 = sorted(list1)
+# sorted函数返回列表排序后的拷贝不会修改传入的列表
+# 函数的设计就应该像sorted函数一样尽可能不产生副作用
+list3 = sorted(list1, reverse=True)
+# 通过key关键字参数指定根据字符串长度进行排序而不是默认的字母表顺序
+list4 = sorted(list1, key=len)
+print(list1)
+print(list2)
+print(list3)
+print(list4)
+# 给列表对象发出排序消息直接在列表对象上进行排序
+list1.sort(reverse=True)
+print(list1)
+</code></pre>
+<p>我们还可以使用列表的生成式语法来创建列表，代码如下所示。</p>
+<pre><code class="Python">f = [x for x in range(1, 10)]
+print(f)
+f = [x + y for x in &#39;ABCDE&#39; for y in &#39;1234567&#39;]
+print(f)
+# 用列表的生成表达式语法创建列表容器
+# 用这种语法创建列表之后元素已经准备就绪所以需要耗费较多的内存空间
+f = [x ** 2 for x in range(1, 1000)]
+print(sys.getsizeof(f))  # 查看对象占用内存的字节数
+print(f)
+# 请注意下面的代码创建的不是一个列表而是一个生成器对象
+# 通过生成器可以获取到数据但它不占用额外的空间存储数据
+# 每次需要数据的时候就通过内部的运算得到数据(需要花费额外的时间)
+f = (x ** 2 for x in range(1, 1000))
+print(sys.getsizeof(f))  # 相比生成式生成器不占用存储数据的空间
+print(f)
+for val in f:
+    print(val)
+</code></pre>
+<p>除了上面提到的生成器语法，Python中还有另外一种定义生成器的方式，就是通过<code>yield</code>关键字将一个普通函数改造成生成器函数。下面的代码演示了如何实现一个生成<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%96%90%E6%B3%A2%E9%82%A3%E5%A5%91%E6%95%B0%E5%88%97">斐波拉切数列</a>的生成器。所谓斐波拉切数列可以通过下面<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E9%80%92%E5%BD%92">递归</a>的方法来进行定义：</p>
+<p><img src="formula_6.png" alt="$${\displaystyle F_{0}=0}$$"></p>
+<p><img src="formula_7.png" alt="$${\displaystyle F_{1}=1}$$"></p>
+<p><img src="formula_8.png" alt="$${\displaystyle F_{n}=F_{n-1}+F_{n-2}}({n}\geq{2})$$"></p>
+<p><img src="fibonacci-blocks.png"></p>
+<pre><code class="Python">def fib(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+        yield a
+
+
+def main():
+    for val in fib(20):
+        print(val)
+
+
+if __name__ == &#39;__main__&#39;:
+    main()
+</code></pre>
+<h3 id="使用元组"><a href="#使用元组" class="headerlink" title="使用元组"></a>使用元组</h3><p>Python 的元组与列表类似，不同之处在于元组的元素不能修改，在前面的代码中我们已经不止一次使用过元组了。顾名思义，我们把多个元素组合到一起就形成了一个元组，所以它和列表一样可以保存多条数据。下面的代码演示了如何定义和使用元组。</p>
+<pre><code class="Python"># 定义元组
+t = (&#39;张kx&#39;, 22, True, &#39;四川成都&#39;)
+print(t)
+# 获取元组中的元素
+print(t[0])
+print(t[3])
+# 遍历元组中的值
+for member in t:
+    print(member)
+# 重新给元组赋值
+# t[0] = &#39;王大锤&#39;  # TypeError
+# 变量t重新引用了新的元组原来的元组将被垃圾回收
+t = (&#39;王大锤&#39;, 20, True, &#39;云南昆明&#39;)
+print(t)
+# 将元组转换成列表
+person = list(t)
+print(person)
+# 列表是可以修改它的元素的
+person[0] = &#39;李小龙&#39;
+person[1] = 25
+print(person)
+# 将列表转换成元组
+fruits_list = [&#39;apple&#39;, &#39;banana&#39;, &#39;orange&#39;]
+fruits_tuple = tuple(fruits_list)
+print(fruits_tuple)
+</code></pre>
+<p>这里有一个非常值得探讨的问题，我们已经有了列表这种数据结构，为什么还需要元组这样的类型呢？</p>
+<ol>
+<li>元组中的元素是无法修改的，事实上我们在项目中尤其是<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/%E5%A4%9A%E7%BA%BF%E7%A8%8B">多线程</a>环境（后面会讲到）中可能更喜欢使用的是那些不变对象（一方面因为对象状态不能修改，所以可以避免由此引起的不必要的程序错误，简单的说就是一个不变的对象要比可变的对象更加容易维护；另一方面因为没有任何一个线程能够修改不变对象的内部状态，一个不变对象自动就是线程安全的，这样就可以省掉处理同步化的开销。一个不变对象可以方便的被共享访问）。所以结论就是：如果不需要对元素进行添加、删除、修改的时候，可以考虑使用元组，当然如果一个方法要返回多个值，使用元组也是不错的选择。</li>
+<li>元组在创建时间和占用的空间上面都优于列表。我们可以使用sys模块的getsizeof函数来检查存储同样的元素的元组和列表各自占用了多少内存空间，这个很容易做到。我们也可以在ipython中使用魔法指令%timeit来分析创建同样内容的元组和列表所花费的时间，下图是我的macOS系统上测试的结果。</li>
+</ol>
+<p><img src="ipython-timeit.png"></p>
+<h3 id="使用集合"><a href="#使用集合" class="headerlink" title="使用集合"></a>使用集合</h3><p>Python中的集合跟数学上的集合是一致的，不允许有重复元素，而且可以进行交集、并集、差集等运算。</p>
+<p><img src="python-set.png"></p>
+<pre><code class="Python">set1 = &#123;1, 2, 3, 3, 3, 2&#125;
+print(set1)
+print(&#39;Length =&#39;, len(set1))
+set2 = set(range(1, 10))
+print(set2)
+set1.add(4)
+set1.add(5)
+set2.update([11, 12])
+print(set1)
+print(set2)
+set2.discard(5)
+# remove的元素如果不存在会引发KeyError
+if 4 in set2:
+    set2.remove(4)
+print(set2)
+# 遍历集合容器
+for elem in set2:
+    print(elem ** 2, end=&#39; &#39;)
+print()
+# 将元组转换成集合
+set3 = set((1, 2, 3, 3, 2, 1))
+print(set3.pop())
+print(set3)
+# 集合的交集、并集、差集、对称差运算
+print(set1 &amp; set2)
+# print(set1.intersection(set2))
+print(set1 | set2)
+# print(set1.union(set2))
+print(set1 - set2)
+# print(set1.difference(set2))
+print(set1 ^ set2)
+# print(set1.symmetric_difference(set2))
+# 判断子集和超集
+print(set2 &lt;= set1)
+# print(set2.issubset(set1))
+print(set3 &lt;= set1)
+# print(set3.issubset(set1))
+print(set1 &gt;= set2)
+# print(set1.issuperset(set2))
+print(set1 &gt;= set3)
+# print(set1.issuperset(set3))
+</code></pre>
+<blockquote>
+<p><strong>说明：</strong> Python中允许通过一些特殊的方法来为某种类型或数据结构自定义运算符（后面的章节中会讲到），上面的代码中我们对集合进行运算的时候可以调用集合对象的方法，也可以直接使用对应的运算符，例如<code>&amp;</code>运算符跟intersection方法的作用就是一样的，但是使用运算符让代码更加直观。</p>
+</blockquote>
+<h3 id="使用字典"><a href="#使用字典" class="headerlink" title="使用字典"></a>使用字典</h3><p>字典是另一种可变容器模型，类似于我们生活中使用的字典，它可以存储任意类型对象，与列表、集合不同的是，字典的每个元素都是由一个键和一个值组成的“键值对”，键和值通过冒号分开。下面的代码演示了如何定义和使用字典。</p>
+<pre><code class="Python">scores = &#123;&#39;张kx&#39;: 95, &#39;白元芳&#39;: 78, &#39;狄仁杰&#39;: 82&#125;
+# 通过键可以获取字典中对应的值
+print(scores[&#39;张kx&#39;])
+print(scores[&#39;狄仁杰&#39;])
+# 对字典进行遍历(遍历的其实是键再通过键取对应的值)
+for elem in scores:
+    print(&#39;%s\t---&gt;\t%d&#39; % (elem, scores[elem]))
+# 更新字典中的元素
+scores[&#39;白元芳&#39;] = 65
+scores[&#39;诸葛王朗&#39;] = 71
+scores.update(冷面=67, 方启鹤=85)
+print(scores)
+if &#39;武则天&#39; in scores:
+    print(scores[&#39;武则天&#39;])
+print(scores.get(&#39;武则天&#39;))
+# get方法也是通过键获取对应的值但是可以设置默认值
+print(scores.get(&#39;武则天&#39;, 60))
+# 删除字典中的元素
+print(scores.popitem())
+print(scores.popitem())
+print(scores.pop(&#39;张kx&#39;, 100))
+# 清空字典
+scores.clear()
+print(scores)
+</code></pre>
+<h3 id="练习"><a href="#练习" class="headerlink" title="练习"></a>练习</h3><h4 id="练习1：在屏幕上显示跑马灯文字。"><a href="#练习1：在屏幕上显示跑马灯文字。" class="headerlink" title="练习1：在屏幕上显示跑马灯文字。"></a>练习1：在屏幕上显示跑马灯文字。</h4><p>参考答案：</p>
+<pre><code class="Python">import os
+import time
+
+
+def main():
+    content = &#39;北京欢迎你为你开天辟地…………&#39;
+    while True:
+        # 清理屏幕上的输出
+        os.system(&#39;cls&#39;)  # os.system(&#39;clear&#39;)
+        print(content)
+        # 休眠200毫秒
+        time.sleep(0.2)
+        content = content[1:] + content[0]
+
+
+if __name__ == &#39;__main__&#39;:
+    main()
+</code></pre>
+<h4 id="练习2：设计一个函数产生指定长度的验证码，验证码由大小写字母和数字构成。"><a href="#练习2：设计一个函数产生指定长度的验证码，验证码由大小写字母和数字构成。" class="headerlink" title="练习2：设计一个函数产生指定长度的验证码，验证码由大小写字母和数字构成。"></a>练习2：设计一个函数产生指定长度的验证码，验证码由大小写字母和数字构成。</h4><p>参考答案：</p>
+<pre><code class="Python">import random
+
+
+def generate_code(code_len=4):
+    &quot;&quot;&quot;
+    生成指定长度的验证码
+
+    :param code_len: 验证码的长度(默认4个字符)
+
+    :return: 由大小写英文字母和数字构成的随机验证码
+    &quot;&quot;&quot;
+    
+    all_chars = &#39;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&#39;
+    last_pos = len(all_chars) - 1
+    code = &#39;&#39;
+    for _ in range(code_len):
+        index = random.randint(0, last_pos)
+        code += all_chars[index]
+    return code
+</code></pre>
+<h4 id="练习3：设计一个函数返回给定文件名的后缀名。"><a href="#练习3：设计一个函数返回给定文件名的后缀名。" class="headerlink" title="练习3：设计一个函数返回给定文件名的后缀名。"></a>练习3：设计一个函数返回给定文件名的后缀名。</h4><p>参考答案：</p>
+<pre><code class="Python">def get_suffix(filename, has_dot=False):
+    &quot;&quot;&quot;
+    获取文件名的后缀名
+
+    :param filename: 文件名
+    :param has_dot: 返回的后缀名是否需要带点
+    :return: 文件的后缀名
+    &quot;&quot;&quot;
+    pos = filename.rfind(&#39;.&#39;)
+    if 0 &lt; pos &lt; len(filename) - 1:
+        index = pos if has_dot else pos + 1
+        return filename[index:]
+    else:
+        return &#39;&#39;
+</code></pre>
+<h4 id="练习4：设计一个函数返回传入的列表中最大和第二大的元素的值。"><a href="#练习4：设计一个函数返回传入的列表中最大和第二大的元素的值。" class="headerlink" title="练习4：设计一个函数返回传入的列表中最大和第二大的元素的值。"></a>练习4：设计一个函数返回传入的列表中最大和第二大的元素的值。</h4><p>参考答案：</p>
+<pre><code class="Python">def max2(x):
+    m1, m2 = (x[0], x[1]) if x[0] &gt; x[1] else (x[1], x[0])
+    for index in range(2, len(x)):
+        if x[index] &gt; m1:
+            m2 = m1
+            m1 = x[index]
+        elif x[index] &gt; m2:
+            m2 = x[index]
+    return m1, m2
+</code></pre>
+<h4 id="练习5：计算指定的年月日是这一年的第几天。"><a href="#练习5：计算指定的年月日是这一年的第几天。" class="headerlink" title="练习5：计算指定的年月日是这一年的第几天。"></a>练习5：计算指定的年月日是这一年的第几天。</h4><p>参考答案：</p>
+<pre><code class="Python">def is_leap_year(year):
+    &quot;&quot;&quot;
+    判断指定的年份是不是闰年
+
+    :param year: 年份
+    :return: 闰年返回True平年返回False
+    &quot;&quot;&quot;
+    return year % 4 == 0 and year % 100 != 0 or year % 400 == 0
+
+
+def which_day(year, month, date):
+    &quot;&quot;&quot;
+    计算传入的日期是这一年的第几天
+
+    :param year: 年
+    :param month: 月
+    :param date: 日
+    :return: 第几天
+    &quot;&quot;&quot;
+    days_of_month = [
+        [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+        [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    ][is_leap_year(year)]
+    total = 0
+    for index in range(month - 1):
+        total += days_of_month[index]
+    return total + date
+
+
+def main():
+    print(which_day(1980, 11, 28))
+    print(which_day(1981, 12, 31))
+    print(which_day(2018, 1, 1))
+    print(which_day(2016, 3, 1))
+
+
+if __name__ == &#39;__main__&#39;:
+    main()
+</code></pre>
+<h4 id="练习6：打印杨辉三角。"><a href="#练习6：打印杨辉三角。" class="headerlink" title="练习6：打印杨辉三角。"></a>练习6：打印<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%9D%A8%E8%BE%89%E4%B8%89%E8%A7%92%E5%BD%A2">杨辉三角</a>。</h4><p>参考答案：</p>
+<pre><code class="Python">def main():
+    num = int(input(&#39;Number of rows: &#39;))
+    yh = [[]] * num
+    for row in range(len(yh)):
+        yh[row] = [None] * (row + 1)
+        for col in range(len(yh[row])):
+            if col == 0 or col == row:
+                yh[row][col] = 1
+            else:
+                yh[row][col] = yh[row - 1][col] + yh[row - 1][col - 1]
+            print(yh[row][col], end=&#39;\t&#39;)
+        print()
+
+
+if __name__ == &#39;__main__&#39;:
+    main()
+</code></pre>
+<h3 id="综合案例"><a href="#综合案例" class="headerlink" title="综合案例"></a>综合案例</h3><h4 id="案例1：双色球选号。"><a href="#案例1：双色球选号。" class="headerlink" title="案例1：双色球选号。"></a>案例1：双色球选号。</h4><pre><code class="Python">from random import randrange, randint, sample
+
+
+def display(balls):
+    &quot;&quot;&quot;
+    输出列表中的双色球号码
+    &quot;&quot;&quot;
+    for index, ball in enumerate(balls):
+        if index == len(balls) - 1:
+            print(&#39;|&#39;, end=&#39; &#39;)
+        print(&#39;%02d&#39; % ball, end=&#39; &#39;)
+    print()
+
+
+def random_select():
+    &quot;&quot;&quot;
+    随机选择一组号码
+    &quot;&quot;&quot;
+    red_balls = [x for x in range(1, 34)]
+    selected_balls = []
+    selected_balls = sample(red_balls, 6)
+    selected_balls.sort()
+    selected_balls.append(randint(1, 16))
+    return selected_balls
+
+
+def main():
+    n = int(input(&#39;机选几注: &#39;))
+    for _ in range(n):
+        display(random_select())
+
+
+if __name__ == &#39;__main__&#39;:
+    main()
+</code></pre>
+<blockquote>
+<p><strong>说明：</strong> 上面使用random模块的sample函数来实现从列表中选择不重复的n个元素。</p>
+</blockquote>
+<h4 id="综合案例2：约瑟夫环问题。"><a href="#综合案例2：约瑟夫环问题。" class="headerlink" title="综合案例2：约瑟夫环问题。"></a>综合案例2：<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%BA%A6%E7%91%9F%E5%A4%AB%E6%96%AF%E9%97%AE%E9%A2%98">约瑟夫环问题</a>。</h4><pre><code class="Python">&quot;&quot;&quot;
+《幸运的基督徒》
+有15个基督徒和15个非基督徒在海上遇险，为了能让一部分人活下来不得不将其中15个人扔到海里面去，有个人想了个办法就是大家围成一个圈，由某个人开始从1报数，报到9的人就扔到海里面，他后面的人接着从1开始报数，报到9的人继续扔到海里面，直到扔掉15个人。由于上帝的保佑，15个基督徒都幸免于难，问这些人最开始是怎么站的，哪些位置是基督徒哪些位置是非基督徒。
+&quot;&quot;&quot;
+
+
+def main():
+    persons = [True] * 30
+    counter, index, number = 0, 0, 0
+    while counter &lt; 15:
+        if persons[index]:
+            number += 1
+            if number == 9:
+                persons[index] = False
+                counter += 1
+                number = 0
+        index += 1
+        index %= 30
+    for person in persons:
+        print(&#39;基&#39; if person else &#39;非&#39;, end=&#39;&#39;)
+
+
+if __name__ == &#39;__main__&#39;:
+    main()
+</code></pre>
+<h4 id="综合案例3：井字棋游戏。"><a href="#综合案例3：井字棋游戏。" class="headerlink" title="综合案例3：井字棋游戏。"></a>综合案例3：<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%BA%95%E5%AD%97%E6%A3%8B">井字棋</a>游戏。</h4><pre><code class="Python">import os
+
+
+def print_board(board):
+    print(board[&#39;TL&#39;] + &#39;|&#39; + board[&#39;TM&#39;] + &#39;|&#39; + board[&#39;TR&#39;])
+    print(&#39;-+-+-&#39;)
+    print(board[&#39;ML&#39;] + &#39;|&#39; + board[&#39;MM&#39;] + &#39;|&#39; + board[&#39;MR&#39;])
+    print(&#39;-+-+-&#39;)
+    print(board[&#39;BL&#39;] + &#39;|&#39; + board[&#39;BM&#39;] + &#39;|&#39; + board[&#39;BR&#39;])
+
+
+def main():
+    init_board = &#123;
+        &#39;TL&#39;: &#39; &#39;, &#39;TM&#39;: &#39; &#39;, &#39;TR&#39;: &#39; &#39;,
+        &#39;ML&#39;: &#39; &#39;, &#39;MM&#39;: &#39; &#39;, &#39;MR&#39;: &#39; &#39;,
+        &#39;BL&#39;: &#39; &#39;, &#39;BM&#39;: &#39; &#39;, &#39;BR&#39;: &#39; &#39;
+    &#125;
+    begin = True
+    while begin:
+        curr_board = init_board.copy()
+        begin = False
+        turn = &#39;x&#39;
+        counter = 0
+        os.system(&#39;clear&#39;)
+        print_board(curr_board)
+        while counter &lt; 9:
+            move = input(&#39;轮到%s走棋, 请输入位置: &#39; % turn)
+            if curr_board[move] == &#39; &#39;:
+                counter += 1
+                curr_board[move] = turn
+                if turn == &#39;x&#39;:
+                    turn = &#39;o&#39;
+                else:
+                    turn = &#39;x&#39;
+            os.system(&#39;clear&#39;)
+            print_board(curr_board)
+        choice = input(&#39;再玩一局?(yes|no)&#39;)
+        begin = choice == &#39;yes&#39;
+
+
+if __name__ == &#39;__main__&#39;:
+    main()
+</code></pre>
+<blockquote>
+<p><strong>说明：</strong> 最后这个案例来自<a target="_blank" rel="noopener" href="https://item.jd.com/11943853.html">《Python编程快速上手:让繁琐工作自动化》</a>一书（这本书对有编程基础想迅速使用Python将日常工作自动化的人来说还是不错的选择），对代码做了一点点的调整。</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/10/python-5-%E5%87%BD%E6%95%B0%E4%B8%8E%E6%A8%A1%E5%9D%97/" rel="prev" title="python#5-函数与模块">
+      <i class="fa fa-chevron-left"></i> python#5-函数与模块
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/11/docker-1-%E7%AE%80%E4%BB%8B%E4%B8%8E%E5%AE%89%E8%A3%85/" rel="next" title="docker#1-简介与安装">
+      docker#1-简介与安装 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%92%8C%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">字符串和常用数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-text">使用字符串</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%88%97%E8%A1%A8"><span class="nav-text">使用列表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%85%83%E7%BB%84"><span class="nav-text">使用元组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E9%9B%86%E5%90%88"><span class="nav-text">使用集合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%AD%97%E5%85%B8"><span class="nav-text">使用字典</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%83%E4%B9%A0"><span class="nav-text">练习</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A01%EF%BC%9A%E5%9C%A8%E5%B1%8F%E5%B9%95%E4%B8%8A%E6%98%BE%E7%A4%BA%E8%B7%91%E9%A9%AC%E7%81%AF%E6%96%87%E5%AD%97%E3%80%82"><span class="nav-text">练习1：在屏幕上显示跑马灯文字。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A02%EF%BC%9A%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E5%87%BD%E6%95%B0%E4%BA%A7%E7%94%9F%E6%8C%87%E5%AE%9A%E9%95%BF%E5%BA%A6%E7%9A%84%E9%AA%8C%E8%AF%81%E7%A0%81%EF%BC%8C%E9%AA%8C%E8%AF%81%E7%A0%81%E7%94%B1%E5%A4%A7%E5%B0%8F%E5%86%99%E5%AD%97%E6%AF%8D%E5%92%8C%E6%95%B0%E5%AD%97%E6%9E%84%E6%88%90%E3%80%82"><span class="nav-text">练习2：设计一个函数产生指定长度的验证码，验证码由大小写字母和数字构成。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A03%EF%BC%9A%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E5%87%BD%E6%95%B0%E8%BF%94%E5%9B%9E%E7%BB%99%E5%AE%9A%E6%96%87%E4%BB%B6%E5%90%8D%E7%9A%84%E5%90%8E%E7%BC%80%E5%90%8D%E3%80%82"><span class="nav-text">练习3：设计一个函数返回给定文件名的后缀名。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A04%EF%BC%9A%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E5%87%BD%E6%95%B0%E8%BF%94%E5%9B%9E%E4%BC%A0%E5%85%A5%E7%9A%84%E5%88%97%E8%A1%A8%E4%B8%AD%E6%9C%80%E5%A4%A7%E5%92%8C%E7%AC%AC%E4%BA%8C%E5%A4%A7%E7%9A%84%E5%85%83%E7%B4%A0%E7%9A%84%E5%80%BC%E3%80%82"><span class="nav-text">练习4：设计一个函数返回传入的列表中最大和第二大的元素的值。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A05%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%8C%87%E5%AE%9A%E7%9A%84%E5%B9%B4%E6%9C%88%E6%97%A5%E6%98%AF%E8%BF%99%E4%B8%80%E5%B9%B4%E7%9A%84%E7%AC%AC%E5%87%A0%E5%A4%A9%E3%80%82"><span class="nav-text">练习5：计算指定的年月日是这一年的第几天。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A06%EF%BC%9A%E6%89%93%E5%8D%B0%E6%9D%A8%E8%BE%89%E4%B8%89%E8%A7%92%E3%80%82"><span class="nav-text">练习6：打印杨辉三角。</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%BC%E5%90%88%E6%A1%88%E4%BE%8B"><span class="nav-text">综合案例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B1%EF%BC%9A%E5%8F%8C%E8%89%B2%E7%90%83%E9%80%89%E5%8F%B7%E3%80%82"><span class="nav-text">案例1：双色球选号。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%BC%E5%90%88%E6%A1%88%E4%BE%8B2%EF%BC%9A%E7%BA%A6%E7%91%9F%E5%A4%AB%E7%8E%AF%E9%97%AE%E9%A2%98%E3%80%82"><span class="nav-text">综合案例2：约瑟夫环问题。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%BC%E5%90%88%E6%A1%88%E4%BE%8B3%EF%BC%9A%E4%BA%95%E5%AD%97%E6%A3%8B%E6%B8%B8%E6%88%8F%E3%80%82"><span class="nav-text">综合案例3：井字棋游戏。</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

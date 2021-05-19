@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="今天主要分享的是Spring如何解决循环依赖的？这个也是一个Spring的高频面试题。下面我们就从源码的角度去剖析下这个问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring的循环依赖和三级缓存">
+<meta property="og:url" content="http://yoursite.com/2020/08/03/spring%E7%9A%84%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%92%8C%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="今天主要分享的是Spring如何解决循环依赖的？这个也是一个Spring的高频面试题。下面我们就从源码的角度去剖析下这个问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/03/spring%E7%9A%84%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%92%8C%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/image-20200831192211276.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/03/spring%E7%9A%84%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%92%8C%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/41455.png">
+<meta property="article:published_time" content="2020-08-03T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:21:56.053Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/03/spring%E7%9A%84%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%92%8C%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/image-20200831192211276.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/03/spring%E7%9A%84%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%92%8C%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>spring的循环依赖和三级缓存 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/03/spring%E7%9A%84%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%92%8C%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spring的循环依赖和三级缓存
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-03 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-03T09:34:33+08:00">2020-08-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>今天主要分享的是Spring如何解决循环依赖的？这个也是一个Spring的高频面试题。下面我们就从源码的角度去剖析下这个问题。</p>
+<span id="more"></span>
+
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>   在我们实际开发过程中，如果我们new出来的对象循环引用，那么就会死循环，直到OOM，然后挂掉。假如在线上发生，那么后果不堪设想。<br>   我们都知道，我们自己new出来的对象压根就不在IOC容器中，IOC都不带我们玩。在IOC容器中的Bean都是经过IOC容器的加载进去的。具体可以移步</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzA3NTY0OTI3MA==&mid=2247484425&idx=1&sn=402b4172f5392a6b5659c32bcf0432e3&chksm=9f6c1d90a81b9486bd17035c0192d4dd1bee903acc67dd898d56661da859b897af8a44a54af1&token=1365440456&lang=zh_CN&scene=21#wechat_redirect"><strong>源码专题——Spring IOC 容器初始化解析（上）</strong></a><strong>[1]</strong></p>
+<p><a target="_blank" rel="noopener" href="http://mp.weixin.qq.com/s?__biz=MzA3NTY0OTI3MA==&mid=2247484436&idx=1&sn=2988d3a328cf654b21be56bdcbfd120e&chksm=9f6c1d8da81b949b547eedca1321f253333c056f84f815fb9b30beea0a339aea882b759a70bb&scene=21#wechat_redirect"><strong>源码专题——Spring IOC 容器初始化解析（中）</strong></a><strong>[1]</strong></p>
+<p><a target="_blank" rel="noopener" href="http://mp.weixin.qq.com/s?__biz=MzA3NTY0OTI3MA==&mid=2247484456&idx=1&sn=24b405e43e9fcfd97b31e085066fdfe7&chksm=9f6c1db1a81b94a72bdadb506fd0ea50045001c0af8ce68497b482836d149806e5e1bd127b1a&scene=21#wechat_redirect"><strong>源码专题——Spring IOC 容器初始化解析（下）</strong></a><strong>[1]</strong></p>
+</blockquote>
+<h2 id="Spring的Bean创建过程"><a href="#Spring的Bean创建过程" class="headerlink" title="Spring的Bean创建过程"></a>Spring的Bean创建过程</h2><p>   这里我们还是回顾一下，Spring的Bean的创建，首先创建早期对象（还没有实例化的对象），然后添加到早期对象<br>   首先创建Bean实例的包装类，方便后面使用。</p>
+<pre><code class="java">/**
+* 真正的创建bean实例(这里创建实例包装类)，调用构造方法或者工厂方法
+*/
+instanceWrapper = createBeanInstance(beanName, mbd, args);
+</code></pre>
+<p>  添加到我们的缓存中，这里就是我们的单例缓存池，解决循环依赖的关键所在。</p>
+<pre><code class="java">/**
+ * 添加到我们的单例工厂中缓存起来
+ *
+ * 提早暴露早期对象 (还没有进行初始化的对象)  就是还没有进行赋值的对象就是早期对象
+ *
+ */
+addSingletonFactory(beanName, () -&gt; getEarlyBeanReference(beanName, mbd, bean));
+</code></pre>
+<p>然后就是Bean的赋值，初始化Bean。</p>
+<pre><code class="java">/**
+ * 给我们的Bean进行赋值
+ */
+populateBean(beanName, mbd, instanceWrapper);
+/**
+ * 初始化bean
+ */
+exposedObject = initializeBean(beanName, exposedObject, mbd);
+</code></pre>
+<p>下面我们来具体的讲讲。</p>
+<h2 id="Spring如何解决循环依赖"><a href="#Spring如何解决循环依赖" class="headerlink" title="Spring如何解决循环依赖"></a>Spring如何解决循环依赖</h2><p>   Spring也不是说所有的循环依赖都能解决的，我们先抛出结果，然后透过现象看本质。一步步来分析为什么构造器和多例解决不了循环依赖，而只有set才能解决，又是什么原理呢？</p>
+<p>   我们知道，Spring的Bean创建先是对象的创建，然后是对象的实例化。并不是什么时候都是一来就创建对象，首先去缓存里面捞一波，如果捞到了就直接返回了的。前面讲过，实例化对象的过程很浪费性能的。</p>
+<p>   一级缓存-&gt;singletonObjects存的是完成创建的对象，也就是实例化了的对象。</p>
+<p>   二级缓存-&gt;earlySingletonObjects，存储早期对象</p>
+<p>   三级缓存-&gt;singletonFactory，在creatBeanInstance时候放入</p>
+<pre><code class="java">protected Object getSingleton(String beanName, boolean allowEarlyReference) &#123;
+    /**
+     * singletonObjects 这个就是我们大名鼎鼎的单例缓存池
+     */
+    Object singletonObject = this.singletonObjects.get(beanName);
+    /**
+     * singletonObject == null 并且单例正在创建
+     *
+     * isSingletonCurrentlyInCreation就是个标识，标识这个bean是否正在被创建。
+     */
+    if (singletonObject == null &amp;&amp; isSingletonCurrentlyInCreation(beanName)) &#123;
+        synchronized (this.singletonObjects) &#123;
+           //去早期对象里面去获取，如果获取到了就直接返回了。
+            singletonObject = this.earlySingletonObjects.get(beanName);
+            if (singletonObject == null &amp;&amp; allowEarlyReference) &#123;
+               //如果早期对象没获取到，就去单例工厂里面获取
+                ObjectFactory&lt;?&gt; singletonFactory = this.singletonFactories.get(beanName);
+                if (singletonFactory != null) &#123;
+                   //如果单例工厂取到了 ，加到早期对象中，然后从单例工厂中移除
+                    singletonObject = singletonFactory.getObject();
+                    this.earlySingletonObjects.put(beanName, singletonObject);
+                    this.singletonFactories.remove(beanName);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+    return singletonObject;
+&#125;
+</code></pre>
+<p>   如果没捞到，那继续去父工厂中捞一波，如果拿到就返回。</p>
+<pre><code class="java">/**
+ * 如果缓存中没有拿到，就去检查父工厂里面有没有
+ */
+BeanFactory parentBeanFactory = getParentBeanFactory();
+</code></pre>
+<p>   如果还是没有，那只能自己创建对象了</p>
+<pre><code class="java"> /**
+  * 真正的创建bean实例了，调用构造方法或者工厂方法
+  */
+instanceWrapper = createBeanInstance(beanName, mbd, args);
+</code></pre>
+<p>   把早期对象添加到我们的单例缓存池中</p>
+<pre><code class="java">protected void addSingletonFactory(String beanName, ObjectFactory&lt;?&gt; singletonFactory) &#123;
+    Assert.notNull(singletonFactory, &quot;Singleton factory must not be null&quot;);
+    /**
+     * singletonObjects 单例缓存池
+     * singletonFactories  单例工厂
+     * earlySingletonObjects 早期单例对象
+     */
+    synchronized (this.singletonObjects) &#123;
+        if (!this.singletonObjects.containsKey(beanName)) &#123;
+            this.singletonFactories.put(beanName, singletonFactory);
+            this.earlySingletonObjects.remove(beanName);
+            this.registeredSingletons.add(beanName);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>   好，到这里我们看个例子，假如我有两个对象 <strong>InstanceA</strong> 和 <strong>InstanceB</strong></p>
+<pre><code class="java">@Component
+public class InstanceA &#123;
+    private InstanceB instanceB;
+    public InstanceB getInstanceB() &#123;
+        return instanceB;
+    &#125;
+    public void setInstanceB(InstanceB instanceB) &#123;
+        this.instanceB = instanceB;
+    &#125;
+&#125;
+</code></pre>
+<pre><code class="java">@Component
+public class InstanceB &#123;
+
+    private InstanceA instanceA;
+
+    public InstanceA getInstanceA() &#123;
+        return instanceA;
+    &#125;
+
+    public void setInstanceA(InstanceA instanceA) &#123;
+        this.instanceA = instanceA;
+    &#125;
+&#125;
+</code></pre>
+<p>   从容器中获取实例对象A</p>
+<pre><code class="java">AnnotationConfigApplicationContext context = 
+       new AnnotationConfigApplicationContext(BeanConfig.class);
+   context.getBean(&quot;instanceA&quot;);
+</code></pre>
+<p>   我直接去getBean获取A实例，那么将会先去getBean（A class），然后缓存池获取不到，去创建A对象，然后把早期对象加入到单例缓存池。</p>
+<p>   这个时候发现A依赖了B对象，先去创建B对象，然后把B加入到单例缓存池；发现B又依赖A对象，去创建A，这个时候A已经在缓存池中了。直接返回早期对象的A。</p>
+<p>   <img src="image-20200831192211276.png" alt="image-20200831192211276"></p>
+<p>   从图中我们可以很清楚的看到，B对象的A属性是在第三步中注入的半成品A对象，而A对象的B属性是在第二步中注入的成品B对象，此时半成品的A对象也就变成了成品的A对象，因为其属性已经设置完成了。</p>
+<p>   以上就是set循环依赖的解决方案。</p>
+<p>   <strong>那么为什么多例解决不了循环依赖呢？</strong></p>
+<p>   因为多例根本就没有缓存，更别谈早期对象了，我们的单例缓存池不是白叫的。</p>
+<p>   <strong>那么构造器呢？</strong></p>
+<p>   我们再看看源码，创建bean实例的时候是在这里，我们继续进入里面</p>
+<pre><code class="java">/**
+ * 真正的创建bean实例了，调用构造方法或者工厂方法
+ */
+instanceWrapper = createBeanInstance(beanName, mbd, args);
+</code></pre>
+<p>   在这一步就进行构造注入，然而我们的早期对象暴露是在下一步，这里还没有暴露，所以解决不了循环依赖</p>
+<pre><code class="java">// Candidate constructors for autowiring?
+  Constructor&lt;?&gt;[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
+        if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
+          mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)) &#123;
+        //通过构造器进行诸注入
+    return autowireConstructor(beanName, mbd, ctors, args);
+&#125;
+</code></pre>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>   对于整体过程，只要理解两点：</p>
+<ul>
+<li><p>Spring是通过递归的方式获取目标Bean及其所依赖的Bean的；</p>
+</li>
+<li><p>Spring实例化一个Bean的时候，是分两步进行的，首先实例化目标Bean，然后为其注入属性。</p>
+</li>
+</ul>
+<p>   <img src="41455.png" alt="image-20200831192211276"></p>
+<p>   结合这两点，也就是说：<strong>Spring在实例化一个Bean的时候，是首先递归的实例化其所依赖的所有Bean，直到某个Bean没有依赖其他Bean，此时就会将该实例返回，然后反递归的将获取到的Bean设置为各个上层Bean的属性的。</strong></p>
+<p>放图<a target="_blank" rel="noopener" href="https://www.processon.com/view/link/5ecdff207d9c08156c68396d">https://www.processon.com/view/link/5ecdff207d9c08156c68396d</a></p>
+<h3 id="为什么多例无法解决循环依赖"><a href="#为什么多例无法解决循环依赖" class="headerlink" title="为什么多例无法解决循环依赖"></a>为什么多例无法解决循环依赖</h3><p>因为多例根本就没有缓存，更别谈早期对象了，我们的单例缓存池不是白叫的。</p>
+<h3 id="为什么构造器无法解决循环依赖"><a href="#为什么构造器无法解决循环依赖" class="headerlink" title="为什么构造器无法解决循环依赖"></a>为什么构造器无法解决循环依赖</h3><p>依赖的属性提前就被实例化了，并没有set构造中那种（工厂-&gt;半成品-&gt;成品）的整个过程。提前就直接返回成品了。所以自然缓存中没有半成品，无法解决循环依赖问题。</p>
+<h3 id="为什么不使用二级缓存"><a href="#为什么不使用二级缓存" class="headerlink" title="为什么不使用二级缓存"></a>为什么不使用二级缓存</h3><p>如果仅仅是解决循环依赖问题，二级缓存也可以，但是如果注入的对象实现了AOP，那么注入到其他bean的时候，不是最终的代理对象，而是原始的。通过三级缓存的ObjectFactory才能实现类最终的代理对象。</p>
+<h3 id="一级缓存能不能解决循环依赖问题"><a href="#一级缓存能不能解决循环依赖问题" class="headerlink" title="一级缓存能不能解决循环依赖问题"></a>一级缓存能不能解决循环依赖问题</h3><p>可以解决，但是因为初始化完成和未初始化完成的都放在这个map中，拿到的可能是没有完成初始化的，属性都是空的，直接空指针异常。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/spring/" rel="tag"># spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/01/TCP%E7%9A%84%E8%BF%9E%E6%8E%A5%E4%B8%8E%E9%87%8A%E6%94%BE/" rel="prev" title="TCP的连接与释放">
+      <i class="fa fa-chevron-left"></i> TCP的连接与释放
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/04/MYSQL%E4%B8%AD%E7%9A%84B+%E7%B4%A2%E5%BC%95%E6%A0%91/" rel="next" title="MYSQL中的B+索引树">
+      MYSQL中的B+索引树 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring%E7%9A%84Bean%E5%88%9B%E5%BB%BA%E8%BF%87%E7%A8%8B"><span class="nav-text">Spring的Bean创建过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96"><span class="nav-text">Spring如何解决循环依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-text">小结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%A4%9A%E4%BE%8B%E6%97%A0%E6%B3%95%E8%A7%A3%E5%86%B3%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96"><span class="nav-text">为什么多例无法解决循环依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9E%84%E9%80%A0%E5%99%A8%E6%97%A0%E6%B3%95%E8%A7%A3%E5%86%B3%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96"><span class="nav-text">为什么构造器无法解决循环依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E4%BD%BF%E7%94%A8%E4%BA%8C%E7%BA%A7%E7%BC%93%E5%AD%98"><span class="nav-text">为什么不使用二级缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E7%BA%A7%E7%BC%93%E5%AD%98%E8%83%BD%E4%B8%8D%E8%83%BD%E8%A7%A3%E5%86%B3%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98"><span class="nav-text">一级缓存能不能解决循环依赖问题</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文将会从ReentrantReadWriteLock出发，给出其内部利用AQS框架的实现原理。 ReentrantReadWriteLock（以下简称RRW），也就是读写锁，是一个比较特殊的同步器，特殊之处在于其对同步状态State的定义与ReentrantLock、CountDownLatch都很不同。通过RRW的分析，我们可以更深刻的了解AQS框架的设计思想，以及对什么是资源？如何定义资源是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="juc_locks框架#6-AQS_读写锁">
+<meta property="og:url" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="本文将会从ReentrantReadWriteLock出发，给出其内部利用AQS框架的实现原理。 ReentrantReadWriteLock（以下简称RRW），也就是读写锁，是一个比较特殊的同步器，特殊之处在于其对同步状态State的定义与ReentrantLock、CountDownLatch都很不同。通过RRW的分析，我们可以更深刻的了解AQS框架的设计思想，以及对什么是资源？如何定义资源是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922110431351.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922110458022.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922110533207.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922110611838.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922110658290.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111151118.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111206239.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111221456.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111236952.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111303032.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111320554.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111414777.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111502774.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111514278.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111535421.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922111558814.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922120718325.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922120846273.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922120858375.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922120923345.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922120935888.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922121048627.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922121201806.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922121218278.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922121234572.png">
+<meta property="article:published_time" content="2020-08-18T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:00:26.539Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="深入并发">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/image-20200922110431351.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>juc_locks框架#6-AQS_读写锁 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/18/juc_locks%E6%A1%86%E6%9E%B6-6-AQS_%E8%AF%BB%E5%86%99%E9%94%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          juc_locks框架#6-AQS_读写锁
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-18 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-18T09:34:33+08:00">2020-08-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文将会从<code>ReentrantReadWriteLock</code>出发，给出其内部利用AQS框架的实现原理。</p>
+<p>ReentrantReadWriteLock（以下简称RRW），也就是读写锁，是一个比较特殊的同步器，特殊之处在于其对同步状态State的定义与ReentrantLock、CountDownLatch都很不同。通过RRW的分析，我们可以更深刻的了解AQS框架的设计思想，以及对<strong>什么是资源？如何定义资源是否可以被访问？</strong>这一命题有更深刻的理解。</p>
+<span id="more"></span>
+
+<h2 id="本章示例"><a href="#本章示例" class="headerlink" title="本章示例"></a>本章示例</h2><p>和之前的章节一样，本章也通过示例来分析RRW的源码。</p>
+<blockquote>
+<p>假设现在有4个线程，ThreadA、ThreadB、ThreadC、ThreadD。</p>
+<p>ThreadA、ThreadB、ThreadD为读线程，ThreadC为写线程：</p>
+<p>初始时，构造RRM对象：<br><code>private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();</code><br><code>private final Lock r = rwl.readLock();</code><br><code>private final Lock w = rwl.writeLock();</code></p>
+</blockquote>
+<pre><code>//ThreadA调用读锁的lock()方法
+
+//ThreadB调用读锁的lock()方法
+
+//ThreadC调用写锁的lock()方法
+
+//ThreadD调用读锁的lock()方法
+</code></pre>
+<h2 id="RRW的公平策略原理"><a href="#RRW的公平策略原理" class="headerlink" title="RRW的公平策略原理"></a>RRW的公平策略原理</h2><h3 id="1-RRW对象的创建"><a href="#1-RRW对象的创建" class="headerlink" title="1. RRW对象的创建"></a>1. RRW对象的创建</h3><p>和ReentrantLock类似，ReentrantReadWriteLock的构造器可以选择公平/非公平策略（默认为非公平策略），RRW内部的<code>FairSync</code>、<code>NonfairSync</code>是AQS的两个子类，分别代表了实现公平策略和非公平策略的同步器：<br><img src="image-20200922110431351.png" alt="image-20200922110431351"></p>
+<p>ReentrantReadWriteLock提供了方法，分别获取读锁/写锁：<br><img src="image-20200922110458022.png" alt="image-20200922110458022"></p>
+<p><code>ReentrantReadWriteLock.ReadLock</code>和<code>ReentrantReadWriteLock.WriteLock</code>其实就是两个实现了Lock接口的内部类:<br><img src="image-20200922110533207.png" alt="image-20200922110533207"></p>
+<h3 id="2-ThreadA调用读锁的lock-方法"><a href="#2-ThreadA调用读锁的lock-方法" class="headerlink" title="2. ThreadA调用读锁的lock()方法"></a>2. ThreadA调用读锁的lock()方法</h3><p>读锁其实是一种共享锁，实现了AQS的共享功能API，可以看到读锁的内部就是调用了AQS的<strong>acquireShared</strong>方法，该方法前面几章我们已经见过太多次了：<br><img src="image-20200922110611838.png" alt="image-20200922110611838"></p>
+<p>关键来看下ReentrantReadWriteLock是如何实现<strong>tryAcquireShared</strong>方法的：<br>读锁获取成功的条件如下：</p>
+<ol>
+<li>写锁没有被其它线程占用（可被当前线程占用，这种情况属于锁降级）</li>
+<li>等待队列中的队首没有其它线程（公平策略）</li>
+<li>读锁重入次数没有达到最大值</li>
+<li>CAS操作修改同步状态值State成功</li>
+</ol>
+<p><img src="image-20200922110658290.png" alt="image-20200922110658290"></p>
+<p>如果CAS操作失败，会调用<strong>fullTryAcquireShared</strong>方法，自旋修改State值：<br><img src="image-20200922111151118.png" alt="image-20200922111151118"></p>
+<p>ThreadA调用完<strong>lock</strong>方法后，等待队列结构如下：<br><img src="image-20200922111206239.png" alt="image-20200922111206239"></p>
+<blockquote>
+<p>此时：<br>写锁数量：0<br>读锁数量：1</p>
+</blockquote>
+<h3 id="3-ThreadB调用读锁的lock-方法"><a href="#3-ThreadB调用读锁的lock-方法" class="headerlink" title="3. ThreadB调用读锁的lock()方法"></a>3. ThreadB调用读锁的lock()方法</h3><p>由于读锁是共享锁，且此时写锁未被占用，所以此时ThreadB也可以拿到读锁：<br>ThreadB调用完<strong>lock</strong>方法后，等待队列结构如下：<br><img src="image-20200922111221456.png" alt="image-20200922111221456"></p>
+<blockquote>
+<p>此时：<br>写锁数量：0<br>读锁数量：2</p>
+</blockquote>
+<h3 id="4-ThreadC调用写锁的lock-方法"><a href="#4-ThreadC调用写锁的lock-方法" class="headerlink" title="4. ThreadC调用写锁的lock()方法"></a>4. ThreadC调用写锁的lock()方法</h3><p>写锁其实是一种独占锁，实现了AQS的独占功能API，可以看到写锁的内部就是调用了AQS的acquire方法，该方法前面几章我们已经见过太多次了：<br><img src="image-20200922111236952.png" alt="image-20200922111236952"></p>
+<p>关键来看下ReentrantReadWriteLock是如何实现<strong>tryAcquire</strong>方法的，并没有什么特别，就是区分了两种情况：</p>
+<ol>
+<li>当前线程已经持有写锁</li>
+<li>写锁未被占用</li>
+</ol>
+<p><img src="image-20200922111303032.png" alt="image-20200922111303032"></p>
+<p>ThreadC调用完lock方法后，由于存在使用中的读锁，所以会调用<strong>acquireQueued</strong>并被加入等待队列，这个过程就是独占锁的请求过程，等待队列结构如下：<br><img src="image-20200922111320554.png" alt="image-20200922111320554"></p>
+<blockquote>
+<p>此时：<br>写锁数量：0<br>读锁数量：2</p>
+</blockquote>
+<h3 id="5-ThreadD调用读锁的lock-方法"><a href="#5-ThreadD调用读锁的lock-方法" class="headerlink" title="5. ThreadD调用读锁的lock()方法"></a>5. ThreadD调用读锁的lock()方法</h3><p>这个过程和ThreadA和ThreadB几乎一样，读锁是共享锁，可以重复获取，但是有一点区别：<br>由于等待队列中已经有其它线程（ThreadC）排在当前线程前，所以<strong>readerShouldblock</strong>方法会返回true，这是公平策略的含义。</p>
+<p><img src="image-20200922111414777.png" alt="image-20200922111414777"></p>
+<p>虽然获取失败了，但是后续调用<strong>fullTryAcquireShared</strong>方法，自旋修改State值，正常情况下最终修改成功，代表获取到读锁：<br><img src="image-20200922111502774.png" alt="image-20200922111502774"></p>
+<p>最终等待队列结构如下：<br><img src="image-20200922111514278.png" alt="image-20200922111514278"></p>
+<blockquote>
+<p>此时：<br>写锁数量：0<br>读锁数量：3</p>
+</blockquote>
+<h3 id="6-ThreadA释放读锁"><a href="#6-ThreadA释放读锁" class="headerlink" title="6. ThreadA释放读锁"></a>6. ThreadA释放读锁</h3><p>内部就是调用了AQS的<strong>releaseShared</strong>方法，该方法前面几章我们已经见过太多次了：</p>
+<p><img src="image-20200922111535421.png" alt="image-20200922111535421"></p>
+<p>关键来看下ReentrantReadWriteLock是如何实现<strong>tryReleaseShared</strong>方法的，没什么特别的，就是将读锁数量减1：<br><img src="image-20200922111558814.png" alt="image-20200922111558814"></p>
+<blockquote>
+<p><strong>注意：</strong><br><code>HoldCounter</code>是个内部类，通过与<code>ThreadLocal</code>结合使用保存每个线程的持有读锁数量，其实是一种优化手段。<br><img src="image-20200922120718325.png" alt="image-20200922120718325"></p>
+</blockquote>
+<blockquote>
+<p>此时：<br>写锁数量：0<br>读锁数量：2</p>
+</blockquote>
+<h3 id="7-ThreadB释放读锁"><a href="#7-ThreadB释放读锁" class="headerlink" title="7. ThreadB释放读锁"></a>7. ThreadB释放读锁</h3><p>和ThreadA的释放完全一样，此时：</p>
+<blockquote>
+<p>写锁数量：0<br>读锁数量：1</p>
+</blockquote>
+<h3 id="8-ThreadD释放读锁"><a href="#8-ThreadD释放读锁" class="headerlink" title="8. ThreadD释放读锁"></a>8. ThreadD释放读锁</h3><p>和ThreadA的释放几乎一样，不同的是此时读锁数量为0，<strong>tryReleaseShared</strong>方法返回true：<br><img src="image-20200922120846273.png" alt="image-20200922120846273"></p>
+<blockquote>
+<p>此时：<br>写锁数量：0<br>读锁数量：0</p>
+</blockquote>
+<p><img src="image-20200922120858375.png" alt="image-20200922120858375"></p>
+<p>因此，会继续调用<strong>doReleaseShared</strong>方法，<strong>doReleaseShared</strong>方法之前在讲AQS时已经阐述过了，就是一个自旋操作：<br><img src="image-20200922120923345.png" alt="image-20200922120923345"></p>
+<p>该操作会将ThreadC唤醒：<br><img src="image-20200922120935888.png" alt="image-20200922120935888"></p>
+<h3 id="9-ThreadC从原阻塞处继续向下执行"><a href="#9-ThreadC从原阻塞处继续向下执行" class="headerlink" title="9. ThreadC从原阻塞处继续向下执行"></a>9. ThreadC从原阻塞处继续向下执行</h3><p>ThreadC从原阻塞处被唤醒后，进入下一次自旋操作，然后调用<strong>tryAcquire</strong>方法获取写锁成功，并从队列中移除:<br><img src="image-20200922121048627.png" alt="image-20200922121048627"></p>
+<p>等待队列最终状态：<br><img src="image-20200922121201806.png" alt="image-20200922121201806"></p>
+<blockquote>
+<p>此时：<br>写锁数量：1<br>读锁数量：0</p>
+</blockquote>
+<h3 id="10-ThreadC释放写锁"><a href="#10-ThreadC释放写锁" class="headerlink" title="10. ThreadC释放写锁"></a>10. ThreadC释放写锁</h3><p>其实就是独占锁的释放，在[AQS<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000015804888">二]</a>中，已经阐述过了，不再赘述。</p>
+<blockquote>
+<p>补充一点：如果头结点后面还有等待的共享结点，会以传播的方式依次唤醒，这个过程就是共享结点的唤醒过程，并无区别。</p>
+</blockquote>
+<p><img src="image-20200922121218278.png" alt="image-20200922121218278"></p>
+<h2 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h2><p>本章通过ReentrantReadWriteLock的公平策略，分析了RRW的源码，非公平策略分析方法也是一样的，非公平和公平的最大区别在于写锁的获取上：<br><img src="image-20200922121234572.png" alt="image-20200922121234572"></p>
+<p>在非公平策略中，写锁的获取永远不需要排队，这其实时性能优化的考虑，因为大多数情况写锁涉及的操作时间耗时要远大于读锁，频次远低于读锁，这样可以防止写线程一直处于饥饿状态。</p>
+<p>关于ReentrantReadWriteLock，最后有两点规律需要注意：</p>
+<ol>
+<li>当RRW的等待队列队首结点是共享结点，说明当前写锁被占用，当写锁释放时，会以传播的方式唤醒头结点之后紧邻的各个共享结点。</li>
+<li>当RRW的等待队列队首结点是独占结点，说明当前读锁被使用，当读锁释放归零后，会唤醒队首的独占结点。</li>
+</ol>
+<p>ReentrantReadWriteLock的特殊之处其实就是用一个int值表示两种不同的状态（低16位表示写锁的重入次数，高16位表示读锁的使用次数），并通过两个内部类同时实现了AQS的两套API，核心部分与共享/独占锁并无什么区别。从等待队列移除。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+              <a href="/tags/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" rel="tag"># 深入并发</a>
+              <a href="/tags/juc/" rel="tag"># juc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/17/juc_locks%E6%A1%86%E6%9E%B6-5-AQS%E5%85%B1%E4%BA%AB%E7%9A%84%E5%AE%9E%E7%8E%B0/" rel="prev" title="juc_locks框架#5-AQS共享的实现">
+      <i class="fa fa-chevron-left"></i> juc_locks框架#5-AQS共享的实现
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/18/%E7%AE%97%E6%B3%95-1-%E5%9B%9E%E6%BA%AF/" rel="next" title="算法#1-回溯">
+      算法#1-回溯 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AC%E7%AB%A0%E7%A4%BA%E4%BE%8B"><span class="nav-text">本章示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RRW%E7%9A%84%E5%85%AC%E5%B9%B3%E7%AD%96%E7%95%A5%E5%8E%9F%E7%90%86"><span class="nav-text">RRW的公平策略原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-RRW%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA"><span class="nav-text">1. RRW对象的创建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-ThreadA%E8%B0%83%E7%94%A8%E8%AF%BB%E9%94%81%E7%9A%84lock-%E6%96%B9%E6%B3%95"><span class="nav-text">2. ThreadA调用读锁的lock()方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-ThreadB%E8%B0%83%E7%94%A8%E8%AF%BB%E9%94%81%E7%9A%84lock-%E6%96%B9%E6%B3%95"><span class="nav-text">3. ThreadB调用读锁的lock()方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-ThreadC%E8%B0%83%E7%94%A8%E5%86%99%E9%94%81%E7%9A%84lock-%E6%96%B9%E6%B3%95"><span class="nav-text">4. ThreadC调用写锁的lock()方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-ThreadD%E8%B0%83%E7%94%A8%E8%AF%BB%E9%94%81%E7%9A%84lock-%E6%96%B9%E6%B3%95"><span class="nav-text">5. ThreadD调用读锁的lock()方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-ThreadA%E9%87%8A%E6%94%BE%E8%AF%BB%E9%94%81"><span class="nav-text">6. ThreadA释放读锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-ThreadB%E9%87%8A%E6%94%BE%E8%AF%BB%E9%94%81"><span class="nav-text">7. ThreadB释放读锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-ThreadD%E9%87%8A%E6%94%BE%E8%AF%BB%E9%94%81"><span class="nav-text">8. ThreadD释放读锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-ThreadC%E4%BB%8E%E5%8E%9F%E9%98%BB%E5%A1%9E%E5%A4%84%E7%BB%A7%E7%BB%AD%E5%90%91%E4%B8%8B%E6%89%A7%E8%A1%8C"><span class="nav-text">9. ThreadC从原阻塞处继续向下执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-ThreadC%E9%87%8A%E6%94%BE%E5%86%99%E9%94%81"><span class="nav-text">10. ThreadC释放写锁</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-text">四、总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

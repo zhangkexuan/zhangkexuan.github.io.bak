@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="通过转账的小demo，熟悉事务控制、动态代理、线程绑定等知识，给之后的AOP做铺垫。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring#6-事务绑定和代理">
+<meta property="og:url" content="http://yoursite.com/2020/04/11/spring-6-%E4%BA%8B%E5%8A%A1%E7%BB%91%E5%AE%9A%E5%92%8C%E4%BB%A3%E7%90%86/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="通过转账的小demo，熟悉事务控制、动态代理、线程绑定等知识，给之后的AOP做铺垫。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-11T10:15:13.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:17:39.816Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="spring">
+<meta property="article:tag" content="事务">
+<meta property="article:tag" content="代理">
+<meta property="article:tag" content="thread">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/04/11/spring-6-%E4%BA%8B%E5%8A%A1%E7%BB%91%E5%AE%9A%E5%92%8C%E4%BB%A3%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>spring#6-事务绑定和代理 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/11/spring-6-%E4%BA%8B%E5%8A%A1%E7%BB%91%E5%AE%9A%E5%92%8C%E4%BB%A3%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spring#6-事务绑定和代理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-11 18:15:13" itemprop="dateCreated datePublished" datetime="2020-04-11T18:15:13+08:00">2020-04-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>通过转账的小demo，熟悉事务控制、动态代理、线程绑定等知识，给之后的AOP做铺垫。</p>
+<span id="more"></span>
+
+<h1 id="原始demo"><a href="#原始demo" class="headerlink" title="原始demo"></a>原始demo</h1><h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><p>先看看原始的demo，分析里面的问题：</p>
+<p><strong>POJO:</strong></p>
+<pre><code class="java">package uestc.zhangkx.domain;
+
+import java.io.Serializable;
+
+/**
+ * 账户的实体类
+ * @author zhangkx
+ */
+public class Account implements Serializable &#123;
+
+    private Integer id;
+    private String name;
+    private Float money;
+
+    public Integer getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Integer id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+
+    public Float getMoney() &#123;
+        return money;
+    &#125;
+
+    public void setMoney(Float money) &#123;
+        this.money = money;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Account&#123;&quot; +
+                &quot;id=&quot; + id +
+                &quot;, name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, money=&quot; + money +
+                &#39;&#125;&#39;;
+    &#125;
+&#125;
+</code></pre>
+<p><strong>Dao层：</strong></p>
+<pre><code class="java">package uestc.zhangkx.dao;
+
+
+
+import uestc.zhangkx.domain.Account;
+
+import java.util.List;
+
+/**
+ * 账户的持久层接口
+ * @author zhangkx
+ */
+public interface IAccountDao &#123;
+
+    /**
+     * 查询所有
+     * @return
+     */
+    List&lt;Account&gt; findAllAccount();
+
+    /**
+     * 查询一个
+     * @return
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 保存
+     * @param account
+     */
+    void saveAccount(Account account);
+
+    /**
+     * 更新
+     * @param account
+     */
+    void updateAccount(Account account);
+
+    /**
+     * 删除
+     * @param acccountId
+     */
+    void deleteAccount(Integer acccountId);
+
+    /**
+     * 根据名称查询账户
+     * @param accountName
+     * @return  如果有唯一的一个结果就返回，如果没有结果就返回null
+     *          如果结果集超过一个就抛异常
+     */
+    Account findAccountByName(String accountName);
+&#125;
+</code></pre>
+<p>实现类中使用的是直接使用<code>QueryRunner</code>来提供sql语句的执行：</p>
+<pre><code class="java">package uestc.zhangkx.dao.impl;
+
+
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.domain.Account;
+
+import java.util.List;
+
+/**
+ * 账户的持久层实现类
+ */
+public class AccountDaoImpl implements IAccountDao &#123;
+
+    private QueryRunner runner;
+
+    public void setRunner(QueryRunner runner) &#123;
+        this.runner = runner;
+    &#125;
+
+    @Override
+    public List&lt;Account&gt; findAllAccount() &#123;
+        try&#123;
+            return runner.query(&quot;select * from account&quot;,new BeanListHandler&lt;Account&gt;(Account.class));
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        try&#123;
+            return runner.query(&quot;select * from account where id = ? &quot;,new BeanHandler&lt;Account&gt;(Account.class),accountId);
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public void saveAccount(Account account) &#123;
+        try&#123;
+            runner.update(&quot;insert into account(name,money)values(?,?)&quot;,account.getName(),account.getMoney());
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public void updateAccount(Account account) &#123;
+        try&#123;
+            runner.update(&quot;update account set name=?,money=? where id=?&quot;,account.getName(),account.getMoney(),account.getId());
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public void deleteAccount(Integer accountId) &#123;
+        try&#123;
+            runner.update(&quot;delete from account where id=?&quot;,accountId);
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public Account findAccountByName(String accountName) &#123;
+        try&#123;
+            List&lt;Account&gt; accounts = runner.query(&quot;select * from account where name = ? &quot;,new BeanListHandler&lt;Account&gt;(Account.class),accountName);
+            if(accounts == null || accounts.size() == 0)&#123;
+                return null;
+            &#125;
+            if(accounts.size() &gt; 1)&#123;
+                throw new RuntimeException(&quot;结果集不唯一，数据有问题&quot;);
+            &#125;
+            return accounts.get(0);
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p><strong>Sercvice层：</strong></p>
+<pre><code class="java">package uestc.zhangkx.service;
+
+
+
+import uestc.zhangkx.domain.Account;
+
+import java.util.List;
+
+/**
+ * 账户的业务层接口
+ * @author zhangkx
+ */
+public interface IAccountService &#123;
+
+    /**
+     * 查询所有
+     * @return
+     */
+    List&lt;Account&gt; findAllAccount();
+
+    /**
+     * 查询一个
+     * @return
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 保存
+     * @param account
+     */
+    void saveAccount(Account account);
+
+    /**
+     * 更新
+     * @param account
+     */
+    void updateAccount(Account account);
+
+    /**
+     * 删除
+     * @param acccountId
+     */
+    void deleteAccount(Integer acccountId);
+
+    /**
+     * 转账
+     * @param sourceName        转出账户名称
+     * @param targetName        转入账户名称
+     * @param money             转账金额
+     */
+    void transfer(String sourceName,String targetName,Float money);
+
+    //void test();//它只是连接点，但不是切入点，因为没有被增强
+&#125;
+</code></pre>
+<pre><code class="java">package uestc.zhangkx.service.impl;
+
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.domain.Account;
+import uestc.zhangkx.service.IAccountService;
+
+import java.util.List;
+
+/**
+ * 账户的业务层实现类
+ *
+ * 事务控制应该都是在业务层
+ */
+public class AccountServiceImpl implements IAccountService&#123;
+
+    private IAccountDao accountDao;
+
+    public void setAccountDao(IAccountDao accountDao) &#123;
+        this.accountDao = accountDao;
+    &#125;
+
+    @Override
+    public List&lt;Account&gt; findAllAccount() &#123;
+        return accountDao.findAllAccount();
+    &#125;
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        return accountDao.findAccountById(accountId);
+
+    &#125;
+
+    @Override
+    public void saveAccount(Account account) &#123;
+        accountDao.saveAccount(account);
+    &#125;
+
+    @Override
+    public void updateAccount(Account account) &#123;
+        accountDao.updateAccount(account);
+    &#125;
+
+    @Override
+    public void deleteAccount(Integer acccountId) &#123;
+        accountDao.deleteAccount(acccountId);
+    &#125;
+
+    @Override
+    public void transfer(String sourceName, String targetName, Float money) &#123;
+        System.out.println(&quot;transfer....&quot;);
+        //2.1根据名称查询转出账户
+        Account source = accountDao.findAccountByName(sourceName);
+        //2.2根据名称查询转入账户
+        Account target = accountDao.findAccountByName(targetName);
+        //2.3转出账户减钱
+        source.setMoney(source.getMoney()-money);
+        //2.4转入账户加钱
+        target.setMoney(target.getMoney()+money);
+        //2.5更新转出账户
+        accountDao.updateAccount(source);
+        //2.6更新转入账户
+        accountDao.updateAccount(target);
+    &#125;
+&#125;
+</code></pre>
+<p><strong>测试类:</strong></p>
+<pre><code class="java">package uestc.zhangkx;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import uestc.zhangkx.service.IAccountService;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = &quot;classpath:springBean.xml&quot;)
+public class AccountTest &#123;
+
+    private IAccountService as;
+
+    @Test
+    public void  testFind()&#123;
+        as.transfer(&quot;aaa&quot;,&quot;bbb&quot;,20f);
+    &#125;
+&#125;
+</code></pre>
+<h2 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h2><p><code>pom</code>和<code>bean.xml</code>没有列出，可以从代码看出，实现的逻辑很简单，就是在<code>junit</code>中调用service中的<code>transfer</code>执行即可。</p>
+<p>但这逻辑有个问题：每次的dao操作都是新建立的<code>connection</code>，而<code>transfer</code>很容易被阻断，导致事务不一致，例如下面：</p>
+<pre><code class="java">    @Override
+    public void transfer(String sourceName, String targetName, Float money) &#123;
+        System.out.println(&quot;transfer....&quot;);
+        //2.1根据名称查询转出账户
+        Account source = accountDao.findAccountByName(sourceName);
+        //2.2根据名称查询转入账户
+        Account target = accountDao.findAccountByName(targetName);
+        //2.3转出账户减钱
+        source.setMoney(source.getMoney()-money);
+        int 1/0；
+        //2.4转入账户加钱
+        target.setMoney(target.getMoney()+money);
+        //2.5更新转出账户
+        accountDao.updateAccount(source);
+        //2.6更新转入账户
+        accountDao.updateAccount(target);
+    &#125;
+</code></pre>
+<p>进行到1/0处，会阻断，导致<code>source</code>减钱，而<code>target</code>没有加钱。所以必须进行事务控制了。</p>
+<h1 id="事务控制"><a href="#事务控制" class="headerlink" title="事务控制"></a>事务控制</h1><p>只针对于这个案例，事务控制主要是让一次<code>service</code>调用时，所使用的<code>connection</code>是同一个<code>connection</code>。在包内建立了<code>uestc.zhangkx.utils</code>包，<code>ConnectionUtils</code>保证每个线程得到同一个conn、<code>TransactionManager</code>提供对该conn的操作。</p>
+<h2 id="ConnectionUtils"><a href="#ConnectionUtils" class="headerlink" title="ConnectionUtils"></a>ConnectionUtils</h2><p>这个类的用途就是：连接的工具类，它用于从数据源中获取一个连接，并且实现和线程的绑定。conn和线程绑定，每次得到的都是<code>ThreadLocal</code>中的conn，当其中没有conn时，才去<code>Datasource</code>中创建。</p>
+<pre><code class="java">package uestc.zhangkx.utils;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+
+public class ConnectionUtils &#123;
+
+    private ThreadLocal&lt;Connection&gt; threadLocal = new ThreadLocal&lt;Connection&gt;();
+    private DataSource dataSource;
+
+    public Connection getThreadConnection() &#123;
+        try &#123;
+            Connection conn = threadLocal.get();
+            if (conn == null) &#123;
+                conn = dataSource.getConnection();
+                threadLocal.set(conn);
+            &#125;
+            return conn;
+        &#125; catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    public void removeConnection()&#123;
+        threadLocal.remove();
+    &#125;
+&#125;
+</code></pre>
+<h2 id="TransactionManager"><a href="#TransactionManager" class="headerlink" title="TransactionManager"></a>TransactionManager</h2><p>和事务管理相关的工具类，它包含了，开启事务，提交事务，回滚事务和释放连接。在上面，得到了conn只是第一步，这一步可以将一整个<code>service</code>操作化为整体，但关键是要对这个整体进行操作。这个<code>TransactionManager</code>就是对conn的细节操作。</p>
+<pre><code class="java">package uestc.zhangkx.utils;
+
+public class TransactionManager &#123;
+    private ConnectionUtils connectionUtils;
+
+    public void setConnectionUtils(ConnectionUtils connectionUtils) &#123;
+        this.connectionUtils = connectionUtils;
+    &#125;
+
+    public void beginTransaction() &#123;
+        try &#123;
+            connectionUtils.getThreadConnection().setAutoCommit(false);
+        &#125;catch (Exception e)&#123;
+            e.printStackTrace();
+        &#125;
+    &#125;
+
+    public  void commit()&#123;
+        try &#123;
+            connectionUtils.getThreadConnection().commit();
+        &#125;catch (Exception e)&#123;
+            e.printStackTrace();
+        &#125;
+    &#125;
+
+    public  void rollback()&#123;
+        try &#123;
+            connectionUtils.getThreadConnection().rollback();
+        &#125;catch (Exception e)&#123;
+            e.printStackTrace();
+        &#125;
+    &#125;
+
+    public  void release()&#123;
+        try &#123;
+            connectionUtils.getThreadConnection().close();//还回连接池中
+            connectionUtils.removeConnection();
+        &#125;catch (Exception e)&#123;
+            e.printStackTrace();
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<h1 id="Factory"><a href="#Factory" class="headerlink" title="Factory"></a>Factory</h1><p>现在在不改变<code>DAO</code>和<code>service</code>的前提下，我们可以使用代理，来给<code>service</code>之前一步增加一点步骤。直接选用动态代理对接口的代理。</p>
+<pre><code class="java">package uestc.zhangkx.Factory;
+
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.service.IAccountService;
+import uestc.zhangkx.utils.TransactionManager;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+/**
+ * 对service的代理Factory
+ */
+public class BeanFactory &#123;
+
+    private IAccountService accountService;
+    private TransactionManager txManager;
+
+    public void setTxManager(TransactionManager txManager) &#123;
+        this.txManager = txManager;
+    &#125;
+
+    public final void setAccountService(IAccountService accountService) &#123;
+        this.accountService = accountService;
+    &#125;
+
+    public IAccountService getAccountService()&#123;
+        return (IAccountService) Proxy.newProxyInstance(accountService.getClass().getClassLoader(), accountService.getClass().getInterfaces(), new InvocationHandler() &#123;
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable &#123;
+                if (&quot;test&quot;.equals(method.getName()))&#123;
+                    return method.invoke(accountService,args);
+                &#125;
+                Object rtValue=null;
+                try &#123;
+                    txManager.beginTransaction();
+                    rtValue = method.invoke(accountService,args);
+                    txManager.commit();
+                    return rtValue;
+                &#125;catch (Exception e)&#123;
+                    txManager.rollback();
+                    throw new RuntimeException(e);
+                &#125;finally &#123;
+                    txManager.release();
+                &#125;
+            &#125;
+        &#125;);
+    &#125;
+&#125;
+</code></pre>
+<h1 id="注入依赖"><a href="#注入依赖" class="headerlink" title="注入依赖"></a>注入依赖</h1><p>现在整个事务控制以及处理的代码已经撸完，接下来配置一下<code>spring-Bean</code></p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+    &lt;bean id=&quot;proxyAccountService&quot; factory-bean=&quot;beanFactory&quot; factory-method=&quot;getAccountService&quot;/&gt;
+    &lt;bean id=&quot;beanFactory&quot; class=&quot;uestc.zhangkx.Factory.BeanFactory&quot;&gt;
+        &lt;property name=&quot;accountService&quot; ref=&quot;accountService&quot;/&gt;
+        &lt;property name=&quot;txManager&quot; ref=&quot;txManager&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;accountService&quot; class=&quot;uestc.zhangkx.service.impl.AccountServiceImpl&quot;&gt;
+        &lt;property name=&quot;txManager&quot; ref=&quot;txManager&quot;/&gt;
+        &lt;property name=&quot;accountDao&quot; ref=&quot;accountDao&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;txManager&quot; class=&quot;uestc.zhangkx.utils.TransactionManager&quot;&gt;
+        &lt;property name=&quot;connectionUtils&quot; ref=&quot;connectionUtils&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;connectionUtils&quot; class=&quot;uestc.zhangkx.utils.ConnectionUtils&quot;&gt;
+        &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;dataSource&quot; class=&quot;com.mchange.v2.c3p0.ComboPooledDataSource&quot;&gt;
+        &lt;property name=&quot;driverClass&quot; value=&quot;com.mysql.cj.jdbc.Driver&quot;/&gt;
+        &lt;property name=&quot;jdbcUrl&quot; value=&quot;jdbc:mysql://localhost:3306/spring&quot;/&gt;
+        &lt;property name=&quot;user&quot; value=&quot;root&quot;/&gt;
+        &lt;property name=&quot;password&quot; value=&quot;0217&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;accountDao&quot; class=&quot;uestc.zhangkx.dao.impl.AccountDaoImpl&quot;&gt;
+        &lt;property name=&quot;connectionUtils&quot; ref=&quot;connectionUtils&quot;/&gt;
+        &lt;property name=&quot;runner&quot; ref=&quot;runner&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;runner&quot; class=&quot;org.apache.commons.dbutils.QueryRunner&quot; scope=&quot;prototype&quot;&gt;
+        &lt;constructor-arg name=&quot;ds&quot; ref=&quot;dataSource&quot;/&gt;
+    &lt;/bean&gt;
+
+
+&lt;/beans&gt;
+</code></pre>
+<p>该案例的修改，主要是在不修改源码的基础上添加了事务控制，使用动态代理实现。这个案例可以很好体现AOP的思想。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/spring/" rel="tag"># spring</a>
+              <a href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag"># 事务</a>
+              <a href="/tags/%E4%BB%A3%E7%90%86/" rel="tag"># 代理</a>
+              <a href="/tags/thread/" rel="tag"># thread</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/10/spring-5-anno%E5%85%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/" rel="prev" title="spring#5-anno全注解分析">
+      <i class="fa fa-chevron-left"></i> spring#5-anno全注解分析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/12/spring-7-AOP/" rel="next" title="spring#7-AOP">
+      spring#7-AOP <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8E%9F%E5%A7%8Bdemo"><span class="nav-text">原始demo</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-text">代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">存在的问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%8E%A7%E5%88%B6"><span class="nav-text">事务控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ConnectionUtils"><span class="nav-text">ConnectionUtils</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TransactionManager"><span class="nav-text">TransactionManager</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Factory"><span class="nav-text">Factory</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B3%A8%E5%85%A5%E4%BE%9D%E8%B5%96"><span class="nav-text">注入依赖</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

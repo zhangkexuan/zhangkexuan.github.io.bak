@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="我之前也学过连接池技术,而在 Mybatis 中也有连接池技术,但是它采用的是自己的连接池技术。在 Mybatis 的 SqlMapConfig.xml 配置文件中,通过\&lt;dataSource type&#x3D;”pooled”&gt;来实现 Mybatis 中连接池的配置。 另外谈论一下Mybatis的事务控制。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mybatis#4-连接池">
+<meta property="og:url" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="我之前也学过连接池技术,而在 Mybatis 中也有连接池技术,但是它采用的是自己的连接池技术。在 Mybatis 的 SqlMapConfig.xml 配置文件中,通过\&lt;dataSource type&#x3D;”pooled”&gt;来实现 Mybatis 中连接池的配置。 另外谈论一下Mybatis的事务控制。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585931070459.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585931116779.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585931151898.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585931342332.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585931384835.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585931538532.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585931573641.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585931657242.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585933585868.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585933720638.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585934212667.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585934233439.png">
+<meta property="article:published_time" content="2020-03-30T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:14:22.472Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="反射">
+<meta property="article:tag" content="JDBC">
+<meta property="article:tag" content="mybatis">
+<meta property="article:tag" content="池">
+<meta property="article:tag" content="事务">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/1585931070459.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>mybatis#4-连接池 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          mybatis#4-连接池
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-30 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-30T09:34:33+08:00">2020-03-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>我之前也学过连接池技术,而在 Mybatis 中也有连接池技术,但是它采用的是自己的连接池技术。在 Mybatis 的 <code>SqlMapConfig.xml </code>配置文件中,通过<code>\&lt;dataSource type=”pooled”&gt;</code>来实现 Mybatis 中连接池的配置。</p>
+<p>另外谈论一下Mybatis的事务控制。</p>
+<span id="more"></span>
+
+<h1 id="Mybatis-连接池"><a href="#Mybatis-连接池" class="headerlink" title="Mybatis 连接池"></a>Mybatis 连接池</h1><h2 id="Mybatis-连接池的分类"><a href="#Mybatis-连接池的分类" class="headerlink" title="Mybatis 连接池的分类"></a>Mybatis 连接池的分类</h2><p>在 Mybatis 中我们将它的数据源 dataSource 分为以下几类:</p>
+<p><img src="1585931070459.png" alt="1585931070459"></p>
+<p>可以看出 Mybatis 将它自己的数据源分为三类:</p>
+<ul>
+<li>UNPOOLED————不使用连接池的数据源</li>
+<li>POOLED—————使用连接池的数据源</li>
+<li>JNDI——————使用 JNDI 实现的数据源</li>
+</ul>
+<p>具体的结构是：</p>
+<p><img src="1585931116779.png" alt="1585931116779"></p>
+<p>相应地,MyBatis 内部分别定义了实现了 <code>java.sql.DataSource</code> 接口的 <code>UnpooledDataSource</code>,<code>PooledDataSource</code> 类来表示 <code>UNPOOLED</code>、<code>POOLED</code> 类型的数据源。</p>
+<p><img src="1585931151898.png" alt="1585931151898">在这三种数据源中,我们一般采用的是 POOLED 数据源(很多时候我们所说的数据源就是为了更好的管理数据库连接,也就是我们所说的连接池技术)。</p>
+<h2 id="Mybatis-中数据源的配置"><a href="#Mybatis-中数据源的配置" class="headerlink" title="Mybatis 中数据源的配置"></a>Mybatis 中数据源的配置</h2><p>我们的数据源配置就是在 SqlMapConfig.xml 文件中,具体配置如下:</p>
+<pre><code class="xml">&lt;!-- 配置数据源(连接池)信息 --&gt;
+&lt;dataSource type=&quot;POOLED&quot;&gt;
+    &lt;property name=&quot;driver&quot; value=&quot;$&#123;jdbc.driver&#125;&quot;/&gt;
+    &lt;property name=&quot;url&quot; value=&quot;$&#123;jdbc.url&#125;&quot;/&gt;
+    &lt;property name=&quot;username&quot; value=&quot;$&#123;jdbc.username&#125;&quot;/&gt;
+    &lt;property name=&quot;password&quot; value=&quot;$&#123;jdbc.password&#125;&quot;/&gt;
+&lt;/dataSource&gt;
+</code></pre>
+<p>MyBatis 在初始化时,根据&lt;dataSource&gt;的 type 属性来创建相应类型的的数据源 DataSource,即:<br><code>type=”POOLED”</code>:MyBatis 会创建<code>PooledDataSource</code>实例<br><code>type=”UNPOOLED”</code> : MyBatis 会创建<code>UnpooledDataSource</code>实例<br><code>type=”JNDI”</code>:MyBatis 会从 JNDI 服务上查找 DataSource 实例,然后返回使用</p>
+<h2 id="Mybatis-中-DataSource-的存取"><a href="#Mybatis-中-DataSource-的存取" class="headerlink" title="Mybatis 中 DataSource 的存取"></a>Mybatis 中 DataSource 的存取</h2><p>MyBatis 是 通 过 工 厂 模 式 来 创 建 数 据 源 DataSource 对 象 的 , MyBatis 定 义 了 抽 象 的 工 厂 接口 :<code>org.apache.ibatis.datasource.DataSourceFactory</code>,通过其 <code>getDataSource()</code>方法返回数据源<code>DataSource</code>。</p>
+<p>下面是<code>DataSourceFactory</code>源码,具体如下:</p>
+<pre><code class="java">package org.apache.ibatis.datasource;
+import java.util.Properties;
+import javax.sql.DataSource;
+/**
+* @author Clinton Begin
+*/
+public interface DataSourceFactory &#123;
+    void setProperties(Properties props);
+    DataSource getDataSource();
+&#125;
+</code></pre>
+<p>MyBatis 创建了 <code>DataSource</code> 实例后,会将其放到 <code>Configuration</code> 对象内的<code>Environment</code> 对象中, 供以后使用。</p>
+<p>具体分析过程如下:</p>
+<p>1.先进入 <code>XMLConfigBuilder</code> 类中,可以找到如下代码:</p>
+<p><img src="1585931342332.png" alt="1585931342332"></p>
+<p>2.分析 <code>configuration</code> 对象的 <code>environment</code> 属性,结果如下:</p>
+<p><img src="1585931384835.png" alt="1585931384835"></p>
+<h2 id="Mybatis-中连接的获取过程分析"><a href="#Mybatis-中连接的获取过程分析" class="headerlink" title="Mybatis 中连接的获取过程分析"></a>Mybatis 中连接的获取过程分析</h2><p>当我们需要创建<code> SqlSession</code> 对象并需要执行 SQL 语句时,这时候 MyBatis 才会去调用 <code>dataSource</code> 对象来创建<code> java.sql.Connection</code> 对象。也就是说,<code>java.sql.Connection</code> 对象的创建一直延迟到执行 SQL 语句的时候。</p>
+<pre><code class="java">@Test
+public void testSql() throws Exception &#123;
+    InputStream in = Resources.getResourceAsStream(&quot;SqlMapConfig.xml&quot;);
+    SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+    SqlSession sqlSession = factory.openSession();
+    List&lt;User&gt; list = sqlSession.selectList(&quot;findUserById&quot;,41);
+    System.out.println(list.size());
+&#125;
+</code></pre>
+<p>只有当第 4 句 <code>sqlSession.selectList(&quot;findUserById&quot;)</code>,才会触发 MyBatis 在底层执行下面这个方法来创建 <code>java.sql.Connection</code> 对象。<br><strong>如何证明它的加载过程呢?</strong><br>我们可以通过断点调试,在 <code>PooledDataSource</code> 中找到如下 <code>popConnection()</code>方法,如下所示:</p>
+<p><img src="1585931538532.png" alt="1585931538532"></p>
+<p>分析源代码,得出 PooledDataSource 工作原理如下:</p>
+<p><img src="1585931573641.png" alt="1585931573641"></p>
+<p>下面是连接获取的源代码:</p>
+<p><img src="1585931657242.png" alt="1585931657242"></p>
+<p>最后我们可以发现,真正连接打开的时间点,只是在我们执行 SQL 语句时,才会进行。其实这样做我们也可以<br>进一步发现,数据库连接是我们最为宝贵的资源,只有在要用到的时候,才去获取并打开连接,当我们用完了就再<br>立即将数据库连接归还到连接池中。</p>
+<h2 id="JNDI数据源"><a href="#JNDI数据源" class="headerlink" title="JNDI数据源"></a>JNDI数据源</h2><p>JNDI：Java Naming and Directory Interface。是SUN公司推出的一套规范，属于JavaEE技术之一。目的是模仿windows系统中的注册表。<strong>只能用于javaweb或war</strong></p>
+<ol>
+<li>在webapp文件下创建META-INF目录</li>
+<li>在META-INF目录中建立一个名为context.xml的配置文件</li>
+</ol>
+<pre><code class="xml">?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;Context&gt;
+&lt;!-- 
+&lt;Resource 
+name=&quot;jdbc/eesy_mybatis&quot;                  数据源的名称
+type=&quot;javax.sql.DataSource&quot;                   数据源类型
+auth=&quot;Container&quot;                        数据源提供者
+maxActive=&quot;20&quot;                         最大活动数
+maxWait=&quot;10000&quot;                            最大等待时间
+maxIdle=&quot;5&quot;                               最大空闲数
+username=&quot;root&quot;                            用户名
+password=&quot;1234&quot;                            密码
+driverClassName=&quot;com.mysql.cj.jdbc.Driver&quot;          驱动类
+url=&quot;jdbc:mysql://localhost:3306/mybatis&quot; 连接url字符串
+/&gt;
+ --&gt;
+&lt;Resource 
+name=&quot;jdbc/eesy_mybatis&quot;
+type=&quot;javax.sql.DataSource&quot;
+auth=&quot;Container&quot;
+maxActive=&quot;20&quot;
+maxWait=&quot;10000&quot;
+maxIdle=&quot;5&quot;
+username=&quot;root&quot;
+password=&quot;1234&quot;
+driverClassName=&quot;com.mysql.cj.jdbc.Driver&quot;
+url=&quot;jdbc:mysql://localhost:3306/eesy_mybatis&quot;
+/&gt;
+&lt;/Context&gt;
+</code></pre>
+<p>正确使用sqlmapconfig.xml</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!-- 导入约束 --&gt;
+&lt;!DOCTYPE configuration  
+  PUBLIC &quot;-//mybatis.org//DTD Config 3.0//EN&quot;  
+  &quot;http://mybatis.org/dtd/mybatis-3-config.dtd&quot;&gt;
+&lt;configuration&gt;
+&lt;typeAliases&gt;
+        &lt;package name=&quot;uestc.zhangkx.domain&quot;&gt;&lt;/package&gt;
+    &lt;/typeAliases&gt;
+    &lt;!-- 配置mybatis的环境 --&gt;
+    &lt;environments default=&quot;mysql&quot;&gt;
+        &lt;!-- 配置mysql的环境 --&gt;
+        &lt;environment id=&quot;mysql&quot;&gt;
+            &lt;!-- 配置事务控制的方式 --&gt;
+            &lt;transactionManager type=&quot;JDBC&quot;&gt;&lt;/transactionManager&gt;
+            &lt;!-- 配置连接数据库的必备信息  type属性表示是否使用数据源（连接池）--&gt;
+            &lt;dataSource type=&quot;JNDI&quot;&gt;
+                &lt;property name=&quot;data_source&quot; value=&quot;java:comp/env/jdbc/eesy_mybatis&quot;/&gt;
+            &lt;/dataSource&gt;
+        &lt;/environment&gt;
+    &lt;/environments&gt;
+    
+    &lt;!-- 指定mapper配置文件的位置 --&gt;
+    &lt;mappers&gt;
+        &lt;mapper resource=&quot;uestc/zhangkx/dao/IUserDao.xml&quot;/&gt;
+    &lt;/mappers&gt;
+&lt;/configuration&gt;
+</code></pre>
+<h1 id="Mybatis-的事务控制"><a href="#Mybatis-的事务控制" class="headerlink" title="Mybatis 的事务控制"></a>Mybatis 的事务控制</h1><p>在 JDBC 中我们可以通过手动方式将事务的提交改为手动方式,通过 <code>setAutoCommit()</code>方法就可以调整。通过 JDK 文档,我们找到该方法如下:</p>
+<p><img src="1585933585868.png" alt="1585933585868"></p>
+<p>那么我们的 Mybatis 框架因为是对 JDBC 的封装,所以 Mybatis 框架的事务控制方式,本身也是用 JDBC 的<code>setAutoCommit()</code>方法来设置事务提交方式的。</p>
+<h2 id="Mybatis-中事务提交方式"><a href="#Mybatis-中事务提交方式" class="headerlink" title="Mybatis 中事务提交方式"></a>Mybatis 中事务提交方式</h2><p>Mybatis 中事务的提交方式,本质上就是调用 JDBC 的 <code>setAutoCommit()</code>来实现事务控制。<br>我们运行之前所写的代码:</p>
+<pre><code class="java">@Test
+public void testSaveUser() throws Exception &#123;
+    User user = new User();
+    user.setUsername(&quot;mybatis user09&quot;);
+    //6.执行操作
+    int res = userDao.saveUser(user);
+    System.out.println(res);
+    System.out.println(user.getId());
+&#125;
+@Before//在测试方法执行之前执行
+public void init()throws Exception &#123;
+    //1.读取配置文件
+    in = Resources.getResourceAsStream(&quot;SqlMapConfig.xml&quot;);
+    //2.创建构建者对象
+    SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+    //3.创建 SqlSession 工厂对象
+    factory = builder.build(in);
+    //4.创建 SqlSession 对象
+    session = factory.openSession();
+    //5.创建 Dao 的代理对象
+    userDao = session.getMapper(IUserDao.class);
+&#125;
+@After//在测试方法执行完成之后执行
+public void destroy() throws Exception&#123;
+    //7.提交事务
+    session.commit();
+    //8.释放资源
+    session.close();
+    in.close();
+&#125;
+</code></pre>
+<p>观察在它在控制台输出的结果:</p>
+<p><img src="1585933720638.png" alt="1585933720638"></p>
+<p>这是我们的 <code>Connection</code> 的整个变化过程,通过分析我们能够发现之前的 CUD 操作过程中,我们都要手动进行事务的提交,原因是<code> setAutoCommit()</code>方法,在执行时它的值被设置为 false 了,所以我们在 CUD 操作中,必须通过<code> sqlSession.commit()</code>方法来执行提交操作。</p>
+<h2 id="Mybatis-自动提交事务的设置"><a href="#Mybatis-自动提交事务的设置" class="headerlink" title="Mybatis 自动提交事务的设置"></a>Mybatis 自动提交事务的设置</h2><p>通过上面的研究和分析,现在我们一起思考,为什么 CUD 过程中必须使用 <code>sqlSession.commit()</code>提交事务?主要原因就是在连接池中取出的连接,都会将调用 <code>connection.setAutoCommit(false)</code>方法,这样我们就必须使用 <code>sqlSession.commit()</code>方法,相当于使用了 JDBC 中的<code> connection.commit()</code>方法实现事务提交。<br>明白这一点后,我们现在一起尝试不进行手动提交,一样实现 CUD 操作。</p>
+<pre><code class="java">@Before//在测试方法执行之前执行
+public void init()throws Exception &#123;
+    //1.读取配置文件
+    in = Resources.getResourceAsStream(&quot;SqlMapConfig.xml&quot;);
+    //2.创建构建者对象
+    SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+    //3.创建 SqlSession 工厂对象
+    factory = builder.build(in);
+    //4.创建 SqlSession 对象
+    session = factory.openSession(true);
+    //5.创建 Dao 的代理对象
+    userDao = session.getMapper(IUserDao.class);
+&#125;
+@After//在测试方法执行完成之后执行
+public void destroy() throws Exception&#123;
+    //7.释放资源
+    session.close();
+    in.close();
+&#125;
+</code></pre>
+<p>所对应的<code> DefaultSqlSessionFactory</code> 类的源代码:</p>
+<p><img src="1585934212667.png" alt="1585934212667"></p>
+<p>运行的结果如下:    </p>
+<p><img src="1585934233439.png" alt="1585934233439"></p>
+<p>我们发现,此时事务就设置为自动提交了,同样可以实现 CUD 操作时记录的保存。虽然这也是一种方式,但就编程而言,设置为自动提交方式为 false 再根据情况决定是否进行提交,这种方式更常用。因为我们可以根据业务情况来决定提交是否进行提交。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E5%8F%8D%E5%B0%84/" rel="tag"># 反射</a>
+              <a href="/tags/JDBC/" rel="tag"># JDBC</a>
+              <a href="/tags/mybatis/" rel="tag"># mybatis</a>
+              <a href="/tags/%E6%B1%A0/" rel="tag"># 池</a>
+              <a href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag"># 事务</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/29/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/" rel="prev" title="跳表的介绍与使用">
+      <i class="fa fa-chevron-left"></i> 跳表的介绍与使用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/31/java%E5%9F%BA%E7%A1%80-roundOne/" rel="next" title="java基础_roundOne">
+      java基础_roundOne <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Mybatis-%E8%BF%9E%E6%8E%A5%E6%B1%A0"><span class="nav-text">Mybatis 连接池</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mybatis-%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E5%88%86%E7%B1%BB"><span class="nav-text">Mybatis 连接池的分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mybatis-%E4%B8%AD%E6%95%B0%E6%8D%AE%E6%BA%90%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="nav-text">Mybatis 中数据源的配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mybatis-%E4%B8%AD-DataSource-%E7%9A%84%E5%AD%98%E5%8F%96"><span class="nav-text">Mybatis 中 DataSource 的存取</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mybatis-%E4%B8%AD%E8%BF%9E%E6%8E%A5%E7%9A%84%E8%8E%B7%E5%8F%96%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90"><span class="nav-text">Mybatis 中连接的获取过程分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JNDI%E6%95%B0%E6%8D%AE%E6%BA%90"><span class="nav-text">JNDI数据源</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Mybatis-%E7%9A%84%E4%BA%8B%E5%8A%A1%E6%8E%A7%E5%88%B6"><span class="nav-text">Mybatis 的事务控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mybatis-%E4%B8%AD%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A4%E6%96%B9%E5%BC%8F"><span class="nav-text">Mybatis 中事务提交方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mybatis-%E8%87%AA%E5%8A%A8%E6%8F%90%E4%BA%A4%E4%BA%8B%E5%8A%A1%E7%9A%84%E8%AE%BE%E7%BD%AE"><span class="nav-text">Mybatis 自动提交事务的设置</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

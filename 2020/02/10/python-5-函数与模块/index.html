@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="函数的作用 - 代码的坏味道 &#x2F; 用函数封装功能模块定义函数 - def语句 &#x2F; 函数名 &#x2F; 参数列表 &#x2F; return语句 &#x2F; 调用自定义函数调用函数 - Python内置函数 &#x2F; 导入模块和函数函数的参数 - 默认参数 &#x2F; 可变参数 &#x2F; 关键字参数 &#x2F; 命名关键字参数函数的返回值 - 没有返回值 &#x2F; 返回单个值 &#x2F; 返回多个值作用域问题 - 局部作用域 &#x2F; 嵌套作用域 &#x2F; 全局作用域 &#x2F; 内置">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python#5-函数与模块">
+<meta property="og:url" content="http://yoursite.com/2020/02/10/python-5-%E5%87%BD%E6%95%B0%E4%B8%8E%E6%A8%A1%E5%9D%97/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="函数的作用 - 代码的坏味道 &#x2F; 用函数封装功能模块定义函数 - def语句 &#x2F; 函数名 &#x2F; 参数列表 &#x2F; return语句 &#x2F; 调用自定义函数调用函数 - Python内置函数 &#x2F; 导入模块和函数函数的参数 - 默认参数 &#x2F; 可变参数 &#x2F; 关键字参数 &#x2F; 命名关键字参数函数的返回值 - 没有返回值 &#x2F; 返回单个值 &#x2F; 返回多个值作用域问题 - 局部作用域 &#x2F; 嵌套作用域 &#x2F; 全局作用域 &#x2F; 内置">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-10T12:21:22.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:16:45.487Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="python">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/02/10/python-5-%E5%87%BD%E6%95%B0%E4%B8%8E%E6%A8%A1%E5%9D%97/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>python#5-函数与模块 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/10/python-5-%E5%87%BD%E6%95%B0%E4%B8%8E%E6%A8%A1%E5%9D%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          python#5-函数与模块
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-10 20:21:22" itemprop="dateCreated datePublished" datetime="2020-02-10T20:21:22+08:00">2020-02-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>函数的作用 - 代码的坏味道 / 用函数封装功能模块<br>定义函数 - def语句 / 函数名 / 参数列表 / return语句 / 调用自定义函数<br>调用函数 - Python内置函数 / 导入模块和函数<br>函数的参数 - 默认参数 / 可变参数 / 关键字参数 / 命名关键字参数<br>函数的返回值 - 没有返回值 / 返回单个值 / 返回多个值<br>作用域问题 - 局部作用域 / 嵌套作用域 / 全局作用域 / 内置作用域 / 和作用域相关的关键字<br>用模块管理函数 - 模块的概念 / 用自定义模块管理函数 / 命名冲突的时候会怎样（同一个模块和不同的模块）</p>
+<span id="more"></span>
+
+<h2 id="函数和模块的使用"><a href="#函数和模块的使用" class="headerlink" title="函数和模块的使用"></a>函数和模块的使用</h2><p>在讲解本章节的内容之前，我们先来研究一道数学题，请说出下面的方程有多少组正整数解。<br>$$<br>x_1 + x_2 + x_3 + x_4 = 8<br>$$<br>事实上，上面的问题等同于将8个苹果分成四组每组至少一个苹果有多少种方案。想到这一点问题的答案就呼之欲出了。<br>$$<br>C_M^N =\frac{M!}{N!(M-N)!}, \text{(M=7, N=3)}<br>$$<br>可以用Python的程序来计算出这个值，代码如下所示。</p>
+<pre><code class="python">&quot;&quot;&quot;
+输入M和N计算C(M,N)
+&quot;&quot;&quot;
+
+m = int(input(&#39;m = &#39;))
+n = int(input(&#39;n = &#39;))
+fm = 1
+for num in range(1, m + 1):
+    fm *= num
+fn = 1
+for num in range(1, n + 1):
+    fn *= num
+fmn = 1
+for num in range(1, m - n + 1):
+    fmn *= num
+print(fm // fn // fmn)
+</code></pre>
+<h3 id="函数的作用"><a href="#函数的作用" class="headerlink" title="函数的作用"></a>函数的作用</h3><p>不知道大家是否注意到，在上面的代码中，我们做了3次求阶乘，这样的代码实际上就是重复代码。编程大师<em>Martin Fowler</em>先生曾经说过：“<strong>代码有很多种坏味道，重复是最坏的一种！</strong>”，要写出高质量的代码首先要解决的就是重复代码的问题。对于上面的代码来说，我们可以将计算阶乘的功能封装到一个称之为“函数”的功能模块中，在需要计算阶乘的地方，我们只需要“调用”这个“函数”就可以了。</p>
+<h3 id="定义函数"><a href="#定义函数" class="headerlink" title="定义函数"></a>定义函数</h3><p>在Python中可以使用<code>def</code>关键字来定义函数，和变量一样每个函数也有一个响亮的名字，而且命名规则跟变量的命名规则是一致的。在函数名后面的圆括号中可以放置传递给函数的参数，这一点和数学上的函数非常相似，程序中函数的参数就相当于是数学上说的函数的自变量，而函数执行完成后我们可以通过<code>return</code>关键字来返回一个值，这相当于数学上说的函数的因变量。</p>
+<p>在了解了如何定义函数后，我们可以对上面的代码进行重构，所谓重构就是在不影响代码执行结果的前提下对代码的结构进行调整，重构之后的代码如下所示。</p>
+<pre><code class="python">def factorial(num):
+    &quot;&quot;&quot;
+    求阶乘
+    
+    :param num: 非负整数
+    :return: num的阶乘
+    &quot;&quot;&quot;
+    result = 1
+    for n in range(1, num + 1):
+        result *= n
+    return result
+
+
+m = int(input(&#39;m = &#39;))
+n = int(input(&#39;n = &#39;))
+# 当需要计算阶乘的时候不用再写循环求阶乘而是直接调用已经定义好的函数
+print(factorial(m) // factorial(n) // factorial(m - n))
+</code></pre>
+<blockquote>
+<p><strong>说明：</strong> Python的math模块中其实已经有一个factorial函数了，事实上要计算阶乘可以直接使用这个现成的函数而不用自己定义。下面例子中的某些函数其实Python中也是内置了，我们这里是为了讲解函数的定义和使用才把它们又实现了一遍，实际开发中不建议做这种低级的重复性的工作。</p>
+</blockquote>
+<h3 id="函数的参数"><a href="#函数的参数" class="headerlink" title="函数的参数"></a>函数的参数</h3><p>函数是绝大多数编程语言中都支持的一个代码的“构建块”，但是Python中的函数与其他语言中的函数还是有很多不太相同的地方，其中一个显著的区别就是Python对函数参数的处理。在Python中，函数的参数可以有默认值，也支持使用可变参数，所以Python并不需要像其他语言一样支持<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%87%BD%E6%95%B0%E9%87%8D%E8%BD%BD">函数的重载</a>，因为我们在定义一个函数的时候可以让它有多种不同的使用方式，下面是两个小例子。</p>
+<pre><code class="python">from random import randint
+
+
+def roll_dice(n=2):
+    &quot;&quot;&quot;
+    摇色子
+    
+    :param n: 色子的个数
+    :return: n颗色子点数之和
+    &quot;&quot;&quot;
+    total = 0
+    for _ in range(n):
+        total += randint(1, 6)
+    return total
+
+
+def add(a=0, b=0, c=0):
+    return a + b + c
+
+
+# 如果没有指定参数那么使用默认值摇两颗色子
+print(roll_dice())
+# 摇三颗色子
+print(roll_dice(3))
+print(add())
+print(add(1))
+print(add(1, 2))
+print(add(1, 2, 3))
+# 传递参数时可以不按照设定的顺序进行传递
+print(add(c=50, a=100, b=200))
+</code></pre>
+<p>我们给上面两个函数的参数都设定了默认值，这也就意味着如果在调用函数的时候如果没有传入对应参数的值时将使用该参数的默认值，所以在上面的代码中我们可以用各种不同的方式去调用<code>add</code>函数，这跟其他很多语言中函数重载的效果是一致的。</p>
+<p>其实上面的<code>add</code>函数还有更好的实现方案，因为我们可能会对0个或多个参数进行加法运算，而具体有多少个参数是由调用者来决定，我们作为函数的设计者对这一点是一无所知的，因此在不确定参数个数的时候，我们可以使用可变参数，代码如下所示。</p>
+<pre><code class="python"># 在参数名前面的*表示args是一个可变参数
+# 即在调用add函数时可以传入0个或多个参数
+def add(*args):
+    total = 0
+    for val in args:
+        total += val
+    return total
+
+
+print(add())
+print(add(1))
+print(add(1, 2))
+print(add(1, 2, 3))
+print(add(1, 3, 5, 7, 9))
+</code></pre>
+<h3 id="用模块管理函数"><a href="#用模块管理函数" class="headerlink" title="用模块管理函数"></a>用模块管理函数</h3><p>对于任何一种编程语言来说，给变量、函数这样的标识符起名字都是一个让人头疼的问题，因为我们会遇到命名冲突这种尴尬的情况。最简单的场景就是在同一个.py文件中定义了两个同名函数，由于Python没有函数重载的概念，那么后面的定义会覆盖之前的定义，也就意味着两个函数同名函数实际上只有一个是存在的。</p>
+<pre><code class="python">def foo():
+    print(&#39;hello, world!&#39;)
+
+
+def foo():
+    print(&#39;goodbye, world!&#39;)
+
+
+# 下面的代码会输出什么呢？
+foo()
+</code></pre>
+<p>当然上面的这种情况我们很容易就能避免，但是如果项目是由多人协作进行团队开发的时候，团队中可能有多个程序员都定义了名为<code>foo</code>的函数，那么怎么解决这种命名冲突呢？答案其实很简单，Python中每个文件就代表了一个模块（module），我们在不同的模块中可以有同名的函数，在使用函数的时候我们通过<code>import</code>关键字导入指定的模块就可以区分到底要使用的是哪个模块中的<code>foo</code>函数，代码如下所示。</p>
+<p>module1.py</p>
+<pre><code class="python">def foo():
+    print(&#39;hello, world!&#39;)
+</code></pre>
+<p>module2.py</p>
+<pre><code class="python">def foo():
+    print(&#39;goodbye, world!&#39;)
+</code></pre>
+<p>test.py</p>
+<pre><code class="python">from module1 import foo
+
+# 输出hello, world!
+foo()
+
+from module2 import foo
+
+# 输出goodbye, world!
+foo()
+</code></pre>
+<p>也可以按照如下所示的方式来区分到底要使用哪一个<code>foo</code>函数。</p>
+<p>test.py</p>
+<pre><code class="python">import module1 as m1
+import module2 as m2
+
+m1.foo()
+m2.foo()
+</code></pre>
+<p>但是如果将代码写成了下面的样子，那么程序中调用的是最后导入的那个<code>foo</code>，因为后导入的foo覆盖了之前导入的<code>foo</code>。</p>
+<p>test.py</p>
+<pre><code class="python">from module1 import foo
+from module2 import foo
+
+# 输出goodbye, world!
+foo()
+</code></pre>
+<p>test.py</p>
+<pre><code class="python">from module2 import foo
+from module1 import foo
+
+# 输出hello, world!
+foo()
+</code></pre>
+<p>需要说明的是，如果我们导入的模块除了定义函数之外还中有可以执行代码，那么Python解释器在导入这个模块时就会执行这些代码，事实上我们可能并不希望如此，因此如果我们在模块中编写了执行代码，最好是将这些执行代码放入如下所示的条件中，这样的话除非直接运行该模块，if条件下的这些代码是不会执行的，因为只有直接执行的模块的名字才是“__main__”。</p>
+<p>module3.py</p>
+<pre><code class="python">def foo():
+    pass
+
+
+def bar():
+    pass
+
+
+# __name__是Python中一个隐含的变量它代表了模块的名字
+# 只有被Python解释器直接执行的模块的名字才是__main__
+if __name__ == &#39;__main__&#39;:
+    print(&#39;call foo()&#39;)
+    foo()
+    print(&#39;call bar()&#39;)
+    bar()
+</code></pre>
+<p>test.py</p>
+<pre><code class="python">import module3
+
+# 导入module3时 不会执行模块中if条件成立时的代码 因为模块的名字是module3而不是__main__
+</code></pre>
+<h3 id="练习"><a href="#练习" class="headerlink" title="练习"></a>练习</h3><h4 id="练习1：实现计算求最大公约数和最小公倍数的函数。"><a href="#练习1：实现计算求最大公约数和最小公倍数的函数。" class="headerlink" title="练习1：实现计算求最大公约数和最小公倍数的函数。"></a>练习1：实现计算求最大公约数和最小公倍数的函数。</h4><p>参考答案：</p>
+<pre><code class="python">def gcd(x, y):
+    (x, y) = (y, x) if x &gt; y else (x, y)
+    for factor in range(x, 0, -1):
+        if x % factor == 0 and y % factor == 0:
+            return factor
+
+
+def lcm(x, y):
+    return x * y // gcd(x, y)
+</code></pre>
+<h4 id="练习2：实现判断一个数是不是回文数的函数。"><a href="#练习2：实现判断一个数是不是回文数的函数。" class="headerlink" title="练习2：实现判断一个数是不是回文数的函数。"></a>练习2：实现判断一个数是不是回文数的函数。</h4><p>参考答案：</p>
+<pre><code class="python">def is_palindrome(num):
+    temp = num
+    total = 0
+    while temp &gt; 0:
+        total = total * 10 + temp % 10
+        temp //= 10
+    return total == num
+</code></pre>
+<h4 id="练习3：实现判断一个数是不是素数的函数。"><a href="#练习3：实现判断一个数是不是素数的函数。" class="headerlink" title="练习3：实现判断一个数是不是素数的函数。"></a>练习3：实现判断一个数是不是素数的函数。</h4><p>参考答案：</p>
+<pre><code class="python">def is_prime(num):
+    for factor in range(2, num):
+        if num % factor == 0:
+            return False
+    return True if num != 1 else False
+</code></pre>
+<h4 id="练习4：写一个程序判断输入的正整数是不是回文素数。"><a href="#练习4：写一个程序判断输入的正整数是不是回文素数。" class="headerlink" title="练习4：写一个程序判断输入的正整数是不是回文素数。"></a>练习4：写一个程序判断输入的正整数是不是回文素数。</h4><p>参考答案：</p>
+<pre><code class="python">if __name__ == &#39;__main__&#39;:
+    num = int(input(&#39;请输入正整数: &#39;))
+    if is_palindrome(num) and is_prime(num):
+        print(&#39;%d是回文素数&#39; % num)
+</code></pre>
+<p>通过上面的程序可以看出，当我们将代码中重复出现的和相对独立的功能抽取成函数后，我们可以组合使用这些函数来解决更为复杂的问题，这也是我们为什么要定义和使用函数的一个非常重要的原因。</p>
+<p>最后，我们来讨论一下Python中有关变量作用域的问题。</p>
+<pre><code class="python">def foo():
+    b = &#39;hello&#39;
+
+    def bar():  # Python中可以在函数内部再定义函数
+        c = True
+        print(a)
+        print(b)
+        print(c)
+
+    bar()
+    # print(c)  # NameError: name &#39;c&#39; is not defined
+
+
+if __name__ == &#39;__main__&#39;:
+    a = 100
+    # print(b)  # NameError: name &#39;b&#39; is not defined
+    foo()
+</code></pre>
+<p>上面的代码能够顺利的执行并且打印出100和“hello”，但我们注意到了，在<code>bar</code>函数的内部并没有定义<code>a</code>和<code>b</code>两个变量，那么<code>a</code>和<code>b</code>是从哪里来的。我们在上面代码的<code>if</code>分支中定义了一个变量<code>a</code>，这是一个全局变量（global variable），属于全局作用域，因为它没有定义在任何一个函数中。在上面的<code>foo</code>函数中我们定义了变量<code>b</code>，这是一个定义在函数中的局部变量（local variable），属于局部作用域，在<code>foo</code>函数的外部并不能访问到它；但对于<code>foo</code>函数内部的<code>bar</code>函数来说，变量<code>b</code>属于嵌套作用域，在<code>bar</code>函数中我们是可以访问到它的。<code>bar</code>函数中的变量<code>c</code>属于局部作用域，在<code>bar</code>函数之外是无法访问的。事实上，Python查找一个变量时会按照“局部作用域”、“嵌套作用域”、“全局作用域”和“内置作用域”的顺序进行搜索，前三者我们在上面的代码中已经看到了，所谓的“内置作用域”就是Python内置的那些隐含标识符<code>min</code>、<code>len</code>等都属于内置作用域）。</p>
+<p>再看看下面这段代码，我们希望通过函数调用修改全局变量<code>a</code>的值，但实际上下面的代码是做不到的。</p>
+<pre><code class="python">def foo():
+    a = 200
+    print(a)  # 200
+
+
+if __name__ == &#39;__main__&#39;:
+    a = 100
+    foo()
+    print(a)  # 100
+</code></pre>
+<p>在调用<code>foo</code>函数后，我们发现<code>a</code>的值仍然是100，这是因为当我们在函数<code>foo</code>中写<code>a = 200</code>的时候，是重新定义了一个名字为<code>a</code>的局部变量，它跟全局作用域的<code>a</code>并不是同一个变量，因为局部作用域中有了自己的变量<code>a</code>，因此<code>foo</code>函数不再搜索全局作用域中的<code>a</code>。如果我们希望在<code>foo</code>函数中修改全局作用域中的<code>a</code>，代码如下所示。</p>
+<pre><code class="python">def foo():
+    global a
+    a = 200
+    print(a)  # 200
+
+
+if __name__ == &#39;__main__&#39;:
+    a = 100
+    foo()
+    print(a)  # 200
+</code></pre>
+<p>我们可以使用<code>global</code>关键字来指示<code>foo</code>函数中的变量<code>a</code>来自于全局作用域，如果全局作用域中没有<code>a</code>，那么下面一行的代码就会定义变量<code>a</code>并将其置于全局作用域。同理，如果我们希望函数内部的函数能够修改嵌套作用域中的变量，可以使用<code>nonlocal</code>关键字来指示变量来自于嵌套作用域，请大家自行试验。</p>
+<p>在实际开发中，我们应该尽量减少对全局变量的使用，因为全局变量的作用域和影响过于广泛，可能会发生意料之外的修改和使用，除此之外全局变量比局部变量拥有更长的生命周期，可能导致对象占用的内存长时间无法被<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6_(%E8%A8%88%E7%AE%97%E6%A9%9F%E7%A7%91%E5%AD%B8)">垃圾回收</a>。事实上，减少对全局变量的使用，也是降低代码之间耦合度的一个重要举措，同时也是对<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/%E5%BE%97%E5%A2%A8%E5%BF%92%E8%80%B3%E5%AE%9A%E5%BE%8B">迪米特法则</a>的践行。减少全局变量的使用就意味着我们应该尽量让变量的作用域在函数的内部，但是如果我们希望将一个局部变量的生命周期延长，使其在函数调用结束后依然可以访问，这时候就需要使用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E9%97%AD%E5%8C%85_(%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%A7%91%E5%AD%A6)">闭包</a>，这个我们在后续的内容中进行讲解。</p>
+<blockquote>
+<p><strong>说明：</strong> 很多人经常会将“闭包”和<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0">“匿名函数”</a>混为一谈，但实际上它们是不同的概念，如果想提前了解这个概念，推荐看看<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/">维基百科</a>或者<a target="_blank" rel="noopener" href="https://www.zhihu.com/">知乎</a>上对这个概念的讨论。</p>
+</blockquote>
+<p>说了那么多，其实结论很简单，从现在开始我们可以将Python代码按照下面的格式进行书写，这一点点的改进其实就是在我们理解了函数和作用域的基础上跨出的巨大的一步。</p>
+<pre><code class="python">def main():
+    # Todo: Add your code here
+    pass
+
+
+if __name__ == &#39;__main__&#39;:
+    main()
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/10/python-4-%E5%BE%AA%E7%8E%AF%E7%BB%93%E6%9E%84/" rel="prev" title="python#4-循环结构">
+      <i class="fa fa-chevron-left"></i> python#4-循环结构
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/11/python-6-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="next" title="python#6-常用数据结构">
+      python#6-常用数据结构 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E5%92%8C%E6%A8%A1%E5%9D%97%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">函数和模块的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text">函数的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0"><span class="nav-text">定义函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E7%9A%84%E5%8F%82%E6%95%B0"><span class="nav-text">函数的参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E6%A8%A1%E5%9D%97%E7%AE%A1%E7%90%86%E5%87%BD%E6%95%B0"><span class="nav-text">用模块管理函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%83%E4%B9%A0"><span class="nav-text">练习</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A01%EF%BC%9A%E5%AE%9E%E7%8E%B0%E8%AE%A1%E7%AE%97%E6%B1%82%E6%9C%80%E5%A4%A7%E5%85%AC%E7%BA%A6%E6%95%B0%E5%92%8C%E6%9C%80%E5%B0%8F%E5%85%AC%E5%80%8D%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0%E3%80%82"><span class="nav-text">练习1：实现计算求最大公约数和最小公倍数的函数。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A02%EF%BC%9A%E5%AE%9E%E7%8E%B0%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E6%95%B0%E6%98%AF%E4%B8%8D%E6%98%AF%E5%9B%9E%E6%96%87%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0%E3%80%82"><span class="nav-text">练习2：实现判断一个数是不是回文数的函数。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A03%EF%BC%9A%E5%AE%9E%E7%8E%B0%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E6%95%B0%E6%98%AF%E4%B8%8D%E6%98%AF%E7%B4%A0%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0%E3%80%82"><span class="nav-text">练习3：实现判断一个数是不是素数的函数。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%83%E4%B9%A04%EF%BC%9A%E5%86%99%E4%B8%80%E4%B8%AA%E7%A8%8B%E5%BA%8F%E5%88%A4%E6%96%AD%E8%BE%93%E5%85%A5%E7%9A%84%E6%AD%A3%E6%95%B4%E6%95%B0%E6%98%AF%E4%B8%8D%E6%98%AF%E5%9B%9E%E6%96%87%E7%B4%A0%E6%95%B0%E3%80%82"><span class="nav-text">练习4：写一个程序判断输入的正整数是不是回文素数。</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

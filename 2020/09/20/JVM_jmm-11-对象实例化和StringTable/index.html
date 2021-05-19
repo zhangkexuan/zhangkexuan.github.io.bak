@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="解决jmm中最重要也是最难的两个问题：1. 对象实例化时内存的布局和访问定位；2. StringTable的机制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM_jmm#11-对象实例化和StringTable">
+<meta property="og:url" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="解决jmm中最重要也是最难的两个问题：1. 对象实例化时内存的布局和访问定位；2. StringTable的机制">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200709095356247.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200709151033237.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200709152801713.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200709164149920.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200709164342002.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200709164350466.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200711093546398.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200711093558709.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200711102231129.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/4903ce64.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/1bdc831a.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/425a283c.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200711150859709.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200711151326909.png">
+<meta property="og:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200711151433277.png">
+<meta property="article:published_time" content="2020-09-20T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:03:42.061Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="JMM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/image-20200709095356247.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>JVM_jmm#11-对象实例化和StringTable | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JVM_jmm#11-对象实例化和StringTable
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-20 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-20T09:34:33+08:00">2020-09-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>解决jmm中最重要也是最难的两个问题：1. 对象实例化时内存的布局和访问定位；2. StringTable的机制</p>
+<span id="more"></span>
+
+<h1 id="对象实例化"><a href="#对象实例化" class="headerlink" title="对象实例化"></a>对象实例化</h1><blockquote>
+<p>面试题</p>
+<ul>
+<li>对象在JVM中是怎么存储的？</li>
+<li>对象头信息里面有哪些东西？</li>
+<li>Java对象头有什么？</li>
+</ul>
+</blockquote>
+<p>从对象创建的方式 和 步骤开始说</p>
+<p><img src="image-20200709095356247.png" alt="image-20200709095356247"></p>
+<h2 id="对象创建方式"><a href="#对象创建方式" class="headerlink" title="对象创建方式"></a>对象创建方式</h2><ul>
+<li>new：最常见的方式、单例类中调用getInstance的静态类方法，XXXFactory的静态方法</li>
+<li>Class的newInstance方法：在JDK9里面被标记为过时的方法，因为只能调用空参构造器</li>
+<li>Constructor的newInstance(XXX)：反射的方式，可以调用空参的，或者带参的构造器</li>
+<li>使用clone()：不调用任何的构造器，要求当前的类需要实现Cloneable接口中的clone接口</li>
+<li>使用序列化：序列化一般用于Socket的网络传输</li>
+<li>第三方库 Objenesis</li>
+</ul>
+<h2 id="创建对象的步骤"><a href="#创建对象的步骤" class="headerlink" title="创建对象的步骤"></a>创建对象的步骤</h2><h3 id="1-判断对象对应的类是否加载、链接、初始化"><a href="#1-判断对象对应的类是否加载、链接、初始化" class="headerlink" title="1. 判断对象对应的类是否加载、链接、初始化"></a>1. 判断对象对应的类是否加载、链接、初始化</h3><p>虚拟机遇到一条new指令，首先去检查这个指令的参数能否在Metaspace的常量池中定位到一个类的符号引用，并且检查这个符号引用代表的类是否已经被加载，解析和初始化。（即判断类元信息是否存在）。如果没有，那么在双亲委派模式下，使用当前类加载器以ClassLoader + 包名 + 类名为key进行查找对应的 .class文件，如果没有找到文件，则抛出ClassNotFoundException异常，如果找到，则进行类加载，并生成对应的Class对象。</p>
+<h3 id="2-为对象分配内存"><a href="#2-为对象分配内存" class="headerlink" title="2. 为对象分配内存"></a>2. 为对象分配内存</h3><p>首先计算对象占用空间的大小，接着在堆中划分一块内存给新对象。如果实例成员变量是引用变量，仅分配引用变量空间即可，即4个字节大小</p>
+<ul>
+<li><p>如果内存规整：指针碰撞</p>
+</li>
+<li><p>如果内存不规整</p>
+<ul>
+<li>虚拟表需要维护一个列表</li>
+<li>空闲列表分配</li>
+</ul>
+</li>
+</ul>
+<p>如果内存是规整的，那么虚拟机将采用的是指针碰撞法（Bump The Point）来为对象分配内存。</p>
+<p>意思是所有用过的内存在一边，空闲的内存放另外一边，中间放着一个指针作为分界点的指示器，分配内存就仅仅是把指针指向空闲那边挪动一段与对象大小相等的距离罢了。如果垃圾收集器选择的是Serial ，ParNew这种基于压缩算法的，虚拟机采用这种分配方式。一般使用带Compact（整理）过程的收集器时，使用指针碰撞。</p>
+<p>如果内存不是规整的，已使用的内存和未使用的内存相互交错，那么虚拟机将采用的是空闲列表来为对象分配内存。意思是虚拟机维护了一个列表，记录上那些内存块是可用的，再分配的时候从列表中找到一块足够大的空间划分给对象实例，并更新列表上的内容。这种分配方式成为了 “空闲列表（Free List）”</p>
+<p>选择哪种分配方式由Java堆是否规整所决定，而Java堆是否规整又由所采用的垃圾收集器是否带有压缩整理功能决定。</p>
+<h3 id="3-处理并发问题"><a href="#3-处理并发问题" class="headerlink" title="3. 处理并发问题"></a>3. 处理并发问题</h3><ul>
+<li>采用CAS配上失败重试保证更新的原子性</li>
+<li>每个线程预先分配TLAB - 通过设置 -XX:+UseTLAB参数来设置（区域加锁机制）<ul>
+<li>在Eden区给每个线程分配一块区域</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-初始化分配到的内存"><a href="#4-初始化分配到的内存" class="headerlink" title="4. 初始化分配到的内存"></a>4. 初始化分配到的内存</h3><p>给对象属性赋值的操作</p>
+<ul>
+<li><p>属性的默认初始化</p>
+</li>
+<li><p>显示初始化</p>
+</li>
+<li><p>代码块中的初始化</p>
+</li>
+<li><p>构造器初始化</p>
+</li>
+<li><p>所有属性设置默认值，保证对象实例字段在不赋值可以直接使用</p>
+</li>
+</ul>
+<h3 id="5-设置对象的对象头"><a href="#5-设置对象的对象头" class="headerlink" title="5. 设置对象的对象头"></a>5. 设置对象的对象头</h3><p>将对象的所属类（即类的元数据信息）、对象的HashCode和对象的GC信息、锁信息等数据存储在对象的对象头中。这个过程的具体设置方式取决于JVM实现。</p>
+<h3 id="6-执行init方法进行初始化"><a href="#6-执行init方法进行初始化" class="headerlink" title="6. 执行init方法进行初始化"></a>6. 执行init方法进行初始化</h3><p>在Java程序的视角看来，初始化才正式开始。初始化成员变量，执行实例化代码块，调用类的构造方法，并把堆内对象的首地址赋值给引用变量</p>
+<p>因此一般来说（由字节码中跟随invokespecial指令所决定），new指令之后会接着就是执行方法，把对象按照程序员的意愿进行初始化，这样一个真正可用的对象才算完成创建出来。</p>
+<h2 id="对象实例化的过程"><a href="#对象实例化的过程" class="headerlink" title="对象实例化的过程"></a>对象实例化的过程</h2><ul>
+<li>加载类元信息</li>
+<li>为对象分配内存</li>
+<li>处理并发问题</li>
+<li>属性的默认初始化（零值初始化）</li>
+<li>设置对象头信息</li>
+<li>属性的显示初始化、代码块中初始化、构造器中初始化</li>
+</ul>
+<h1 id="对象内存布局"><a href="#对象内存布局" class="headerlink" title="对象内存布局"></a>对象内存布局</h1><p><img src="image-20200709151033237.png" alt="image-20200709151033237"></p>
+<h2 id="对象头（Header）"><a href="#对象头（Header）" class="headerlink" title="对象头（Header）"></a>对象头（Header）</h2><p>对象头包含了两部分，分别是 运行时元数据（Mark Word）和 类型指针</p>
+<blockquote>
+<p>如果是数组，还需要记录数组的长度</p>
+</blockquote>
+<h3 id="运行时元数据"><a href="#运行时元数据" class="headerlink" title="运行时元数据"></a>运行时元数据</h3><ul>
+<li>哈希值（HashCode）</li>
+<li>GC分代年龄</li>
+<li>锁状态标志</li>
+<li>线程持有的锁</li>
+<li>偏向线程ID</li>
+<li>翩向时间戳</li>
+</ul>
+<h3 id="类型指针"><a href="#类型指针" class="headerlink" title="类型指针"></a>类型指针</h3><p>指向类元数据InstanceKlass，确定该对象所属的类型。指向的其实是方法区中存放的类元信息</p>
+<h2 id="实例数据（Instance-Data）"><a href="#实例数据（Instance-Data）" class="headerlink" title="实例数据（Instance Data）"></a>实例数据（Instance Data）</h2><h3 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h3><p>它是对象真正存储的有效信息,包括程序代码中定义的各种类型的字段(包括从父类继承下来的和本身拥有的字段)</p>
+<h3 id="规则"><a href="#规则" class="headerlink" title="规则"></a>规则</h3><ul>
+<li>相同宽度的字段总是被分配在一起</li>
+<li>父类中定义的变量会出现在子类之前</li>
+<li>如果Compactrields参数为true(默认为true) :子类的窄变量可能插入到父类变量的空隙</li>
+</ul>
+<h2 id="对齐填充-Padding"><a href="#对齐填充-Padding" class="headerlink" title="对齐填充(Padding)"></a>对齐填充(Padding)</h2><p>不是必须的,也没特别含义,仅仅起到占位符的作用</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p><img src="image-20200709152801713.png" alt="image-20200709152801713"></p>
+<h1 id="对象的访问定位"><a href="#对象的访问定位" class="headerlink" title="对象的访问定位"></a>对象的访问定位</h1><p>JVM是如何通过栈帧中的对象引用访问到其内部的对象实例呢？</p>
+<p><img src="image-20200709164149920.png" alt="image-20200709164149920"></p>
+<h2 id="句柄访问"><a href="#句柄访问" class="headerlink" title="句柄访问"></a>句柄访问</h2><p><img src="image-20200709164342002.png" alt="image-20200709164342002"></p>
+<p>句柄访问就是说栈的局部变量表中，记录的对象的引用，然后在堆空间中开辟了一块空间，也就是句柄池</p>
+<p><strong>优点</strong></p>
+<p>reference中存储稳定句柄地址，对象被移动（垃圾收集时移动对象很普遍）时只会改变句柄中实例数据指针即可，reference本身不需要被修改</p>
+<h2 id="直接指针（HotSpot采用）"><a href="#直接指针（HotSpot采用）" class="headerlink" title="直接指针（HotSpot采用）"></a>直接指针（HotSpot采用）</h2><p><img src="image-20200709164350466.png" alt="image-20200709164350466"></p>
+<p>直接指针是局部变量表中的引用，直接指向堆中的实例，在对象实例中有类型指针，指向的是方法区中的对象类型数据</p>
+<h1 id="StringTable"><a href="#StringTable" class="headerlink" title="StringTable"></a>StringTable</h1><h2 id="String的特征"><a href="#String的特征" class="headerlink" title="String的特征"></a>String的特征</h2><h3 id="基本特点"><a href="#基本特点" class="headerlink" title="基本特点"></a>基本特点</h3><ol>
+<li>String：字符串，使用一对 ”” 引起来表示<ul>
+<li>String s1 = “zhangkx” ;   // 字面量的定义方式</li>
+<li>String s2 =  new String(“zhang”); </li>
+</ul>
+</li>
+<li>string声明为final的，不可被继承</li>
+<li>String实现了Serializable接口：表示字符串是支持序列化的。实现了Comparable接口：表示string可以比较大小</li>
+<li>string在jdk8及以前内部定义了final char[] value用于存储字符串数据。JDK9时改为byte[] value</li>
+</ol>
+<blockquote>
+<h3 id="为什么JDK9改变了结构"><a href="#为什么JDK9改变了结构" class="headerlink" title="为什么JDK9改变了结构?"></a>为什么JDK9改变了结构?</h3><p>String类的当前实现将字符存储在char数组中，每个字符使用两个字节(16位)。从许多不同的应用程序收集的数据表明，字符串是堆使用的主要组成部分，而且，大多数字符串对象只包含拉丁字符。这些字符只需要一个字节的存储空间，因此这些字符串对象的内部char数组中有一半的空间将不会使用。</p>
+<p>我们建议改变字符串的内部表示class从utf - 16字符数组到字节数组+一个encoding-flag字段。新的String类将根据字符串的内容存储编码为ISO-8859-1/Latin-1(每个字符一个字节)或UTF-16(每个字符两个字节)的字符。编码标志将指示使用哪种编码。</p>
+<p>结论：String再也不用char[] 来存储了，改成了byte [] 加上编码标记，节约了一些空间</p>
+<pre><code class="java">// 之前
+private final char[] value;
+// 之后
+private final byte[] value
+</code></pre>
+<p>同时基于String的数据结构，例如StringBuffer和StringBuilder也同样做了修改</p>
+</blockquote>
+<h3 id="不可变性"><a href="#不可变性" class="headerlink" title="不可变性"></a>不可变性</h3><p>String：代表不可变的字符序列。简称：不可变性。</p>
+<blockquote>
+<p>当对字符串重新赋值时，需要重写指定内存区域赋值，不能使用原有的value进行赋值。<br>当对现有的字符串进行连接操作时，也需要重新指定内存区域赋值，不能使用原有的value进行赋值。<br>当调用string的replace（）方法修改指定字符或字符串时，也需要重新指定内存区域赋值，不能使用原有的value进行赋值。<br>通过字面量的方式（区别于new）给一个字符串赋值，此时的字符串值声明在字符串常量池中。</p>
+</blockquote>
+<h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><p><strong>不可变性</strong></p>
+<pre><code class="java">/**
+ * String的不可变性
+ *
+ * @author: zhangkx
+ * @create: 2020-07-11-8:57
+ */
+public class StringTest1 &#123;
+
+    public static void test1() &#123;
+        // 字面量定义的方式，“abc”存储在字符串常量池中
+        String s1 = &quot;abc&quot;;
+        String s2 = &quot;abc&quot;;
+        System.out.println(s1 == s2);
+        s1 = &quot;hello&quot;;
+        System.out.println(s1 == s2);
+        System.out.println(s1);
+        System.out.println(s2);
+        System.out.println(&quot;----------------&quot;);
+    &#125;
+
+    public static void test2() &#123;
+        String s1 = &quot;abc&quot;;
+        String s2 = &quot;abc&quot;;
+        // 只要进行了修改，就会重新创建一个对象，这就是不可变性
+        s2 += &quot;def&quot;;
+        System.out.println(s1);
+        System.out.println(s2);
+        System.out.println(&quot;----------------&quot;);
+    &#125;
+
+    public static void test3() &#123;
+        String s1 = &quot;abc&quot;;
+        String s2 = s1.replace(&#39;a&#39;, &#39;m&#39;);
+        System.out.println(s1);
+        System.out.println(s2);
+    &#125;
+
+    public static void main(String[] args) &#123;
+        test1();
+        test2();
+        test3();
+    &#125;
+&#125;
+</code></pre>
+<p>运行结果</p>
+<pre><code>true
+false
+hello
+abc
+----------------
+abc
+abcdef
+----------------
+abc
+mbc
+</code></pre>
+<p>面试题—也是不可变性</p>
+<pre><code class="java">/**
+ * 面试题（也是不可变性）
+ *
+ * @author: zhangkx
+ * @create: 2020-07-11-9:05
+ */
+public class StringExer &#123;
+    String str = new String(&quot;good&quot;);
+    char [] ch = &#123;&#39;t&#39;,&#39;e&#39;,&#39;s&#39;,&#39;t&#39;&#125;;
+
+    public void change(String str, char ch []) &#123;
+        str = &quot;test ok&quot;;
+        ch[0] = &#39;b&#39;;
+    &#125;
+
+    public static void main(String[] args) &#123;
+        StringExer ex = new StringExer();
+        ex.change(ex.str, ex.ch);
+        System.out.println(ex.str);
+        System.out.println(ex.ch);
+    &#125;
+&#125;
+</code></pre>
+<p>输出结果</p>
+<pre><code>good
+best
+</code></pre>
+<h2 id="String的内存分配——StringTable"><a href="#String的内存分配——StringTable" class="headerlink" title="String的内存分配——StringTable"></a>String的内存分配——StringTable</h2><p><strong>String的内存分配是分配在常量池——StringTable。</strong></p>
+<p>在Java语言中有8种基本数据类型和一种比较特殊的类型string。这些类型为了使它们在运行过程中速度更快、更节省内存，都提供了一种常量池的概念。</p>
+<h3 id="StringTable的用法"><a href="#StringTable的用法" class="headerlink" title="StringTable的用法"></a>StringTable的用法</h3><p>常量池就类似一个Java系统级别提供的缓存。8种基本数据类型的常量池都是系统协调的，string类型的常量池比较特殊。它的主要使用方法有两种。</p>
+<ol>
+<li><p>直接使用双引号声明出来的String对象会直接存储在常量池中。</p>
+<p>eg：string info=”github.io”；</p>
+</li>
+<li><p>如果不是用双引号声明的string对象，可以使用string提供的intern()方法。</p>
+<p>eg: info.intern();</p>
+</li>
+</ol>
+<h3 id="StringTable的位置"><a href="#StringTable的位置" class="headerlink" title="StringTable的位置"></a>StringTable的位置</h3><h4 id="Java-6及以前"><a href="#Java-6及以前" class="headerlink" title="Java 6及以前"></a>Java 6及以前</h4><p>Java 6及以前字符串常量池存放在永久代</p>
+<p><img src="image-20200711093546398.png" alt="image-20200711093546398"></p>
+<h4 id="java7"><a href="#java7" class="headerlink" title="java7"></a>java7</h4><p>Java 7中 oracle的工程师对字符串池的逻辑做了很大的改变，即将字符串常量池的位置调整到Java堆内</p>
+<blockquote>
+<p>所有的字符串都保存在堆（Heap）中，和其他普通对象一样，这样可以让你在进行调优应用时仅需要调整堆大小就可以了。</p>
+<p>字符串常量池概念原本使用得比较多，但是这个改动使得我们有足够的理由让我们重新考虑在Java 7中使用string.intern（）。</p>
+</blockquote>
+<p><img src="image-20200711093558709.png" alt="image-20200711093558709"></p>
+<blockquote>
+<h4 id="为什么StringTable从永久代调整到堆中"><a href="#为什么StringTable从永久代调整到堆中" class="headerlink" title="为什么StringTable从永久代调整到堆中"></a>为什么StringTable从永久代调整到堆中</h4><p>在JDK 7中，interned字符串不再在Java堆的永久生成中分配，而是在Java堆的主要部分(称为年轻代和年老代)中分配，与应用程序创建的其他对象一起分配。此更改将导致驻留在主Java堆中的数据更多，驻留在永久生成中的数据更少，因此可能需要调整堆大小。由于这一变化，大多数应用程序在堆使用方面只会看到相对较小的差异，但加载许多类或大量使用字符串的较大应用程序会出现这种差异。intern()方法会看到更显著的差异。</p>
+<ul>
+<li>永久代的默认比较小</li>
+<li>永久代垃圾回收频率低</li>
+</ul>
+</blockquote>
+<h4 id="java8"><a href="#java8" class="headerlink" title="java8"></a>java8</h4><p>Java8元空间，字符串常量在堆</p>
+<h3 id="StringTable的特点"><a href="#StringTable的特点" class="headerlink" title="StringTable的特点"></a>StringTable的特点</h3><p><strong>字符串常量池是不会存储相同内容的字符串的</strong></p>
+<p>String的string Pool<strong>是一个固定大小的Hashtable</strong>，默认值大小长度是1009。如果放进string Pool的string非常多，就会造成Hash冲突严重，从而导致链表会很长，而链表长了后直接会造成的影响就是当调用string.intern时性能会大幅下降。</p>
+<p>使用-XX:StringTablesize可设置stringTable的长度</p>
+<p>在jdk6中stringTable是固定的，就是1009的长度，所以如果常量池中的字符串过多就会导致效率下降很快。stringTablesize设置没有要求</p>
+<p>在jdk7中，stringTable的长度默认值是60013，</p>
+<p>在JDK8中，StringTable可以设置的最小值为1009</p>
+<h3 id="StringTable的垃圾回收"><a href="#StringTable的垃圾回收" class="headerlink" title="StringTable的垃圾回收"></a>StringTable的垃圾回收</h3><pre><code class="java">/**
+ * String的垃圾回收
+ * -Xms15m -Xmx15m -XX:+PrintStringTableStatistics -XX:+PrintGCDetails
+ * @author: zhangkx
+ * @create: 2020-07-11-16:55
+ */
+public class StringGCTest &#123;
+    public static void main(String[] args) &#123;
+        for (int i = 0; i &lt; 100000; i++) &#123;
+            String.valueOf(i).intern();
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<h3 id="G1中的String去重操作"><a href="#G1中的String去重操作" class="headerlink" title="G1中的String去重操作"></a>G1中的String去重操作</h3><p>注意这里说的重复，指的是在堆中的数据，而不是常量池中的，因为常量池中的本身就不会重复</p>
+<h4 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h4><p>背景：对许多Java应用（有大的也有小的）做的测试得出以下结果：</p>
+<ul>
+<li><p>堆存活数据集合里面string对象占了25%</p>
+</li>
+<li><p>堆存活数据集合里面重复的string对象有13.5%</p>
+</li>
+<li><p>string对象的平均长度是45</p>
+</li>
+</ul>
+<p>许多大规模的Java应用的瓶颈在于内存，测试表明，在这些类型的应用里面，Java堆中存活的数据集合差不多25%是string对象。更进一步，这里面差不多一半string对象是重复的，重复的意思是说：<br>stringl.equals（string2）= true。堆上存在重复的string对象必然是一种内存的浪费。这个项目将在G1垃圾收集器中实现自动持续对重复的string对象进行去重，这样就能避免浪费内存。</p>
+<h4 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h4><ul>
+<li>当垃圾收集器工作的时候，会访问堆上存活的对象。对每一个访问的对象都会检查是否是候选的要去重的string对象。</li>
+<li>如果是，把这个对象的一个引用插入到队列中等待后续的处理。一个去重的线程在后台运行，处理这个队列。处理队列的一个元素意味着从队列删除这个元素，然后尝试去重它引用的string对象。</li>
+<li>使用一个hashtab1e来记录所有的被string对象使用的不重复的char数组。当去重的时候，会查这个hashtable，来看堆上是否已经存在一个一模一样的char数组。</li>
+<li>如果存在，string对象会被调整引用那个数组，释放对原来的数组的引用，最终会被垃圾收集器回收掉。</li>
+<li>如果查找失败，char数组会被插入到hashtable，这样以后的时候就可以共享这个数组了。</li>
+</ul>
+<h4 id="开启"><a href="#开启" class="headerlink" title="开启"></a>开启</h4><p>命令行选项</p>
+<blockquote>
+<p>UsestringDeduplication（bool）：开启string去重，默认是不开启的，需要手动开启。<br>Printstringbeduplicationstatistics（bool）：打印详细的去重统计信息<br>stringpeduplicationAgeThreshold（uintx）：达到这个年龄的string对象被认为是去重的候选对象</p>
+</blockquote>
+<h2 id="String的拼接"><a href="#String的拼接" class="headerlink" title="String的拼接"></a>String的拼接</h2><p>Java语言规范里要求完全相同的字符串字面量，应该包含同样的Unicode字符序列（包含同一份码点序列的常量），并且必须是指向同一个String类实例。</p>
+<h3 id="拼接操作"><a href="#拼接操作" class="headerlink" title="拼接操作"></a>拼接操作</h3><ol>
+<li>常量+常量—拼接结果在常量池，原理是编译期优化</li>
+<li>常量+变量—结果就在堆中，原理是StringBuilder</li>
+<li>变量+变量—结果就在堆中，原理是StringBuilder</li>
+<li>结果主动调用intern()方法—主动将常量池中还没有的字符串对象放入池中，并返回此对象地址</li>
+</ol>
+<p><strong>案例</strong></p>
+<pre><code class="java">    public static void test1() &#123;
+        String s1 = &quot;a&quot; + &quot;b&quot; + &quot;c&quot;;  // 得到 abc的常量池
+        String s2 = &quot;abc&quot;; // abc存放在常量池，直接将常量池的地址返回
+        /**
+         * 最终java编译成.class，再执行.class
+         */
+        System.out.println(s1 == s2); // true，因为存放在字符串常量池
+        System.out.println(s1.equals(s2)); // true
+    &#125;
+
+    public static void test2() &#123;
+        String s1 = &quot;javaEE&quot;;
+        String s2 = &quot;hadoop&quot;;
+        String s3 = &quot;javaEEhadoop&quot;;
+        String s4 = &quot;javaEE&quot; + &quot;hadoop&quot;;    
+        String s5 = s1 + &quot;hadoop&quot;;
+        String s6 = &quot;javaEE&quot; + s2;
+        String s7 = s1 + s2;
+
+        System.out.println(s3 == s4); // true
+        System.out.println(s3 == s5); // false
+        System.out.println(s3 == s6); // false
+        System.out.println(s3 == s7); // false
+        System.out.println(s5 == s6); // false
+        System.out.println(s5 == s7); // false
+        System.out.println(s6 == s7); // false
+
+        String s8 = s6.intern();
+        System.out.println(s3 == s8); // true
+    &#125;
+</code></pre>
+<p>从上述的结果我们可以知道：</p>
+<p>如果拼接符号的前后出现了变量，则相当于在堆空间中new String()，具体的内容为拼接的结果</p>
+<p>而调用intern方法，则会判断字符串常量池中是否存在JavaEEhadoop值，如果存在则返回常量池中的值，否者就在常量池中创建</p>
+<h3 id="拼接原理"><a href="#拼接原理" class="headerlink" title="拼接原理"></a>拼接原理</h3><h4 id="底层使用StringBuilder"><a href="#底层使用StringBuilder" class="headerlink" title="底层使用StringBuilder"></a>底层使用StringBuilder</h4><p>拼接操作的底层其实使用了StringBuilder</p>
+<p><img src="image-20200711102231129.png" alt="image-20200711102231129"></p>
+<p>s1 + s2的执行细节</p>
+<pre><code class="java">1. StringBuilder s = new StringBuilder();
+2. s.append(s1);
+3. s.append(s2);
+4. s.toString();  -&gt; 类似于new String(&quot;ab&quot;);
+</code></pre>
+<p><strong>所以，拼接的原理就是利用StringBuilder的append，然后用toString返回</strong></p>
+<h4 id="尽量使用final"><a href="#尽量使用final" class="headerlink" title="尽量使用final"></a>尽量使用final</h4><p>我们左右两边如果是变量的话，就是需要new StringBuilder进行拼接，但是如果使用的是final修饰，则是从常量池中获取。所以说拼接符号左右两边都是字符串常量或常量引用则仍然使用编译器优化。也就是说<strong>被final修饰的变量，将会变成常量</strong>，类和方法将不能被继承</p>
+<p><strong>在开发中，能够使用final的时候，建议使用上</strong></p>
+<pre><code class="java">public static void test4() &#123;
+    final String s1 = &quot;a&quot;;
+    final String s2 = &quot;b&quot;;
+    String s3 = &quot;ab&quot;;
+    String s4 = s1 + s2;
+    System.out.println(s3 == s4);
+&#125;
+</code></pre>
+<p>运行结果</p>
+<pre><code>true
+</code></pre>
+<h4 id="StringBuilder和StringBuffer"><a href="#StringBuilder和StringBuffer" class="headerlink" title="StringBuilder和StringBuffer"></a>StringBuilder和StringBuffer</h4><p>在JDK5之后，使用的是StringBuilder，在JDK5之前使用的是StringBuffer</p>
+<table>
+<thead>
+<tr>
+<th>String</th>
+<th>StringBuffer</th>
+<th>StringBuilder</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>String的值是不可变的，这就导致每次对String的操作都会生成新的String对象，不仅效率低下，而且浪费大量优先的内存空间</td>
+<td>StringBuffer是可变类，和线程安全的字符串操作类，任何对它指向的字符串的操作都不会产生新的对象。每个StringBuffer对象都有一定的缓冲区容量，当字符串大小没有超过容量时，不会分配新的容量，当字符串大小超过容量时，会自动增加容量</td>
+<td>可变类，速度更快</td>
+</tr>
+<tr>
+<td>不可变</td>
+<td>可变</td>
+<td>可变</td>
+</tr>
+<tr>
+<td></td>
+<td>线程安全</td>
+<td>线程不安全</td>
+</tr>
+<tr>
+<td></td>
+<td>多线程操作字符串</td>
+<td>单线程操作字符串</td>
+</tr>
+</tbody></table>
+<h4 id="和append的性能对比"><a href="#和append的性能对比" class="headerlink" title="+和append的性能对比"></a>+和append的性能对比</h4><pre><code class="java">    public static void method1(int highLevel) &#123;
+        String src = &quot;&quot;;
+        for (int i = 0; i &lt; highLevel; i++) &#123;
+            src += &quot;a&quot;; // 每次循环都会创建一个StringBuilder对象
+        &#125;
+    &#125;
+
+    public static void method2(int highLevel) &#123;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i &lt; highLevel; i++) &#123;
+            sb.append(&quot;a&quot;);
+        &#125;
+    &#125;
+</code></pre>
+<p>方法1耗费的时间：4005ms，方法2消耗时间：7ms</p>
+<p>结论：</p>
+<ul>
+<li>通过StringBuilder的append()方式添加字符串的效率，要远远高于String的字符串拼接方法</li>
+</ul>
+<p>好处</p>
+<ul>
+<li>StringBuilder的append的方式，自始至终只创建一个StringBuilder的对象</li>
+<li>对于字符串拼接的方式，还需要创建很多StringBuilder对象和 调用toString时候创建的String对象</li>
+<li>内存中由于创建了较多的StringBuilder和String对象，内存占用过大，如果进行GC那么将会耗费更多的时间</li>
+</ul>
+<p>改进的空间</p>
+<ul>
+<li>我们使用的是StringBuilder的空参构造器，默认的字符串容量是16，然后将原来的字符串拷贝到新的字符串中， 我们也可以默认初始化更大的长度，减少扩容的次数</li>
+<li>因此在实际开发中，我们能够确定，前前后后需要添加的字符串不高于某个限定值，那么建议使用构造器创建一个阈值的长度</li>
+</ul>
+<h3 id="intern"><a href="#intern" class="headerlink" title="intern()"></a>intern()</h3><p>intern 方法会从字符串常量池中查询当前字符串是否存在，若不存在就会将当前字符串放入常量池中</p>
+<h4 id="intern的使用"><a href="#intern的使用" class="headerlink" title="intern的使用"></a>intern的使用</h4><p>intern是一个native方法，调用的是底层C的方法</p>
+<p>字符串池最初是空的，由String类私有地维护。在调用intern方法时，如果池中已经包含了由equals(object)方法确定的与该字符串对象相等的字符串，则返回池中的字符串。否则，该字符串对象将被添加到池中，并返回对该字符串对象的引用。</p>
+<p>如果不是用双引号声明的string对象，可以使用string提供的intern方法：intern方法会从字符串常量池中查询当前字符串是否存在，若不存在就会将当前字符串放入常量池中。</p>
+<p>比如：</p>
+<pre><code>String myInfo = new string(&quot;I love xiaozha&quot;).intern();
+</code></pre>
+<p>也就是说，如果在任意字符串上调用string.intern方法，那么其返回结果所指向的那个类实例，必须和直接以常量形式出现的字符串实例完全相同。因此，下列表达式的值必定是true</p>
+<pre><code class="java">（&quot;a&quot;+&quot;b&quot;+&quot;c&quot;）.intern（）==&quot;abc&quot;
+</code></pre>
+<p>通俗点讲，<strong>Interned string就是确保字符串在内存里只有一份拷贝，这样可以节约内存空间，加快字符串操作任务的执行速度。</strong>注意，这个值会被存放在字符串内部池（String Intern Pool）</p>
+<h4 id="intern的空间效率"><a href="#intern的空间效率" class="headerlink" title="intern的空间效率"></a>intern的空间效率</h4><p>我们通过测试一下，使用了intern和不使用的时候，其实相差还挺多的</p>
+<pre><code class="java">/**
+ * 使用Intern() 测试执行效率
+ * @author: zhangkx
+ * @create: 2020-07-11-15:19
+ */
+public class StringIntern2 &#123;
+    static final int MAX_COUNT = 1000 * 10000;
+    static final String[] arr = new String[MAX_COUNT];
+
+    public static void main(String[] args) &#123;
+        Integer [] data = new Integer[]&#123;1,2,3,4,5,6,7,8,9,10&#125;;
+        long start = System.currentTimeMillis();
+        for (int i = 0; i &lt; MAX_COUNT; i++) &#123;
+            arr[i] = new String(String.valueOf(data[i%data.length])).intern();
+        &#125;
+        long end = System.currentTimeMillis();
+        System.out.println(&quot;花费的时间为：&quot; + (end - start));
+
+        try &#123;
+            Thread.sleep(1000000);
+        &#125; catch (Exception e) &#123;
+            e.getStackTrace();
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p><strong>结论</strong>：对于程序中大量使用存在的字符串时，尤其存在很多已经重复的字符串时，使用intern()方法能够节省内存空间。</p>
+<p>大的网站平台，需要内存中存储大量的字符串。比如社交网站，很多人都存储：北京市、海淀区等信息。这时候如果字符串都调用intern() 方法，就会很明显降低内存的大小。</p>
+<h4 id="intern深入"><a href="#intern深入" class="headerlink" title="intern深入"></a>intern深入</h4><p>先看美团团队的这篇文章<a target="_blank" rel="noopener" href="https://tech.meituan.com/2014/03/06/in-depth-understanding-string-intern.html">深入解析String#intern</a></p>
+<p>这里可直接看经典问题——intern问题</p>
+<p>JDK1.6中，将这个字符串对象尝试放入串池。</p>
+<ul>
+<li>如果串池中有，则并不会放入。返回已有的串池中的对象的地址</li>
+<li>如果没有，会把此<strong>对象复制一份</strong>，放入串池，并返回串池中的对象地址</li>
+</ul>
+<p>JDK1.7起，将这个字符串对象尝试放入串池。</p>
+<ul>
+<li>如果串池中有，则并不会放入。返回已有的串池中的对象的地址</li>
+<li>如果没有，则会把<strong>对象的引用地址</strong>复制一份，放入串池，并返回串池中的引用地址</li>
+</ul>
+<blockquote>
+</blockquote>
+<h2 id="经典问题"><a href="#经典问题" class="headerlink" title="经典问题"></a>经典问题</h2><h3 id="new-String-“ab”"><a href="#new-String-“ab”" class="headerlink" title="new String(“ab”)"></a>new String(“ab”)</h3><p>new String(“ab”)会创建几个对象？—-2个</p>
+<pre><code class="java">/**
+ * new String(&quot;ab&quot;) 会创建几个对象？ 看字节码就知道是2个对象
+ *
+ * @author: zhangkx
+ * @create: 2020-07-11-11:17
+ */
+public class StringNewTest &#123;
+    public static void main(String[] args) &#123;
+        String str = new String(&quot;ab&quot;);
+    &#125;
+&#125;
+</code></pre>
+<p>我们转换成字节码来查看</p>
+<pre><code> 0 new #2 &lt;java/lang/String&gt;
+ 3 dup
+ 4 ldc #3 &lt;ab&gt;
+ 6 invokespecial #4 &lt;java/lang/String.&lt;init&gt;&gt;
+ 9 astore_1
+10 return
+</code></pre>
+<p>这里面就是两个对象</p>
+<ul>
+<li>一个对象是：new关键字在堆空间中创建</li>
+<li>另一个对象：字符串常量池中的对象</li>
+</ul>
+<h3 id="new-String-“a”-new-String-“b”"><a href="#new-String-“a”-new-String-“b”" class="headerlink" title="new String(“a”) + new String(“b”)"></a>new String(“a”) + new String(“b”)</h3><p>new String(“a”) + new String(“b”) 会创建几个对象？—-6个</p>
+<pre><code class="java">/**
+ * new String(&quot;a&quot;) + new String(&quot;b&quot;) 会创建几个对象？
+ *
+ * @author: zhangkx
+ * @create: 2020-07-11-11:17
+ */
+public class StringNewTest &#123;
+    public static void main(String[] args) &#123;
+        String str = new String(&quot;a&quot;) + new String(&quot;b&quot;);
+    &#125;
+&#125;
+</code></pre>
+<p>字节码文件为</p>
+<pre><code> 0 new #2 &lt;java/lang/StringBuilder&gt;
+ 3 dup
+ 4 invokespecial #3 &lt;java/lang/StringBuilder.&lt;init&gt;&gt;
+ 7 new #4 &lt;java/lang/String&gt;
+10 dup
+11 ldc #5 &lt;a&gt;
+13 invokespecial #6 &lt;java/lang/String.&lt;init&gt;&gt;
+16 invokevirtual #7 &lt;java/lang/StringBuilder.append&gt;
+19 new #4 &lt;java/lang/String&gt;
+22 dup
+23 ldc #8 &lt;b&gt;
+25 invokespecial #6 &lt;java/lang/String.&lt;init&gt;&gt;
+28 invokevirtual #7 &lt;java/lang/StringBuilder.append&gt;
+31 invokevirtual #9 &lt;java/lang/StringBuilder.toString&gt;
+34 astore_1
+35 return
+</code></pre>
+<p>我们创建了6个对象</p>
+<ul>
+<li>对象1：new StringBuilder()</li>
+<li>对象2：new String(“a”)</li>
+<li>对象3：常量池的 a</li>
+<li>对象4：new String(“b”)</li>
+<li>对象5：常量池的 b</li>
+<li>对象6：toString中会创建一个 new String(“ab”)<ul>
+<li>调用toString方法，不会在常量池中生成ab</li>
+</ul>
+</li>
+</ul>
+<h3 id="intern问题"><a href="#intern问题" class="headerlink" title="intern问题"></a>intern问题</h3><p>看代码，判断输出</p>
+<pre><code class="java">public static void main(String[] args) &#123;
+    String s = new String(&quot;1&quot;);
+    s.intern();
+    String s2 = &quot;1&quot;;
+    System.out.println(s == s2);
+
+    String s3 = new String(&quot;1&quot;) + new String(&quot;1&quot;);
+    s3.intern();
+    String s4 = &quot;11&quot;;
+    System.out.println(s3 == s4);
+&#125;
+</code></pre>
+<p>打印结果是</p>
+<ul>
+<li>jdk6 下<code>false false</code></li>
+<li>jdk7 下<code>false true</code></li>
+</ul>
+<p>再看代码，判断输出</p>
+<pre><code class="java">public static void main(String[] args) &#123;
+    String s = new String(&quot;1&quot;);
+    String s2 = &quot;1&quot;;
+    s.intern();
+    System.out.println(s == s2);
+
+    String s3 = new String(&quot;1&quot;) + new String(&quot;1&quot;);
+    String s4 = &quot;11&quot;;
+    s3.intern();
+    System.out.println(s3 == s4);
+&#125;
+</code></pre>
+<p>打印结果为：</p>
+<ul>
+<li>jdk6 下<code>false false</code></li>
+<li>jdk7 下<code>false false</code></li>
+</ul>
+<p><strong>解释</strong>：</p>
+<ol>
+<li><p><strong>jdk6的解释</strong></p>
+<p><img src="4903ce64.png" alt="jdk6图"></p>
+<p>注：图中绿色线条代表 string 对象的内容指向。 黑色线条代表地址指向。</p>
+<p>如上图所示。首先说一下 jdk6中的情况，在 jdk6中上述的所有打印都是 false 的，因为 jdk6中的常量池是放在 Perm 区中的，Perm 区和正常的 JAVA Heap 区域是完全分开的。上面说过如果是使用引号声明的字符串都是会直接在字符串常量池中生成，而 new 出来的 String 对象是放在 JAVA Heap 区域。所以拿一个 JAVA Heap 区域的对象地址和字符串常量池的对象地址进行比较肯定是不相同的，即使调用<code>String.intern</code>方法也是没有任何关系的。</p>
+</li>
+<li><p><strong>jdk7的解释</strong></p>
+<p>再说说 jdk7 中的情况。这里要明确一点的是，在 Jdk6 以及以前的版本中，字符串的常量池是放在堆的 Perm 区的，Perm 区是一个类静态的区域，主要存储一些加载类的信息，常量池，方法片段等内容，默认大小只有4m，一旦常量池中大量使用 intern 是会直接产生<code>java.lang.OutOfMemoryError: PermGen space</code>错误的。 所以在 jdk7 的版本中，字符串常量池已经从 Perm 区移到正常的 Java Heap 区域了。为什么要移动，Perm 区域太小是一个主要原因，当然据消息称 jdk8 已经直接取消了 Perm 区域，而新建立了一个元区域。应该是 jdk 开发者认为 Perm 区域已经不适合现在 JAVA 的发展了。</p>
+<p>正式因为字符串常量池移动到 JAVA Heap 区域后，再来解释为什么会有上述的打印结果。</p>
+<p><img src="1bdc831a.png" alt="jdk7图1"></p>
+<p>在第一段代码中，先看 s3和s4字符串。<code>String s3 = new String(&quot;1&quot;) + new String(&quot;1&quot;);</code>，这句代码中现在生成了2最终个对象，是字符串常量池中的“1” 和 JAVA Heap 中的 s3引用指向的对象。中间还有2个匿名的<code>new String(&quot;1&quot;)</code>我们不去讨论它们。此时s3引用对象内容是”11”，但此时常量池中是没有 “11”对象的。</p>
+<p>接下来<code>s3.intern();</code>这一句代码，是将 s3中的“11”字符串放入 String 常量池中，因为此时常量池中不存在“11”字符串，因此常规做法是跟 jdk6 图中表示的那样，在常量池中生成一个 “11” 的对象，关键点是 jdk7 中常量池不在 Perm 区域了，这块做了调整。常量池中不需要再存储一份对象了，可以直接存储堆中的引用。这份引用指向 s3 引用的对象。 也就是说引用地址是相同的。</p>
+<p>最后<code>String s4 = &quot;11&quot;;</code> 这句代码中”11”是显示声明的，因此会直接去常量池中创建，创建的时候发现已经有这个对象了，此时也就是指向 s3 引用对象的一个引用。所以 s4 引用就指向和 s3 一样了。因此最后的比较 <code>s3 == s4</code> 是 true。</p>
+<p>再看 s 和 s2 对象。 <code>String s = new String(&quot;1&quot;);</code> 第一句代码，生成了2个对象。常量池中的“1” 和 JAVA Heap 中的字符串对象。<code>s.intern();</code> 这一句是 s 对象去常量池中寻找后发现 “1” 已经在常量池里了。</p>
+<p>接下来<code>String s2 = &quot;1&quot;;</code> 这句代码是生成一个 s2的引用指向常量池中的“1”对象。 结果就是 s 和 s2 的引用地址明显不同。图中画的很清晰。</p>
+<p><img src="425a283c.png" alt="jdk7图2"></p>
+<p>来看第二段代码，从上边第二幅图中观察。第一段代码和第二段代码的改变就是 <code>s3.intern();</code> 的顺序是放在<code>String s4 = &quot;11&quot;;</code>后了。这样，首先执行<code>String s4 = &quot;11&quot;;</code>声明 s4 的时候常量池中是不存在“11”对象的，执行完毕后，“11“对象是 s4 声明产生的新对象。然后再执行<code>s3.intern();</code>时，常量池中“11”对象已经存在了，因此 s3 和 s4 的引用是不同的。</p>
+<p>第二段代码中的 s 和 s2 代码中，<code>s.intern();</code>，这一句往后放也不会有什么影响了，因为对象池中在执行第一句代码<code>String s = new String(&quot;1&quot;);</code>的时候已经生成“1”对象了。下边的s2声明都是直接从常量池中取地址引用的。 s 和 s2 的引用地址是不会相等的。</p>
+</li>
+</ol>
+<h3 id="intern问题深入"><a href="#intern问题深入" class="headerlink" title="intern问题深入"></a>intern问题深入</h3><p><img src="image-20200711150859709.png" alt="image-20200711150859709"></p>
+<ul>
+<li>在JDK6中，在字符串常量池中创建一个字符串 “ab”</li>
+<li>在JDK8中，在字符串常量池中没有创建 “ab”，而是将堆中的地址复制到 串池中。</li>
+</ul>
+<p>所以上述结果，在JDK6中是：</p>
+<pre><code>true
+false
+</code></pre>
+<p>在JDK8中是</p>
+<pre><code>false
+true
+</code></pre>
+<p><img src="image-20200711151326909.png" alt="image-20200711151326909"></p>
+<p>针对下面这题，在JDK6和8中表现的是一样的</p>
+<p><img src="image-20200711151433277.png" alt="image-20200711151433277"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JVM/" rel="tag"># JVM</a>
+              <a href="/tags/JMM/" rel="tag"># JMM</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/19/JVM_jmm-10-%E7%9B%B4%E6%8E%A5%E5%86%85%E5%AD%98/" rel="prev" title="JVM_jmm#10-直接内存">
+      <i class="fa fa-chevron-left"></i> JVM_jmm#10-直接内存
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/21/JVM_gc-1-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%A6%82%E8%BF%B0/" rel="next" title="JVM_gc#1-垃圾回收概述">
+      JVM_gc#1-垃圾回收概述 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96"><span class="nav-text">对象实例化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%E6%96%B9%E5%BC%8F"><span class="nav-text">对象创建方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%AD%A5%E9%AA%A4"><span class="nav-text">创建对象的步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%88%A4%E6%96%AD%E5%AF%B9%E8%B1%A1%E5%AF%B9%E5%BA%94%E7%9A%84%E7%B1%BB%E6%98%AF%E5%90%A6%E5%8A%A0%E8%BD%BD%E3%80%81%E9%93%BE%E6%8E%A5%E3%80%81%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">1. 判断对象对应的类是否加载、链接、初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%B8%BA%E5%AF%B9%E8%B1%A1%E5%88%86%E9%85%8D%E5%86%85%E5%AD%98"><span class="nav-text">2. 为对象分配内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%A4%84%E7%90%86%E5%B9%B6%E5%8F%91%E9%97%AE%E9%A2%98"><span class="nav-text">3. 处理并发问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%88%9D%E5%A7%8B%E5%8C%96%E5%88%86%E9%85%8D%E5%88%B0%E7%9A%84%E5%86%85%E5%AD%98"><span class="nav-text">4. 初始化分配到的内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E8%AE%BE%E7%BD%AE%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%A4%B4"><span class="nav-text">5. 设置对象的对象头</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E6%89%A7%E8%A1%8Cinit%E6%96%B9%E6%B3%95%E8%BF%9B%E8%A1%8C%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">6. 执行init方法进行初始化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="nav-text">对象实例化的过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="nav-text">对象内存布局</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E5%A4%B4%EF%BC%88Header%EF%BC%89"><span class="nav-text">对象头（Header）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-text">运行时元数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B1%BB%E5%9E%8B%E6%8C%87%E9%92%88"><span class="nav-text">类型指针</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%EF%BC%88Instance-Data%EF%BC%89"><span class="nav-text">实例数据（Instance Data）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%B4%E6%98%8E"><span class="nav-text">说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%84%E5%88%99"><span class="nav-text">规则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E9%BD%90%E5%A1%AB%E5%85%85-Padding"><span class="nav-text">对齐填充(Padding)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E8%AE%BF%E9%97%AE%E5%AE%9A%E4%BD%8D"><span class="nav-text">对象的访问定位</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE"><span class="nav-text">句柄访问</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%EF%BC%88HotSpot%E9%87%87%E7%94%A8%EF%BC%89"><span class="nav-text">直接指针（HotSpot采用）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#StringTable"><span class="nav-text">StringTable</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#String%E7%9A%84%E7%89%B9%E5%BE%81"><span class="nav-text">String的特征</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%89%B9%E7%82%B9"><span class="nav-text">基本特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88JDK9%E6%94%B9%E5%8F%98%E4%BA%86%E7%BB%93%E6%9E%84"><span class="nav-text">为什么JDK9改变了结构?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E5%8F%AF%E5%8F%98%E6%80%A7"><span class="nav-text">不可变性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B"><span class="nav-text">案例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#String%E7%9A%84%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E2%80%94%E2%80%94StringTable"><span class="nav-text">String的内存分配——StringTable</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#StringTable%E7%9A%84%E7%94%A8%E6%B3%95"><span class="nav-text">StringTable的用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StringTable%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="nav-text">StringTable的位置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Java-6%E5%8F%8A%E4%BB%A5%E5%89%8D"><span class="nav-text">Java 6及以前</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#java7"><span class="nav-text">java7</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88StringTable%E4%BB%8E%E6%B0%B8%E4%B9%85%E4%BB%A3%E8%B0%83%E6%95%B4%E5%88%B0%E5%A0%86%E4%B8%AD"><span class="nav-text">为什么StringTable从永久代调整到堆中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#java8"><span class="nav-text">java8</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StringTable%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-text">StringTable的特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StringTable%E7%9A%84%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="nav-text">StringTable的垃圾回收</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#G1%E4%B8%AD%E7%9A%84String%E5%8E%BB%E9%87%8D%E6%93%8D%E4%BD%9C"><span class="nav-text">G1中的String去重操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%8F%E8%BF%B0"><span class="nav-text">描述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%80%E5%90%AF"><span class="nav-text">开启</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#String%E7%9A%84%E6%8B%BC%E6%8E%A5"><span class="nav-text">String的拼接</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8B%BC%E6%8E%A5%E6%93%8D%E4%BD%9C"><span class="nav-text">拼接操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8B%BC%E6%8E%A5%E5%8E%9F%E7%90%86"><span class="nav-text">拼接原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%95%E5%B1%82%E4%BD%BF%E7%94%A8StringBuilder"><span class="nav-text">底层使用StringBuilder</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8final"><span class="nav-text">尽量使用final</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#StringBuilder%E5%92%8CStringBuffer"><span class="nav-text">StringBuilder和StringBuffer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%92%8Cappend%E7%9A%84%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="nav-text">+和append的性能对比</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#intern"><span class="nav-text">intern()</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#intern%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">intern的使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#intern%E7%9A%84%E7%A9%BA%E9%97%B4%E6%95%88%E7%8E%87"><span class="nav-text">intern的空间效率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#intern%E6%B7%B1%E5%85%A5"><span class="nav-text">intern深入</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%8F%E5%85%B8%E9%97%AE%E9%A2%98"><span class="nav-text">经典问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#new-String-%E2%80%9Cab%E2%80%9D"><span class="nav-text">new String(“ab”)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#new-String-%E2%80%9Ca%E2%80%9D-new-String-%E2%80%9Cb%E2%80%9D"><span class="nav-text">new String(“a”) + new String(“b”)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#intern%E9%97%AE%E9%A2%98"><span class="nav-text">intern问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#intern%E9%97%AE%E9%A2%98%E6%B7%B1%E5%85%A5"><span class="nav-text">intern问题深入</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

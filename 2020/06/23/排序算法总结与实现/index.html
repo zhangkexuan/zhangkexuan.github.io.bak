@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="算法的java实现，使用aop提供性能测试。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="排序算法的实现">
+<meta property="og:url" content="http://yoursite.com/2020/06/23/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93%E4%B8%8E%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="算法的java实现，使用aop提供性能测试。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-23T15:04:51.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:25:53.063Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="算法">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/23/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93%E4%B8%8E%E5%AE%9E%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>排序算法的实现 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/23/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93%E4%B8%8E%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          排序算法的实现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-23 23:04:51" itemprop="dateCreated datePublished" datetime="2020-06-23T23:04:51+08:00">2020-06-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>算法的java实现，使用aop提供性能测试。</p>
+<span id="more"></span>
+
+<h1 id="模板"><a href="#模板" class="headerlink" title="模板"></a>模板</h1><p>提炼出排序系列算法的通用模板，基本的比较、展示、获取都涵盖其中。真实情况下一般是对某些对象进行排序，所以我设计的排序的对象不再是常见的int形，而是实现Comparable[]的任何对象。</p>
+<pre><code class="java">package uestc.zhangkx.sort;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+
+/**
+ * 排序算法的模板
+ *
+ * @author zhangkx
+ */
+@Component
+public class SortTemplate &#123;
+
+    public static Comparable[] al = &#123;12, 4443,9999,23,2,0, 435, 23, 213, 54, 22, 76, 3, 0, 443, 25, 6, 23, 125, 678, 987, 55, 33, 42, 75, 23, 1, 9, 6654&#125;;
+
+    public static Comparable[] aux = null;
+    public int count = 0;
+
+    public void sort(Comparable[] a) &#123;
+
+    &#125;
+
+    @Contract(pure = true)
+    public static boolean less(@NotNull Comparable v, @NotNull Comparable w) &#123;
+        return v.compareTo(w) &lt; 0;
+    &#125;
+
+    public void exchange(@NotNull Comparable[] array, int index1, int index2) &#123;
+        Comparable temp = array[index1];
+        array[index1] = array[index2];
+        array[index2] = temp;
+        count++;
+    &#125;
+
+    public static void show(@NotNull Comparable[] a) &#123;
+//        Arrays.stream(a).forEach(System.out::println);
+        System.out.println(Arrays.toString(a));
+    &#125;
+
+    public static void compare(@NotNull Comparable[] a) &#123;
+//        Arrays.stream(a).forEach(System.out::println);
+        System.out.println(&quot;原串&quot; + Arrays.toString(al));
+        System.out.println(&quot;现串&quot; + Arrays.toString(a));
+    &#125;
+
+    public static boolean isSorted(Comparable[] a) &#123;
+        for (int i = 1; i &lt; a.length; i++) &#123;
+            if (less(a[i], a[i - 1])) &#123;
+                return false;
+            &#125;
+        &#125;
+        return true;
+    &#125;
+
+    public static Comparable[] getAl() &#123;
+        return al;
+    &#125;
+
+    public int getCount() &#123;
+        return count;
+    &#125;
+
+&#125;
+</code></pre>
+<p>为了进行性能监控，我使用了spring的AOP切面编程对各种算法运行前后进行数据采集和性能监控。</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;uestc.zhangkx&lt;/groupId&gt;
+    &lt;artifactId&gt;algorithm&lt;/artifactId&gt;
+    &lt;packaging&gt;pom&lt;/packaging&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+    &lt;modules&gt;
+        &lt;module&gt;sort&lt;/module&gt;
+        &lt;module&gt;testAOP&lt;/module&gt;
+    &lt;/modules&gt;
+
+    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;maven.compiler.source&gt;1.8&lt;/maven.compiler.source&gt;
+        &lt;maven.compiler.target&gt;1.8&lt;/maven.compiler.target&gt;
+        &lt;spring.version&gt;5.2.7.RELEASE&lt;/spring.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;!-- spring --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.aspectj&lt;/groupId&gt;
+            &lt;artifactId&gt;aspectjweaver&lt;/artifactId&gt;
+            &lt;version&gt;1.6.8&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.aspectj&lt;/groupId&gt;
+            &lt;artifactId&gt;aspectjtools&lt;/artifactId&gt;
+            &lt;version&gt;1.9.5&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-aop&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-context-support&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-web&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-orm&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-beans&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-core&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-test&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-webmvc&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-tx&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;!--junit--&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;junit&lt;/groupId&gt;
+            &lt;artifactId&gt;junit&lt;/artifactId&gt;
+            &lt;version&gt;4.12&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;!--org.jetbrains.annotations.Contract--&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.jetbrains&lt;/groupId&gt;
+            &lt;artifactId&gt;annotations&lt;/artifactId&gt;
+            &lt;version&gt;19.0.0&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/project&gt;
+</code></pre>
+<p>spring启动类</p>
+<pre><code class="java">package uestc.zhangkx;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ComponentScan(value = &quot;uestc.zhangkx&quot;)
+public class springConfig &#123;
+    public springConfig() &#123;
+        System.out.println(&quot;spring启动&quot;);
+    &#125;
+&#125;
+</code></pre>
+<p>切面AOP</p>
+<pre><code class="java">package uestc.zhangkx.utils;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.stereotype.Component;
+
+@Component
+@Aspect
+@EnableAspectJAutoProxy
+public class RunTime &#123;
+
+    @Pointcut(&quot; execution(* uestc.zhangkx.sort.SortTemplate.sort(..))&quot;)
+    private void pointcat() &#123;
+    &#125;
+
+    @Around(&quot;pointcat()&quot;)
+    public Object aroundPrintLog(ProceedingJoinPoint pjp)&#123;
+        Object rtValue = null;
+        long startTime = 0;
+        long endTime = 0;
+        try&#123;
+            Object[] args = pjp.getArgs();
+            startTime=System.currentTimeMillis();
+            rtValue = pjp.proceed(args);
+            endTime=System.currentTimeMillis();
+            return rtValue;
+        &#125;catch (Throwable t)&#123;
+            System.out.println(&quot;aop异常&quot;);
+            throw new RuntimeException(t);
+        &#125;finally &#123;
+            System.out.print(&quot;RunTime-&gt;&quot;+(endTime - startTime)+&quot;ms&quot;);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<h1 id="选择排序"><a href="#选择排序" class="headerlink" title="选择排序"></a>选择排序</h1><pre><code class="java">package uestc.zhangkx.sort;
+
+import org.junit.Test;
+import org.springframework.stereotype.Component;
+
+
+/** 选择排序
+ * @param a
+ */
+@Component
+public class SelectionSort extends SortTemplate &#123;
+
+    @Override
+    public void sort(Comparable[] a) &#123;
+        int n = a.length;
+        for (int i = 0; i &lt; n; i++) &#123;
+            int min=i;
+            for (int j = i; j &lt; n; j++) &#123;
+                if (less(a[j],a[min])) &#123;
+                    min=j;
+                &#125;
+            &#125;
+            exchange(a,min,i);
+        &#125;
+    &#125;
+
+    @Test
+    public void testSelSort()&#123;
+        show(al);
+        sort(al);
+        show(al);
+    &#125;
+
+&#125;
+</code></pre>
+<h1 id="插入排序"><a href="#插入排序" class="headerlink" title="插入排序"></a>插入排序</h1><pre><code class="java">package uestc.zhangkx.sort;
+
+import org.junit.Test;
+import org.springframework.stereotype.Component;
+
+@Component
+public class InsertionSort extends SortTemplate &#123;
+
+    /**
+     * 插入排序
+     *
+     * @param a
+     */
+    @Override
+    public void sort(Comparable[] a) &#123;
+        int n = a.length;
+        for (int i = 1; i &lt; n; i++) &#123;
+            for (int j = i; j &gt;0 ; j--) &#123;
+                if (less(a[j],a[j-1]))&#123;
+                    exchange(a,j,j-1);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+
+    @Test
+    public void testSelSort() &#123;
+        show(al);
+        sort(al);
+        show(al);
+    &#125;
+&#125;
+</code></pre>
+<p>插入排序改进版本</p>
+<pre><code class="java">package uestc.zhangkx.sort;
+
+import org.junit.Test;
+import org.springframework.stereotype.Component;
+
+/**
+ * 插入排序 进阶版
+ *
+ * @param a
+ */
+@Component
+public class InsertionSortAdvanced extends SortTemplate &#123;
+
+    @Override
+    public void sort(Comparable[] a) &#123;
+        int n = a.length;
+        for (int i = 1; i &lt; n; i++) &#123;
+            Comparable temp = a[i];
+            int j = i;
+            for (; j &gt; 0&amp;&amp; less(temp ,a[j-1]); j--) &#123;
+                   a[j]=a[j-1];
+            &#125;
+            a[j] = temp;
+        &#125;
+    &#125;
+
+    @Test
+    public void testSelSort() &#123;
+        show(al);
+        sort(al);
+        show(al);
+
+    &#125;
+&#125;
+</code></pre>
+<h1 id="希尔排序"><a href="#希尔排序" class="headerlink" title="希尔排序"></a>希尔排序</h1><pre><code class="java">package uestc.zhangkx.sort;
+
+import org.junit.Test;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ShellSort extends SortTemplate &#123;
+
+    /**
+     * 希尔排序
+     * 希尔最佳序列[1,4,13.....]
+     * @param a
+     */
+    @Override
+    public void sort(Comparable[] a) &#123;
+        int n = a.length;
+        int shell = 1;
+        while(shell &lt; n/3) &#123;
+            shell=3*shell+1;
+        &#125;
+        while (shell&gt;=1) &#123;
+            for (int i = shell; i &lt; n; i++) &#123;
+                for (int j = i; j &gt;= shell &amp;&amp; less(a[j], a[j - shell]); j -= shell) &#123;
+                    exchange(a, j, j - shell);
+                &#125;
+            &#125;
+            shell /= 3;
+        &#125;
+    &#125;
+
+    @Test
+    public void testSelSort() &#123;
+        show(al);
+        sort(al);
+        show(al);
+    &#125;
+&#125;
+</code></pre>
+<h1 id="归并排序"><a href="#归并排序" class="headerlink" title="归并排序"></a>归并排序</h1><p>自顶向下</p>
+<pre><code class="java">package uestc.zhangkx.sort;
+
+import org.junit.Test;
+
+/** 归并排序——自顶向下
+ * @author zhangkx
+ */
+public class MergeDownSort extends SortTemplate &#123;
+
+    @Override
+    public void sort(Comparable[] a) &#123;
+        aux=new Comparable[a.length];
+        sort(a,0,a.length-1);
+    &#125;
+
+    public void sort(Comparable[] a,int lo,int hi)&#123;
+        if(hi&lt;=lo)&#123;
+            return ;
+        &#125;
+        int mid = lo+(hi-lo)/2;
+        sort(a,lo,mid);
+        sort(a,mid+1,hi);
+        merge(a,lo,mid,hi);
+    &#125;
+
+    public static void merge(Comparable[] a,int lower,int middle,int higher)&#123;
+        int i=lower,j=middle+1;
+        for (int k = lower; k &lt;= higher; k++) &#123;
+            aux[k]=a[k];
+        &#125;
+        for (int k = lower; k &lt;= higher; k++) &#123;
+            if (i&gt;middle) &#123;
+                a[k]=aux[j++];
+            &#125; else if (j&gt;higher) &#123;
+                a[k]=aux[i++];
+            &#125; else if (less(aux[j],aux[i])) &#123;
+                a[k]=aux[j++];
+            &#125; else &#123;
+                a[k]=aux[i++];
+            &#125;
+        &#125;
+    &#125;
+
+    @Test
+    public void testSelSort() &#123;
+        show(al);
+        sort(al);
+        show(al);
+    &#125;
+&#125;
+</code></pre>
+<p>自底向上</p>
+<pre><code class="java">package uestc.zhangkx.sort;
+
+import org.junit.Test;
+
+/**
+ * 归并排序——自底向上
+ *
+ * @author zhangkx
+ */
+public class MergeUpSort extends SortTemplate &#123;
+
+    @Override
+    public void sort(Comparable[] a) &#123;
+        int n = a.length;
+        aux = new Comparable[n];
+        for (int size = 1; size &lt; n; size&lt;&lt;=1) &#123;
+            for (int low = 0; low&lt;n ; low+=size&lt;&lt;1) &#123;
+                merge(a,low,low+size-1,Math.min(low+size+size-1,n-1) );
+            &#125;
+        &#125;
+    &#125;
+
+    public static void merge(Comparable[] a,int lower,int middle,int higher)&#123;
+        int i=lower,j=middle+1;
+        for (int k = lower; k &lt;= higher; k++) &#123;
+            aux[k]=a[k];
+        &#125;
+        for (int k = lower; k &lt;= higher; k++) &#123;
+            if (i&gt;middle) &#123;
+                a[k]=aux[j++];
+            &#125; else if (j&gt;higher) &#123;
+                a[k]=aux[i++];
+            &#125; else if (less(aux[j],aux[i])) &#123;
+                a[k]=aux[j++];
+            &#125; else &#123;
+                a[k]=aux[i++];
+            &#125;
+        &#125;
+    &#125;
+
+    @Test
+    public void testSelSort() &#123;
+        show(al);
+        sort(al);
+        show(al);
+    &#125;
+&#125;
+</code></pre>
+<h1 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h1><pre><code class="java">package uestc.zhangkx.sort;
+
+import org.junit.Test;
+
+/**
+ * 快速排序
+ *
+ * @author zhangkx
+ */
+public class QuickSort extends SortTemplate &#123;
+    @Override
+    public void sort(Comparable[] a) &#123;
+        sort(a, 0, a.length - 1);
+    &#125;
+
+    public void sort(Comparable[] a, int low, int high) &#123;
+        if (high &lt;= low) &#123;
+            return;
+        &#125;
+        int guard = partition(a, low, high);
+        sort(a, low, guard - 1);
+        sort(a, guard + 1, high);
+    &#125;
+
+    private int partition(Comparable[] a, int low, int high) &#123;
+        int i = low, j = high + 1;
+        Comparable v = a[low];
+        while (true) &#123;
+            while (less(a[++i], v)) &#123;
+                if (i == high) &#123;
+                    break;
+                &#125;
+            &#125;
+            while (less(v, a[--j])) &#123;
+                if (j == low) &#123;
+                    break;
+                &#125;
+            &#125;
+            if (i &gt;= j) &#123;
+                break;
+            &#125;
+            exchange(a, i, j);
+        &#125;
+        exchange(a, j, low);
+        return j;
+    &#125;
+
+    @Test
+    public void test() &#123;
+        show(al);
+        sort(al);
+        show(al);
+    &#125;
+&#125;
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%AE%97%E6%B3%95/" rel="tag"># 算法</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/22/java%E5%AE%B9%E5%99%A8-16-PriorityQueue%E8%AF%A6%E8%A7%A3/" rel="prev" title="java容器#16-PriorityQueue详解">
+      <i class="fa fa-chevron-left"></i> java容器#16-PriorityQueue详解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/07/03/SumInOne-1-SpringCore/" rel="next" title="SumInOne#1-SpringCore">
+      SumInOne#1-SpringCore <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A8%A1%E6%9D%BF"><span class="nav-text">模板</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F"><span class="nav-text">选择排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F"><span class="nav-text">插入排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%8C%E5%B0%94%E6%8E%92%E5%BA%8F"><span class="nav-text">希尔排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F"><span class="nav-text">归并排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F"><span class="nav-text">快速排序</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

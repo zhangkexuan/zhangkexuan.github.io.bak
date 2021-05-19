@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="主要解决的问题是： 1.实现未登录状态的购物车 2.实现登陆状态下的购物车">
+<meta property="og:type" content="article">
+<meta property="og:title" content="leyou门户#7-购物车">
+<meta property="og:url" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="主要解决的问题是： 1.实现未登录状态的购物车 2.实现登陆状态下的购物车">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533738258872.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533738278599.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1527585343248.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1527737419294.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1527587496457.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533739711101.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533739810927.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533739929733.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533740236299.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533742284781.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533742493645.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1527585864482.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533745246878.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533785968759.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533788637942.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533788722957.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533806610234.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533806563740.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533806670775.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533806715698.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533807671462.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533808731995.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533816012100.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533810163988.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533809253022.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533810788247.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533810760802.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533811142851.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533811351500.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533811609498.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533812224110.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533814103369.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533813101222.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533815211788.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533816059966.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533815725920.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1534304010551.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533816356869.png">
+<meta property="article:published_time" content="2020-06-05T09:28:59.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:13:09.733Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="localstorage">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/1533738258872.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>leyou门户#7-购物车 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          leyou门户#7-购物车
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-05 17:28:59" itemprop="dateCreated datePublished" datetime="2020-06-05T17:28:59+08:00">2020-06-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leyou/" itemprop="url" rel="index"><span itemprop="name">leyou</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>主要解决的问题是：</p>
+<p>1.实现未登录状态的购物车</p>
+<p>2.实现登陆状态下的购物车</p>
+<span id="more"></span>
+
+<h1 id="1-搭建购物车服务"><a href="#1-搭建购物车服务" class="headerlink" title="1.搭建购物车服务"></a>1.搭建购物车服务</h1><h2 id="1-1-创建module"><a href="#1-1-创建module" class="headerlink" title="1.1.创建module"></a>1.1.创建module</h2><p><img src="1533738258872.png" alt="1533738258872"></p>
+<p><img src="1533738278599.png" alt="1533738278599"></p>
+<h2 id="1-2-pom依赖"><a href="#1-2-pom依赖" class="headerlink" title="1.2.pom依赖"></a>1.2.pom依赖</h2><pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;parent&gt;
+        &lt;artifactId&gt;leyou&lt;/artifactId&gt;
+        &lt;groupId&gt;com.leyou.parent&lt;/groupId&gt;
+        &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+    &lt;/parent&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;com.leyou.service&lt;/groupId&gt;
+    &lt;artifactId&gt;ly-cart&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/project&gt;
+</code></pre>
+<h2 id="1-3-配置文件"><a href="#1-3-配置文件" class="headerlink" title="1.3.配置文件"></a>1.3.配置文件</h2><pre><code class="yaml">server:
+  port: 8088
+spring:
+  application:
+    name: cart-service
+  redis:
+    host: 192.168.56.101
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+    registry-fetch-interval-seconds: 10
+  instance:
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
+</code></pre>
+<h2 id="1-4-启动类"><a href="#1-4-启动类" class="headerlink" title="1.4.启动类"></a>1.4.启动类</h2><pre><code class="java">@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class LeyouCartApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(LeyouCartApplication.class, args);
+    &#125;
+&#125;
+</code></pre>
+<h1 id="2-购物车功能分析"><a href="#2-购物车功能分析" class="headerlink" title="2.购物车功能分析"></a>2.购物车功能分析</h1><h2 id="2-1-需求"><a href="#2-1-需求" class="headerlink" title="2.1.需求"></a>2.1.需求</h2><p>需求描述：</p>
+<ul>
+<li>用户可以在登录状态下将商品添加到购物车<ul>
+<li>放入数据库</li>
+<li>mongodb</li>
+<li>放入redis（采用）</li>
+</ul>
+</li>
+<li>用户可以在未登录状态下将商品添加到购物车<ul>
+<li>放入localstorage</li>
+<li>cookie</li>
+<li>webSQL</li>
+</ul>
+</li>
+<li>用户可以使用购物车一起结算下单</li>
+<li>用户可以查询自己的购物车</li>
+<li>用户可以在购物车中修改购买商品的数量。</li>
+<li>用户可以在购物车中删除商品。</li>
+<li>在购物车中展示商品优惠信息</li>
+<li>提示购物车商品价格变化</li>
+</ul>
+<h2 id="2-2-流程图"><a href="#2-2-流程图" class="headerlink" title="2.2.流程图"></a>2.2.流程图</h2><p><img src="1527585343248.png" alt="1527585343248"></p>
+<p>这幅图主要描述了两个功能：新增商品到购物车、查询购物车。</p>
+<p>新增商品：</p>
+<ul>
+<li>判断是否登录<ul>
+<li>是：则添加商品到后台Redis中</li>
+<li>否：则添加商品到本地的Localstorage</li>
+</ul>
+</li>
+</ul>
+<p>无论哪种新增，完成后都需要查询购物车列表：</p>
+<ul>
+<li>判断是否登录<ul>
+<li>否：直接查询localstorage中数据并展示</li>
+<li>是：已登录，则需要先看本地是否有数据，<ul>
+<li>有：需要提交到后台添加到redis，合并数据，而后查询</li>
+<li>否：直接去后台查询redis，而后返回</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="3-未登录购物车"><a href="#3-未登录购物车" class="headerlink" title="3.未登录购物车"></a>3.未登录购物车</h1><h2 id="3-1-准备"><a href="#3-1-准备" class="headerlink" title="3.1.准备"></a>3.1.准备</h2><h3 id="3-1-1购物车的数据结构"><a href="#3-1-1购物车的数据结构" class="headerlink" title="3.1.1购物车的数据结构"></a>3.1.1购物车的数据结构</h3><p>首先分析一下未登录购物车的数据结构。</p>
+<p>我们看下页面展示需要什么数据：</p>
+<p><img src="1527737419294.png" alt="1527737419294"></p>
+<p>因此每一个购物车信息，都是一个对象，包含：</p>
+<pre><code class="js">&#123;
+    skuId:2131241,
+    title:&quot;小米6&quot;,
+    image:&quot;&quot;,
+    price:190000,
+    num:1,
+    ownSpec:&quot;&#123;&quot;机身颜色&quot;:&quot;陶瓷黑尊享版&quot;,&quot;内存&quot;:&quot;6GB&quot;,&quot;机身存储&quot;:&quot;128GB&quot;&#125;&quot;
+&#125;
+</code></pre>
+<p>另外，购物车中不止一条数据，因此最终会是对象的数组。即：</p>
+<pre><code class="js">[
+    &#123;...&#125;,&#123;...&#125;,&#123;...&#125;
+]
+</code></pre>
+<h3 id="3-1-2-web本地存储"><a href="#3-1-2-web本地存储" class="headerlink" title="3.1.2.web本地存储"></a>3.1.2.web本地存储</h3><p>知道了数据结构，下一个问题，就是如何保存购物车数据。前面我们分析过，可以使用Localstorage来实现。Localstorage是web本地存储的一种，那么，什么是web本地存储呢？</p>
+<h4 id="什么是web本地存储？"><a href="#什么是web本地存储？" class="headerlink" title="什么是web本地存储？"></a>什么是web本地存储？</h4><p><img src="1527587496457.png" alt="1527587496457"></p>
+<p>web本地存储主要有两种方式：</p>
+<ul>
+<li>LocalStorage：localStorage 方法存储的数据没有时间限制。第二天、第二周或下一年之后，数据依然可用。 </li>
+<li>SessionStorage：sessionStorage 方法针对一个 session 进行数据存储。当用户关闭浏览器窗口后，数据会被删除。 </li>
+</ul>
+<h4 id="LocalStorage的用法"><a href="#LocalStorage的用法" class="headerlink" title="LocalStorage的用法"></a>LocalStorage的用法</h4><p>语法非常简单：</p>
+<p><img src="1533739711101.png" alt="1533739711101"></p>
+<pre><code class="js">localStorage.setItem(&quot;key&quot;,&quot;value&quot;); // 存储数据
+localStorage.getItem(&quot;key&quot;); // 获取数据
+localStorage.removeItem(&quot;key&quot;); // 删除数据
+</code></pre>
+<p>注意：<strong>localStorage和SessionStorage都只能保存字符串</strong>。</p>
+<p>不过，在我们的common.js中，已经对localStorage进行了简单的封装：</p>
+<p><img src="1533739810927.png" alt="1533739810927"></p>
+<p>示例：</p>
+<p><img src="1533739929733.png" alt="1533739929733"></p>
+<h3 id="3-1-3-获取num"><a href="#3-1-3-获取num" class="headerlink" title="3.1.3.获取num"></a>3.1.3.获取num</h3><p>添加购物车需要知道购物的数量，所以我们需要获取数量大小。我们在Vue中定义num，保存数量：</p>
+<p><img src="1533740236299.png" alt="1533740236299"></p>
+<p>然后将num与页面的input框绑定，同时给<code>+</code>和<code>-</code>的按钮绑定事件：</p>
+<p><img src="1533742284781.png" alt="1533742284781"></p>
+<p>编写方法：</p>
+<p><img src="1533742493645.png" alt="1533742493645"></p>
+<h2 id="3-2-添加购物车"><a href="#3-2-添加购物车" class="headerlink" title="3.2.添加购物车"></a>3.2.添加购物车</h2><h3 id="3-2-1-点击事件"><a href="#3-2-1-点击事件" class="headerlink" title="3.2.1.点击事件"></a>3.2.1.点击事件</h3><p>我们看下商品详情页：</p>
+<p><img src="1527585864482.png" alt="1527585864482"></p>
+<p>现在点击加入购物车会跳转到购物车成功页面。</p>
+<p>不过我们不这么做，我们绑定点击事件，然后实现添加购物车功能。</p>
+<p><img src="1533745246878.png" alt="1533745246878"></p>
+<p>addCart方法中判断用户的登录状态：</p>
+<pre><code class="js">addCart()&#123;
+   ly.http.get(&quot;/auth/verify&quot;).then(res=&gt;&#123;
+       // 已登录发送信息到后台，保存到redis中
+   &#125;).catch(()=&gt;&#123;
+       // 未登录保存在浏览器本地的localStorage中
+   &#125;)
+&#125;
+</code></pre>
+<h3 id="3-2-2-获取数量，添加购物车"><a href="#3-2-2-获取数量，添加购物车" class="headerlink" title="3.2.2.获取数量，添加购物车"></a>3.2.2.获取数量，添加购物车</h3><pre><code class="js">addCart()&#123;
+    ly.verifyUser().then(res=&gt;&#123;
+        // 已登录发送信息到后台，保存到redis中
+
+    &#125;).catch(()=&gt;&#123;
+        // 未登录保存在浏览器本地的localStorage中
+        // 1、查询本地购物车
+        let carts = ly.store.get(&quot;carts&quot;) || [];
+        let cart = carts.find(c=&gt;c.skuId===this.sku.id);
+        // 2、判断是否存在
+        if (cart) &#123;
+            // 3、存在更新数量
+            cart.num += this.num;
+        &#125; else &#123;
+            // 4、不存在，新增
+            cart = &#123;
+                skuId: this.sku.id,
+                title: this.sku.title,
+                price: this.sku.price,
+                image: this.sku.images,
+                num: this.num,
+                ownSpec: this.ownSpec
+            &#125;
+            carts.push(cart);
+        &#125;
+        // 把carts写回localstorage
+        ly.store.set(&quot;carts&quot;, carts);
+        // 跳转
+        window.location.href = &quot;http://www.leyou.com/cart.html&quot;;
+    &#125;);
+&#125;
+</code></pre>
+<p>结果：</p>
+<p><img src="1533785968759.png" alt="1533785968759"></p>
+<p>添加完成后，页面会跳转到购物车结算页面：cart.html</p>
+<h2 id="3-3-查询购物车"><a href="#3-3-查询购物车" class="headerlink" title="3.3.查询购物车"></a>3.3.查询购物车</h2><h3 id="3-3-1-校验用户登录"><a href="#3-3-1-校验用户登录" class="headerlink" title="3.3.1.校验用户登录"></a>3.3.1.校验用户登录</h3><p>因为会多次校验用户登录状态，因此我们封装一个校验的方法：</p>
+<p>在common.js中：</p>
+<p><img src="1533788637942.png" alt="1533788637942"></p>
+<p>在页面item.html中使用该方法：</p>
+<p><img src="1533788722957.png" alt="1533788722957"></p>
+<h3 id="3-3-2-查询购物车"><a href="#3-3-2-查询购物车" class="headerlink" title="3.3.2.查询购物车"></a>3.3.2.查询购物车</h3><p>页面加载时，就应该去查询购物车。</p>
+<pre><code class="java">var cartVm = new Vue(&#123;
+    el: &quot;#cartApp&quot;,
+    data: &#123;
+        ly,
+        carts: [],// 购物车数据
+    &#125;,
+    created() &#123;
+        this.loadCarts();
+    &#125;,
+    methods: &#123;
+        loadCarts() &#123;
+            // 先判断登录状态
+            ly.verifyUser().then(() =&gt; &#123;
+                    // 已登录
+
+                &#125;).catch(() =&gt; &#123;
+                    // 未登录
+                    this.carts = ly.store.get(&quot;carts&quot;) || [];
+                    this.selected = this.carts;
+                &#125;)
+           &#125;
+    &#125;
+    components: &#123;
+        shortcut: () =&gt; import(&quot;/js/pages/shortcut.js&quot;)
+    &#125;
+&#125;)
+</code></pre>
+<p>刷新页面，查看控制台Vue实例：</p>
+<p><img src="1533806610234.png" alt="1533806610234"></p>
+<h3 id="3-5-2-渲染到页面"><a href="#3-5-2-渲染到页面" class="headerlink" title="3.5.2.渲染到页面"></a>3.5.2.渲染到页面</h3><p>接下来，我们在页面中展示carts的数据：</p>
+<p><img src="1533806563740.png" alt="1533806563740"></p>
+<p>要注意，价格的展示需要进行格式化，这里使用的是我们在common.js中定义的formatPrice方法</p>
+<p>效果：</p>
+<p><img src="1533806670775.png" alt="1533806670775"></p>
+<h2 id="3-6-修改数量"><a href="#3-6-修改数量" class="headerlink" title="3.6.修改数量"></a>3.6.修改数量</h2><p>我们给页面的 <code>+</code> 和 <code>-</code>绑定点击事件，修改num 的值：</p>
+<p><img src="1533806715698.png" alt="1533806715698"></p>
+<p>两个事件：</p>
+<pre><code class="js">    increment(c) &#123;
+        c.num++;
+        ly.verifyUser().then(() =&gt; &#123;
+            // TODO 已登录，向后台发起请求
+        &#125;).catch(() =&gt; &#123;
+            // 未登录，直接操作本地数据
+            ly.store.set(&quot;carts&quot;, this.carts);
+        &#125;)
+    &#125;,
+    decrement(c) &#123;
+        if (c.num &lt;= 1) &#123;
+            return;
+        &#125;
+        c.num--;
+        ly.verifyUser().then(() =&gt; &#123;
+            // TODO 已登录，向后台发起请求
+        &#125;).catch(() =&gt; &#123;
+            // 未登录，直接操作本地数据
+            ly.store.set(&quot;carts&quot;, this.carts);
+        &#125;)
+    &#125;
+</code></pre>
+<h2 id="3-7-删除商品"><a href="#3-7-删除商品" class="headerlink" title="3.7.删除商品"></a>3.7.删除商品</h2><p>给删除按钮绑定事件：</p>
+<p><img src="1533807671462.png" alt="1533807671462"></p>
+<p>点击事件中删除商品：</p>
+<pre><code class="js">deleteCart(i)&#123;
+    ly.verifyUser().then(res=&gt;&#123;
+        // TODO，已登录购物车
+    &#125;).catch(()=&gt;&#123;
+        // 未登录购物车
+        this.carts.splice(i, 1);
+        ly.store.set(&quot;carts&quot;, this.carts);
+    &#125;)
+&#125;
+</code></pre>
+<h2 id="3-8-选中商品"><a href="#3-8-选中商品" class="headerlink" title="3.8.选中商品"></a>3.8.选中商品</h2><p>在页面中，每个购物车商品左侧，都有一个复选框，用户可以选择部分商品进行下单，而不一定是全部：</p>
+<p><img src="1533808731995.png" alt="1533808731995"></p>
+<p>我们定义一个变量，记录所有被选中的商品：</p>
+<p><img src="1533816012100.png" alt="1533816012100"></p>
+<h3 id="3-8-1-选中一个"><a href="#3-8-1-选中一个" class="headerlink" title="3.8.1.选中一个"></a>3.8.1.选中一个</h3><p>我们给商品前面的复选框与selected绑定，并且指定其值为当前购物车商品：</p>
+<p><img src="1533810163988.png" alt="1533810163988"></p>
+<h3 id="3-8-2-初始化全选"><a href="#3-8-2-初始化全选" class="headerlink" title="3.8.2.初始化全选"></a>3.8.2.初始化全选</h3><p>我们在加载完成购物车查询后，初始化全选：</p>
+<p><img src="1533809253022.png" alt="1533809253022"></p>
+<h3 id="3-8-3-总价格"><a href="#3-8-3-总价格" class="headerlink" title="3.8.3.总价格"></a>3.8.3.总价格</h3><p>然后编写一个计算属性，计算出选中商品总价格：</p>
+<pre><code class="js">computed: &#123;
+    totalPrice() &#123;
+        return ly.formatPrice(this.selected.reduce((c1, c2) =&gt; c1 + c2.num * c2.price, 0));
+    &#125;
+&#125;
+</code></pre>
+<p>在页面中展示总价格：</p>
+<p><img src="1533810788247.png" alt="1533810788247"></p>
+<p>效果：</p>
+<p><img src="1533810760802.png" alt="1533810760802"></p>
+<h1 id="4-已登录购物车"><a href="#4-已登录购物车" class="headerlink" title="4.已登录购物车"></a>4.已登录购物车</h1><p>接下来，我们完成已登录购物车。</p>
+<p>在刚才的未登录购物车编写时，我们已经预留好了编写代码的位置，逻辑也基本一致。</p>
+<h2 id="4-1-添加登录校验"><a href="#4-1-添加登录校验" class="headerlink" title="4.1.添加登录校验"></a>4.1.添加登录校验</h2><p>购物车系统只负责登录状态的购物车处理，因此需要添加登录校验，我们通过JWT鉴权即可实现。</p>
+<h3 id="4-1-1-引入JWT相关依赖"><a href="#4-1-1-引入JWT相关依赖" class="headerlink" title="4.1.1.引入JWT相关依赖"></a>4.1.1.引入JWT相关依赖</h3><p>我们引入之前写的鉴权工具：<code>leyou-auth-common</code></p>
+<pre><code class="xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.leyou.auth&lt;/groupId&gt;
+    &lt;artifactId&gt;leyou-auth-common&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h3 id="4-1-2-配置公钥"><a href="#4-1-2-配置公钥" class="headerlink" title="4.1.2.配置公钥"></a>4.1.2.配置公钥</h3><pre><code class="yaml">leyou:
+  jwt:
+    pubKeyPath: C:/tmp/rsa/rsa.pub # 公钥地址
+    cookieName: LY_TOKEN # cookie的名称
+</code></pre>
+<h3 id="4-1-3-加载公钥"><a href="#4-1-3-加载公钥" class="headerlink" title="4.1.3.加载公钥"></a>4.1.3.加载公钥</h3><p> <img src="1533811142851.png" alt="1533811142851"></p>
+<p>代码：</p>
+<pre><code class="java">@ConfigurationProperties(prefix = &quot;leyou.jwt&quot;)
+public class JwtProperties &#123;
+
+    private String pubKeyPath;// 公钥
+
+    private PublicKey publicKey; // 公钥
+
+    private String cookieName;
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtProperties.class);
+
+    @PostConstruct
+    public void init()&#123;
+        try &#123;
+            // 获取公钥和私钥
+            this.publicKey = RsaUtils.getPublicKey(pubKeyPath);
+        &#125; catch (Exception e) &#123;
+            logger.error(&quot;初始化公钥失败！&quot;, e);
+            throw new RuntimeException();
+        &#125;
+    &#125;
+
+    public String getPubKeyPath() &#123;
+        return pubKeyPath;
+    &#125;
+
+    public void setPubKeyPath(String pubKeyPath) &#123;
+        this.pubKeyPath = pubKeyPath;
+    &#125;
+
+    public PublicKey getPublicKey() &#123;
+        return publicKey;
+    &#125;
+
+    public void setPublicKey(PublicKey publicKey) &#123;
+        this.publicKey = publicKey;
+    &#125;
+
+    public String getCookieName() &#123;
+        return cookieName;
+    &#125;
+
+    public void setCookieName(String cookieName) &#123;
+        this.cookieName = cookieName;
+    &#125;
+&#125;
+</code></pre>
+<h3 id="4-1-4-编写拦截器"><a href="#4-1-4-编写拦截器" class="headerlink" title="4.1.4.编写拦截器"></a>4.1.4.编写拦截器</h3><p>因为很多接口都需要进行登录，我们直接编写SpringMVC拦截器，进行统一登录校验。同时，我们还要把解析得到的用户信息保存起来，以便后续的接口可以使用。</p>
+<p> <img src="1533811351500.png" alt="1533811351500"></p>
+<p>代码：</p>
+<pre><code class="java">public class LoginInterceptor extends HandlerInterceptorAdapter &#123;
+
+    private JwtProperties jwtProperties;
+
+    // 定义一个线程域，存放登录用户
+    private static final ThreadLocal&lt;UserInfo&gt; tl = new ThreadLocal&lt;&gt;();
+
+    public LoginInterceptor(JwtProperties jwtProperties) &#123;
+        this.jwtProperties = jwtProperties;
+    &#125;
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception &#123;
+        // 查询token
+        String token = CookieUtils.getCookieValue(request, &quot;LY_TOKEN&quot;);
+        if (StringUtils.isBlank(token)) &#123;
+            // 未登录,返回401
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return false;
+        &#125;
+        // 有token，查询用户信息
+        try &#123;
+            // 解析成功，证明已经登录
+            UserInfo user = JwtUtils.getInfoFromToken(token, jwtProperties.getPublicKey());
+            // 放入线程域
+            tl.set(user);
+            return true;
+        &#125; catch (Exception e)&#123;
+            // 抛出异常，证明未登录,返回401
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return false;
+        &#125;
+
+    &#125;
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception &#123;
+        tl.remove();
+    &#125;
+
+    public static UserInfo getLoginUser() &#123;
+        return tl.get();
+    &#125;
+&#125;
+</code></pre>
+<p>注意：</p>
+<ul>
+<li>这里我们使用了<code>ThreadLocal</code>来存储查询到的用户信息，线程内共享，因此请求到达<code>Controller</code>后可以共享User</li>
+<li>并且对外提供了静态的方法：<code>getLoginUser()</code>来获取User信息</li>
+</ul>
+<h3 id="4-1-5-配置拦截器"><a href="#4-1-5-配置拦截器" class="headerlink" title="4.1.5.配置拦截器"></a>4.1.5.配置拦截器</h3><p>配置SpringMVC，使过滤器生效：</p>
+<p> <img src="1533811609498.png" alt="1533811609498"></p>
+<pre><code class="java">@Configuration
+@EnableConfigurationProperties(JwtProperties.class)
+public class MvcConfig implements WebMvcConfigurer &#123;
+
+    @Autowired
+    private JwtProperties jwtProperties;
+
+    @Bean
+    public LoginInterceptor loginInterceptor() &#123;
+        return new LoginInterceptor(jwtProperties);
+    &#125;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) &#123;
+        registry.addInterceptor(loginInterceptor()).addPathPatterns(&quot;/**&quot;);
+    &#125;
+&#125;
+</code></pre>
+<h2 id="4-2-后台购物车设计"><a href="#4-2-后台购物车设计" class="headerlink" title="4.2.后台购物车设计"></a>4.2.后台购物车设计</h2><p>当用户登录时，我们需要把购物车数据保存到后台，可以选择保存在数据库。但是购物车是一个读写频率很高的数据。因此我们这里选择读写效率比较高的Redis作为购物车存储。</p>
+<p>Redis有5种不同数据结构，这里选择哪一种比较合适呢？Map&lt;String, List<String>&gt;</p>
+<ul>
+<li>首先不同用户应该有独立的购物车，因此购物车应该以用户的作为key来存储，Value是用户的所有购物车信息。这样看来基本的<code>k-v</code>结构就可以了。</li>
+<li>但是，我们对购物车中的商品进行增、删、改操作，基本都需要根据商品id进行判断，为了方便后期处理，我们的购物车也应该是<code>k-v</code>结构，key是商品id，value才是这个商品的购物车信息。</li>
+</ul>
+<p>综上所述，我们的购物车结构是一个双层Map：Map&lt;String,Map&lt;String,String&gt;&gt; </p>
+<ul>
+<li>第一层Map，Key是用户id</li>
+<li>第二层Map，Key是购物车中商品id，值是购物车数据</li>
+</ul>
+<p>实体类：</p>
+<pre><code class="java">public class Cart &#123;
+    private Long userId;// 用户id
+    private Long skuId;// 商品id
+    private String title;// 标题
+    private String image;// 图片
+    private Long price;// 加入购物车时的价格
+    private Integer num;// 购买数量
+    private String ownSpec;// 商品规格参数
+
+    public Long getUserId() &#123;
+        return userId;
+    &#125;
+
+    public void setUserId(Long userId) &#123;
+        this.userId = userId;
+    &#125;
+
+    public Long getSkuId() &#123;
+        return skuId;
+    &#125;
+
+    public void setSkuId(Long skuId) &#123;
+        this.skuId = skuId;
+    &#125;
+
+    public String getTitle() &#123;
+        return title;
+    &#125;
+
+    public void setTitle(String title) &#123;
+        this.title = title;
+    &#125;
+
+    public String getImage() &#123;
+        return image;
+    &#125;
+
+    public void setImage(String image) &#123;
+        this.image = image;
+    &#125;
+
+    public Long getPrice() &#123;
+        return price;
+    &#125;
+
+    public void setPrice(Long price) &#123;
+        this.price = price;
+    &#125;
+
+    public Integer getNum() &#123;
+        return num;
+    &#125;
+
+    public void setNum(Integer num) &#123;
+        this.num = num;
+    &#125;
+
+    public String getOwnSpec() &#123;
+        return ownSpec;
+    &#125;
+
+    public void setOwnSpec(String ownSpec) &#123;
+        this.ownSpec = ownSpec;
+    &#125;
+&#125;
+</code></pre>
+<h2 id="4-3-添加商品到购物车"><a href="#4-3-添加商品到购物车" class="headerlink" title="4.3.添加商品到购物车"></a>4.3.添加商品到购物车</h2><h3 id="4-3-1-页面发起请求"><a href="#4-3-1-页面发起请求" class="headerlink" title="4.3.1.页面发起请求"></a>4.3.1.页面发起请求</h3><p>已登录情况下，向后台添加购物车：</p>
+<p><img src="1533812224110.png" alt="1533812224110"></p>
+<pre><code class="js">ly.http.post(&quot;/cart&quot;, &#123;skuId: this.sku.id, num: this.num&#125;).then(res=&gt;&#123;
+    window.location = &quot;http://www.leyou.com/cart.html&quot;;
+&#125;)
+</code></pre>
+<p>这里发起的是Json请求。那么我们后台也要以json接收。</p>
+<h3 id="4-3-2-编写controller"><a href="#4-3-2-编写controller" class="headerlink" title="4.3.2.编写controller"></a>4.3.2.编写controller</h3><p>先分析一下：</p>
+<ul>
+<li>请求方式：新增，肯定是Post</li>
+<li>请求路径：/cart ，这个其实是Zuul路由的路径，我们可以不管</li>
+<li>请求参数：Json对象，包含skuId和num属性</li>
+<li>返回结果：无</li>
+</ul>
+<pre><code class="java">@Controller
+public class CartController &#123;
+
+    @Autowired
+    private CartService cartService;
+
+    /**
+     * 添加购物车
+     *
+     * @return
+     */
+    @PostMapping
+    public ResponseEntity&lt;Void&gt; addCart(@RequestBody Cart cart) &#123;
+        this.cartService.addCart(cart);
+        return ResponseEntity.ok().build();
+    &#125;
+&#125;
+</code></pre>
+<p>在leyou-gateway中添加路由配置：</p>
+<p><img src="1533814103369.png" alt="1533814103369"></p>
+<h3 id="4-3-3-CartService"><a href="#4-3-3-CartService" class="headerlink" title="4.3.3.CartService"></a>4.3.3.CartService</h3><p>这里我们不访问数据库，而是直接操作Redis。基本思路：</p>
+<ul>
+<li>先查询之前的购物车数据</li>
+<li>判断要添加的商品是否存在<ul>
+<li>存在：则直接修改数量后写回Redis</li>
+<li>不存在：新建一条数据，然后写入Redis</li>
+</ul>
+</li>
+</ul>
+<p>代码：</p>
+<pre><code class="java">@Service
+public class CartService &#123;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private GoodsClient goodsClient;
+
+    static final String KEY_PREFIX = &quot;leyou:cart:uid:&quot;;
+
+    static final Logger logger = LoggerFactory.getLogger(CartService.class);
+
+    public void addCart(Cart cart) &#123;
+        // 获取登录用户
+        UserInfo user = LoginInterceptor.getLoginUser();
+        // Redis的key
+        String key = KEY_PREFIX + user.getId();
+        // 获取hash操作对象
+        BoundHashOperations&lt;String, Object, Object&gt; hashOps = this.redisTemplate.boundHashOps(key);
+        // 查询是否存在
+        Long skuId = cart.getSkuId();
+        Integer num = cart.getNum();
+        Boolean boo = hashOps.hasKey(skuId.toString());
+        if (boo) &#123;
+            // 存在，获取购物车数据
+            String json = hashOps.get(skuId.toString()).toString();
+            cart = JsonUtils.parse(json, Cart.class);
+            // 修改购物车数量
+            cart.setNum(cart.getNum() + num);
+        &#125; else &#123;
+            // 不存在，新增购物车数据
+            cart.setUserId(user.getId());
+            // 其它商品信息，需要查询商品服务
+            Sku sku = this.goodsClient.querySkuById(skuId);
+            cart.setImage(StringUtils.isBlank(sku.getImages()) ? &quot;&quot; : StringUtils.split(sku.getImages(), &quot;,&quot;)[0]);
+            cart.setPrice(sku.getPrice());
+            cart.setTitle(sku.getTitle());
+            cart.setOwnSpec(sku.getOwnSpec());
+        &#125;
+        // 将购物车数据写入redis
+        hashOps.put(cart.getSkuId().toString(), JsonUtils.serialize(cart));
+    &#125;
+&#125;
+</code></pre>
+<p>需要引入leyou-item-interface依赖：</p>
+<pre><code class="xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.leyou.item&lt;/groupId&gt;
+    &lt;artifactId&gt;leyou-item-interface&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h3 id="4-3-4-GoodClient"><a href="#4-3-4-GoodClient" class="headerlink" title="4.3.4.GoodClient"></a>4.3.4.GoodClient</h3><p>参照搜索工程，添加GoodClient，提供根据id查询sku的接口：</p>
+<p> <img src="1533813101222.png" alt="1533813101222"></p>
+<pre><code class="java">@FeignClient(&quot;item-service&quot;)
+public interface GoodsClient extends GoodsApi &#123;
+&#125;
+</code></pre>
+<p>在leyou-item-service中的GoodsController添加方法：</p>
+<pre><code class="java">@GetMapping(&quot;sku/&#123;id&#125;&quot;)
+public ResponseEntity&lt;Sku&gt; querySkuById(@PathVariable(&quot;id&quot;)Long id)&#123;
+    Sku sku = this.goodsService.querySkuById(id);
+    if (sku == null)&#123;
+        return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);
+    &#125;
+    return ResponseEntity.ok(sku);
+&#125;
+</code></pre>
+<p>在leyou-item-service中的GoodsService添加方法：</p>
+<pre><code class="java">public Sku querySkuById(Long id) &#123;
+    return this.skuMapper.selectByPrimaryKey(id);
+&#125;
+</code></pre>
+<h3 id="4-3-5-结果"><a href="#4-3-5-结果" class="headerlink" title="4.3.5.结果"></a>4.3.5.结果</h3><p><img src="1533815211788.png" alt="1533815211788"></p>
+<h2 id="4-4-查询购物车"><a href="#4-4-查询购物车" class="headerlink" title="4.4.查询购物车"></a>4.4.查询购物车</h2><h3 id="4-4-1-页面发起请求"><a href="#4-4-1-页面发起请求" class="headerlink" title="4.4.1.页面发起请求"></a>4.4.1.页面发起请求</h3><p>购物车页面：cart.html</p>
+<p><img src="1533816059966.png" alt="1533816059966"></p>
+<h3 id="4-4-2-后台实现"><a href="#4-4-2-后台实现" class="headerlink" title="4.4.2.后台实现"></a>4.4.2.后台实现</h3><blockquote>
+<p>Controller</p>
+</blockquote>
+<pre><code class="java">/**
+ * 查询购物车列表
+ *
+ * @return
+ */
+@GetMapping
+public ResponseEntity&lt;List&lt;Cart&gt;&gt; queryCartList() &#123;
+    List&lt;Cart&gt; carts = this.cartService.queryCartList();
+    if (carts == null) &#123;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    &#125;
+    return ResponseEntity.ok(carts);
+&#125;
+</code></pre>
+<blockquote>
+<p>Service</p>
+</blockquote>
+<pre><code class="java">public List&lt;Cart&gt; queryCartList() &#123;
+    // 获取登录用户
+    UserInfo user = LoginInterceptor.getLoginUser();
+
+    // 判断是否存在购物车
+    String key = KEY_PREFIX + user.getId();
+    if(!this.redisTemplate.hasKey(key))&#123;
+        // 不存在，直接返回
+        return null;
+    &#125;
+    BoundHashOperations&lt;String, Object, Object&gt; hashOps = this.redisTemplate.boundHashOps(key);
+    List&lt;Object&gt; carts = hashOps.values();
+    // 判断是否有数据
+    if(CollectionUtils.isEmpty(carts))&#123;
+        return null;
+    &#125;
+    // 查询购物车数据
+    return carts.stream().map(o -&gt; JsonUtils.parse(o.toString(), Cart.class)).collect(Collectors.toList());
+&#125;
+</code></pre>
+<h3 id="4-4-3-测试"><a href="#4-4-3-测试" class="headerlink" title="4.4.3.测试"></a>4.4.3.测试</h3><p><img src="1533815725920.png" alt="1533815725920"></p>
+<h2 id="4-5-修改商品数量"><a href="#4-5-修改商品数量" class="headerlink" title="4.5.修改商品数量"></a>4.5.修改商品数量</h2><h3 id="4-5-1-页面发起请求"><a href="#4-5-1-页面发起请求" class="headerlink" title="4.5.1.页面发起请求"></a>4.5.1.页面发起请求</h3><p><img src="1534304010551.png" alt="1534304010551"></p>
+<h3 id="4-5-2-后台实现"><a href="#4-5-2-后台实现" class="headerlink" title="4.5.2.后台实现"></a>4.5.2.后台实现</h3><blockquote>
+<p>Controller</p>
+</blockquote>
+<pre><code class="java">@PutMapping
+public ResponseEntity&lt;Void&gt; updateNum(@RequestBody Cart cart)&#123;
+    this.cartService.updateCarts(cart);
+    return ResponseEntity.noContent().build();
+&#125;
+</code></pre>
+<blockquote>
+<p>Service</p>
+</blockquote>
+<pre><code class="java">public void updateCarts(Cart cart) &#123;
+    // 获取登陆信息
+    UserInfo userInfo = LoginInterceptor.getUserInfo();
+    String key = LEYOU_CART_KEY + userInfo.getId();
+    // 获取hash操作对象
+    BoundHashOperations&lt;String, Object, Object&gt; hashOperations = this.redisTemplate.boundHashOps(key);
+    // 获取购物车信息
+    String cartJson = hashOperations.get(cart.getSkuId().toString()).toString();
+    Cart cart1 = JsonUtils.parse(cartJson, Cart.class);
+    // 更新数量
+    cart1.setNum(cart.getNum());
+    // 写入购物车
+    hashOperations.put(cart.getSkuId().toString(), JsonUtils.serialize(cart1));
+&#125;
+</code></pre>
+<h2 id="4-6-删除购物车商品"><a href="#4-6-删除购物车商品" class="headerlink" title="4.6.删除购物车商品"></a>4.6.删除购物车商品</h2><h3 id="4-6-1-页面发起请求"><a href="#4-6-1-页面发起请求" class="headerlink" title="4.6.1.页面发起请求"></a>4.6.1.页面发起请求</h3><p><img src="1533816356869.png" alt="1533816356869"></p>
+<p>注意：后台成功响应后，要把页面的购物车中数据也删除</p>
+<h3 id="4-6-2-后台实现"><a href="#4-6-2-后台实现" class="headerlink" title="4.6.2.后台实现"></a>4.6.2.后台实现</h3><blockquote>
+<p>Controller</p>
+</blockquote>
+<pre><code class="java">@DeleteMapping(&quot;&#123;skuId&#125;&quot;)
+public ResponseEntity&lt;Void&gt; deleteCart(@PathVariable(&quot;skuId&quot;) String skuId) &#123;
+    this.cartService.deleteCart(skuId);
+    return ResponseEntity.ok().build();
+&#125;
+</code></pre>
+<blockquote>
+<p>Service</p>
+</blockquote>
+<pre><code class="java">public void deleteCart(String skuId) &#123;
+    // 获取登录用户
+    UserInfo user = LoginInterceptor.getLoginUser();
+    String key = KEY_PREFIX + user.getId();
+    BoundHashOperations&lt;String, Object, Object&gt; hashOps = this.redisTemplate.boundHashOps(key);
+    hashOps.delete(skuId);
+&#125;
+</code></pre>
+<h1 id="5-登录后购物车合并"><a href="#5-登录后购物车合并" class="headerlink" title="5.登录后购物车合并"></a>5.登录后购物车合并</h1><p>当跳转到购物车页面，查询购物车列表前，需要判断用户登录状态，</p>
+<ul>
+<li>如果登录：<ul>
+<li>首先检查用户的LocalStorage中是否有购物车信息，</li>
+<li>如果有，则提交到后台保存，</li>
+<li>清空LocalStorage</li>
+</ul>
+</li>
+<li>如果未登录，直接查询即可</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/localstorage/" rel="tag"># localstorage</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/" rel="prev" title="leyou门户#6-JWT授权中心">
+      <i class="fa fa-chevron-left"></i> leyou门户#6-JWT授权中心
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/06/leyou%E9%97%A8%E6%88%B7-8-%E4%B8%8B%E5%8D%95/" rel="next" title="leyou门户#8-下单">
+      leyou门户#8-下单 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%90%AD%E5%BB%BA%E8%B4%AD%E7%89%A9%E8%BD%A6%E6%9C%8D%E5%8A%A1"><span class="nav-text">1.搭建购物车服务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-%E5%88%9B%E5%BB%BAmodule"><span class="nav-text">1.1.创建module</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-pom%E4%BE%9D%E8%B5%96"><span class="nav-text">1.2.pom依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-text">1.3.配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-4-%E5%90%AF%E5%8A%A8%E7%B1%BB"><span class="nav-text">1.4.启动类</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%B4%AD%E7%89%A9%E8%BD%A6%E5%8A%9F%E8%83%BD%E5%88%86%E6%9E%90"><span class="nav-text">2.购物车功能分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E9%9C%80%E6%B1%82"><span class="nav-text">2.1.需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-text">2.2.流程图</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%9C%AA%E7%99%BB%E5%BD%95%E8%B4%AD%E7%89%A9%E8%BD%A6"><span class="nav-text">3.未登录购物车</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E5%87%86%E5%A4%87"><span class="nav-text">3.1.准备</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-1%E8%B4%AD%E7%89%A9%E8%BD%A6%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">3.1.1购物车的数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-2-web%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8"><span class="nav-text">3.1.2.web本地存储</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFweb%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8%EF%BC%9F"><span class="nav-text">什么是web本地存储？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LocalStorage%E7%9A%84%E7%94%A8%E6%B3%95"><span class="nav-text">LocalStorage的用法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-3-%E8%8E%B7%E5%8F%96num"><span class="nav-text">3.1.3.获取num</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-%E6%B7%BB%E5%8A%A0%E8%B4%AD%E7%89%A9%E8%BD%A6"><span class="nav-text">3.2.添加购物车</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-1-%E7%82%B9%E5%87%BB%E4%BA%8B%E4%BB%B6"><span class="nav-text">3.2.1.点击事件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-2-%E8%8E%B7%E5%8F%96%E6%95%B0%E9%87%8F%EF%BC%8C%E6%B7%BB%E5%8A%A0%E8%B4%AD%E7%89%A9%E8%BD%A6"><span class="nav-text">3.2.2.获取数量，添加购物车</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-%E6%9F%A5%E8%AF%A2%E8%B4%AD%E7%89%A9%E8%BD%A6"><span class="nav-text">3.3.查询购物车</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-1-%E6%A0%A1%E9%AA%8C%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95"><span class="nav-text">3.3.1.校验用户登录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-2-%E6%9F%A5%E8%AF%A2%E8%B4%AD%E7%89%A9%E8%BD%A6"><span class="nav-text">3.3.2.查询购物车</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-2-%E6%B8%B2%E6%9F%93%E5%88%B0%E9%A1%B5%E9%9D%A2"><span class="nav-text">3.5.2.渲染到页面</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-6-%E4%BF%AE%E6%94%B9%E6%95%B0%E9%87%8F"><span class="nav-text">3.6.修改数量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-7-%E5%88%A0%E9%99%A4%E5%95%86%E5%93%81"><span class="nav-text">3.7.删除商品</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-8-%E9%80%89%E4%B8%AD%E5%95%86%E5%93%81"><span class="nav-text">3.8.选中商品</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-8-1-%E9%80%89%E4%B8%AD%E4%B8%80%E4%B8%AA"><span class="nav-text">3.8.1.选中一个</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-8-2-%E5%88%9D%E5%A7%8B%E5%8C%96%E5%85%A8%E9%80%89"><span class="nav-text">3.8.2.初始化全选</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-8-3-%E6%80%BB%E4%BB%B7%E6%A0%BC"><span class="nav-text">3.8.3.总价格</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%B7%B2%E7%99%BB%E5%BD%95%E8%B4%AD%E7%89%A9%E8%BD%A6"><span class="nav-text">4.已登录购物车</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E6%B7%BB%E5%8A%A0%E7%99%BB%E5%BD%95%E6%A0%A1%E9%AA%8C"><span class="nav-text">4.1.添加登录校验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-1-%E5%BC%95%E5%85%A5JWT%E7%9B%B8%E5%85%B3%E4%BE%9D%E8%B5%96"><span class="nav-text">4.1.1.引入JWT相关依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-2-%E9%85%8D%E7%BD%AE%E5%85%AC%E9%92%A5"><span class="nav-text">4.1.2.配置公钥</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-3-%E5%8A%A0%E8%BD%BD%E5%85%AC%E9%92%A5"><span class="nav-text">4.1.3.加载公钥</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-4-%E7%BC%96%E5%86%99%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="nav-text">4.1.4.编写拦截器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-5-%E9%85%8D%E7%BD%AE%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="nav-text">4.1.5.配置拦截器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E5%90%8E%E5%8F%B0%E8%B4%AD%E7%89%A9%E8%BD%A6%E8%AE%BE%E8%AE%A1"><span class="nav-text">4.2.后台购物车设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E6%B7%BB%E5%8A%A0%E5%95%86%E5%93%81%E5%88%B0%E8%B4%AD%E7%89%A9%E8%BD%A6"><span class="nav-text">4.3.添加商品到购物车</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-1-%E9%A1%B5%E9%9D%A2%E5%8F%91%E8%B5%B7%E8%AF%B7%E6%B1%82"><span class="nav-text">4.3.1.页面发起请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-2-%E7%BC%96%E5%86%99controller"><span class="nav-text">4.3.2.编写controller</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-3-CartService"><span class="nav-text">4.3.3.CartService</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-4-GoodClient"><span class="nav-text">4.3.4.GoodClient</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-5-%E7%BB%93%E6%9E%9C"><span class="nav-text">4.3.5.结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-%E6%9F%A5%E8%AF%A2%E8%B4%AD%E7%89%A9%E8%BD%A6"><span class="nav-text">4.4.查询购物车</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-1-%E9%A1%B5%E9%9D%A2%E5%8F%91%E8%B5%B7%E8%AF%B7%E6%B1%82"><span class="nav-text">4.4.1.页面发起请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-2-%E5%90%8E%E5%8F%B0%E5%AE%9E%E7%8E%B0"><span class="nav-text">4.4.2.后台实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-3-%E6%B5%8B%E8%AF%95"><span class="nav-text">4.4.3.测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5-%E4%BF%AE%E6%94%B9%E5%95%86%E5%93%81%E6%95%B0%E9%87%8F"><span class="nav-text">4.5.修改商品数量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-1-%E9%A1%B5%E9%9D%A2%E5%8F%91%E8%B5%B7%E8%AF%B7%E6%B1%82"><span class="nav-text">4.5.1.页面发起请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-2-%E5%90%8E%E5%8F%B0%E5%AE%9E%E7%8E%B0"><span class="nav-text">4.5.2.后台实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-6-%E5%88%A0%E9%99%A4%E8%B4%AD%E7%89%A9%E8%BD%A6%E5%95%86%E5%93%81"><span class="nav-text">4.6.删除购物车商品</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-1-%E9%A1%B5%E9%9D%A2%E5%8F%91%E8%B5%B7%E8%AF%B7%E6%B1%82"><span class="nav-text">4.6.1.页面发起请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-2-%E5%90%8E%E5%8F%B0%E5%AE%9E%E7%8E%B0"><span class="nav-text">4.6.2.后台实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E7%99%BB%E5%BD%95%E5%90%8E%E8%B4%AD%E7%89%A9%E8%BD%A6%E5%90%88%E5%B9%B6"><span class="nav-text">5.登录后购物车合并</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

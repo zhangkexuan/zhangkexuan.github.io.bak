@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="http协议载servlet中使用，request和response的使用。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="javaweb#13-http">
+<meta property="og:url" content="http://yoursite.com/2020/03/16/java-13-http/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="http协议载servlet中使用，request和response的使用。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-16T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T01:55:45.354Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="javaweb">
+<meta property="article:tag" content="http">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/16/java-13-http/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>javaweb#13-http | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/16/java-13-http/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          javaweb#13-http
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-16 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-16T09:34:33+08:00">2020-03-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>http协议载servlet中使用，request和response的使用。</p>
+<span id="more"></span>
+<h1 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h1><p>Hyper Text Transfer Protocol 超文本传输协议</p>
+<ul>
+<li><p>传输协议：定义了，客户端和服务器端通信时，发送数据的格式</p>
+</li>
+<li><p>特点：</p>
+<ol>
+<li>基于TCP/IP的高级协议</li>
+<li>默认端口号:80</li>
+<li>基于请求/响应模型的:一次请求对应一次响应</li>
+<li>无状态的：每次请求之间相互独立，不能交互数据</li>
+</ol>
+</li>
+<li><p>历史版本：</p>
+<ul>
+<li>1.0：每一次请求响应都会建立新的连接</li>
+<li>1.1：复用连接</li>
+</ul>
+</li>
+</ul>
+<h1 id="请求消息数据格式"><a href="#请求消息数据格式" class="headerlink" title="请求消息数据格式"></a>请求消息数据格式</h1><ol>
+<li><p>请求行</p>
+<table>
+<thead>
+<tr>
+<th>请求方式</th>
+<th>请求url</th>
+<th>请求协议/版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td>/login.html</td>
+<td>HTTP/1.1</td>
+</tr>
+</tbody></table>
+</li>
+</ol>
+<ul>
+<li>请求方式：<ul>
+<li>HTTP协议有7中请求方式，常用的有2种<ul>
+<li>GET：<ol>
+<li>请求参数在请求行中，在url后。</li>
+<li>请求的url长度有限制的</li>
+<li>不太安全</li>
+</ol>
+</li>
+<li>POST：<ol>
+<li>请求参数在请求体中</li>
+<li>请求的url长度没有限制的</li>
+<li>相对安全</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>请求头<br>客户端浏览器告诉服务器一些信息<br>请求头名称: 请求头值</li>
+</ol>
+<ul>
+<li>常见的请求头：<ol>
+<li>User-Agent：浏览器告诉服务器，我访问你使用的浏览器版本信息<ul>
+<li>可以在服务器端获取该头的信息，解决浏览器的兼容性问题</li>
+</ul>
+</li>
+<li>Referer：<a target="_blank" rel="noopener" href="http://localhost/login.html">http://localhost/login.html</a><ul>
+<li>告诉服务器，我(当前请求)从哪里来？</li>
+<li>作用：<ol>
+<li>防盗链：</li>
+<li>统计工作：</li>
+</ol>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<ol start="3">
+<li><p>请求空行</p>
+<p> 空行，就是用于分割POST请求的请求头，和请求体的。</p>
+</li>
+<li><p>请求体(正文)：</p>
+<p> 封装POST请求消息的请求参数的</p>
+</li>
+<li><p> 请求消息数据格式字符串格式<br>```http<br>POST  /login.html    HTTP/1.1Host: localhost:8080<br>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0<br>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,<em>/</em>;q=0.8<br>Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2<br>Accept-Encoding: gzip, deflate<br>Content-Type: application/x-www-form-urlencoded<br>Content-Length: 12<br>Origin: <a target="_blank" rel="noopener" href="http://localhost:8080/">http://localhost:8080</a><br>Connection: keep-alive<br>Referer: <a target="_blank" rel="noopener" href="http://localhost:8080/login.html">http://localhost:8080/login.html</a><br>Cookie: Idea-c3065301=58d99a45-beb8-4f26-81f6-d68a3f276f46<br>Upgrade-Insecure-Requests: 1</p>
+</li>
+</ol>
+<p>username=zhangsan     </p>
+<pre><code>
+# Request
+
+## request对象和response对象的原理
+1. request和response对象是由服务器创建的。我们来使用它们.
+2. request对象是来获取请求消息，response对象是来设置响应消息.
+
+## request对象继承体系结构
+ServletRequest        --    接口
+            |    继承
+HttpServletRequest    -- 接口
+            |    实现
+org.apache.catalina.connector.RequestFacade -- 类(tomcat)
+
+## request功能
+### 获取请求消息数据
+#### 获取请求行数据
+GET /day14/demo1?name=zhangsan HTTP/1.1
+* 方法：
+    1. 获取请求方式 ：GET
+        * String getMethod()  
+    2. (*)获取虚拟目录：/day14
+        * String getContextPath()
+    3. 获取Servlet路径: /demo1
+        * String getServletPath()
+    4. 获取get方式请求参数：name=zhangsan
+        * String getQueryString()
+    5. (*)获取请求URI：/day14/demo1
+        * String getRequestURI():        /day14/demo1
+        * StringBuffer getRequestURL()  :http://localhost/day14/demo1
+
+        * URL:统一资源定位符 ： http://localhost/day14/demo1
+        * URI：统一资源标识符 : /day14/demo1
+
+    6. 获取协议及版本：HTTP/1.1
+        * String getProtocol()
+
+    7. 获取客户机的IP地址：
+        * String getRemoteAddr()
+
+#### 获取请求头数据
+* 方法：
+    * (*)String getHeader(String name):通过请求头的名称获取请求头的值
+    * Enumeration\&lt;String&gt; getHeaderNames():获取所有的请求头名称
+
+#### 获取请求体数据
+请求体：只有POST请求方式，才有请求体，在请求体中封装了POST请求的请求参数
+* 步骤：
+  1. 获取流对象
+    *  BufferedReader getReader()：获取字符输入流，只能操作字符数据
+    *  ServletInputStream getInputStream()：获取字节输入流，可以操作所有类型数据
+        * 在文件上传知识点后讲解
+  2. 再从流对象中拿数据
+* req.getParameterNames()得到所有的键数组，可再使用req.getParameterValues(req.getParameterNames()[i]）得到所有的值。
+* req.getParameterMap()得到map，再返回keyset
+
+#### 代码实例
+```java
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Set;
+
+@WebServlet(&quot;/request&quot;)
+public class request extends HttpServlet &#123;
+
+    public int postCount = 0;
+    public int getCount = 0;
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123;
+
+        System.out.println(&quot;第&quot; + postCount++ + &quot;次post...&quot;);
+        checkHead(req);
+
+        //Get request body
+        BufferedReader reader = req.getReader();
+        String line = null;
+        while ((line = reader.readLine()) != null) &#123;
+            System.out.println(line);
+        &#125;
+    &#125;
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123;
+
+        System.out.println(&quot;第&quot; + getCount++ + &quot;次get...&quot;);
+        checkHead(req);
+    &#125;
+
+    protected void checkHead(HttpServletRequest req) &#123;
+        System.out.println(req.getMethod());
+        System.out.println(req.getContextPath());
+        System.out.println(req.getServletPath());
+        System.out.println(req.getQueryString());
+        System.out.println(req.getRequestURI());
+        System.out.println(req.getProtocol());
+        System.out.println(req.getRemoteAddr());
+
+        Enumeration&lt;String&gt; headerNames = req.getHeaderNames();
+        while (headerNames.hasMoreElements()) &#123;
+            String s = headerNames.nextElement();
+            String header = req.getHeader(s);
+            System.out.println(s + &quot;---&quot; + header);
+        &#125;
+
+        System.out.println(&quot;~~~~username~~~~~\n&quot; + req.getParameter(&quot;username&quot;));
+
+        String[] hobbies = req.getParameterValues(&quot;hobby&quot;);
+        System.out.print(&quot;~~~~hobby~~~~~\n&quot;);
+        for (String hobby : hobbies) &#123;
+            System.out.print(hobby+&quot;;&quot;);
+        &#125;
+        System.out.println();
+
+        System.out.println(&quot;using names!@#$%^&amp;*(&quot;);
+        Enumeration&lt;String&gt; parameterNames = req.getParameterNames();
+        while(parameterNames.hasMoreElements())&#123;
+            String key = parameterNames.nextElement();
+            String[] values = req.getParameterValues(key);
+            System.out.println(key+&quot;---------&quot;);
+            for (String value : values) &#123;
+                System.out.print(value);
+            &#125;
+            System.out.println();
+        &#125;
+
+        System.out.println(&quot;using map~!@#$%^&amp;&quot;);
+        Map&lt;String, String[]&gt; map = req.getParameterMap();
+        Set&lt;String&gt; keySet = map.keySet();
+        for (String key : keySet) &#123;
+            System.out.println(key+&quot;---------&quot;);
+            String[] values = map.get(key);
+            for (String value : values) &#123;
+                System.out.print(value+&quot;;&quot;);
+            &#125;
+            System.out.println();
+        &#125;
+
+
+
+
+    &#125;
+
+&#125;
+</code></pre>
+<h3 id="其他重要功能"><a href="#其他重要功能" class="headerlink" title="其他重要功能"></a>其他重要功能</h3><h4 id="请求参数"><a href="#请求参数" class="headerlink" title="请求参数"></a>请求参数</h4><p>不论get还是post请求方式都可以使用下列方法来获取请求参数</p>
+<ol>
+<li><p><code>String getParameter(String name)</code>:根据参数名称获取参数值    username=zs&amp;password=123</p>
+</li>
+<li><p><code>String[] getParameterValues(String name)</code>:根据参数名称获取参数值的数组  hobby=xx&amp;hobby=game</p>
+</li>
+<li><p><code>Enumeration&lt;String&gt; getParameterNames()</code>:获取所有请求的参数名称</p>
+</li>
+<li><p> <code>Map&lt;String,String[]&gt; getParameterMap()</code>:获取所有参数的map集合</p>
+</li>
+</ol>
+<ul>
+<li>中文乱码问题：<ul>
+<li>get方式：tomcat 8 已经将get方式乱码问题解决了</li>
+<li>post方式：会乱码<ul>
+<li>解决：在获取参数前，设置request的编码request.setCharacterEncoding(“utf-8”);</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="请求转发"><a href="#请求转发" class="headerlink" title="请求转发"></a>请求转发</h4><p>一种在服务器内部的资源跳转方式</p>
+<ol>
+<li><p>步骤：</p>
+<ol>
+<li>通过request对象获取请求转发器对象：RequestDispatcher getRequestDispatcher(String path)</li>
+<li>使用RequestDispatcher对象来进行转发：forward(ServletRequest request, ServletResponse response) </li>
+</ol>
+</li>
+<li><p>特点：</p>
+<ol>
+<li>浏览器地址栏路径不发生变化</li>
+<li>只能转发到当前服务器内部资源中。</li>
+<li>转发是一次请求</li>
+</ol>
+</li>
+<li><p>代码</p>
+<pre><code class="java">import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+@WebServlet(&quot;/forword1&quot;)
+public class forword1 extends HttpServlet &#123;
+
+   @Override
+   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123;
+      System.out.println(&quot;servlet1被访问了....&quot;);
+      req.getRequestDispatcher(&quot;/forword2&quot;).forward(req,resp);
+   &#125;
+&#125;
+</code></pre>
+<h4 id="共享数据"><a href="#共享数据" class="headerlink" title="共享数据"></a>共享数据</h4></li>
+</ol>
+<ul>
+<li><p>域对象：一个有作用范围的对象，可以在范围内共享数据</p>
+</li>
+<li><p>request域：代表一次请求的范围，一般用于请求转发的多个资源中共享数据</p>
+</li>
+<li><p>方法：</p>
+<ol>
+<li><code>void setAttribute(String name,Object obj)</code>:存储数据</li>
+<li><code>Object getAttitude(String name)</code>:通过键获取值</li>
+<li><code>void removeAttribute(String name)</code>:通过键移除键值对</li>
+</ol>
+</li>
+<li><p>代码</p>
+<pre><code class="java">//forword1中
+req.setAttribute(&quot;msg&quot;,&quot;hello&quot;);
+//forword2中
+System.out.println(req.getAttribute(&quot;msg&quot;));
+</code></pre>
+</li>
+</ul>
+<h4 id="获取ServletContext"><a href="#获取ServletContext" class="headerlink" title="获取ServletContext"></a>获取ServletContext</h4><ul>
+<li>ServletContext getServletContext()</li>
+</ul>
+<h1 id="响应消息数据格式"><a href="#响应消息数据格式" class="headerlink" title="响应消息数据格式"></a>响应消息数据格式</h1><ol>
+<li>响应行<ol>
+<li>组成：协议/版本 响应状态码 状态码描述</li>
+<li>响应状态码：服务器告诉客户端浏览器本次请求和响应的一个状态。<ol>
+<li>状态码都是3位数字 </li>
+<li>分类：<ul>
+<li>1xx：服务器就收客户端消息，但没有接受完成，等待一段时间后，发送1xx多状态码</li>
+<li>2xx：成功。代表：200</li>
+<li>3xx：重定向。代表：302(重定向)，304(访问缓存)</li>
+<li>4xx：客户端错误。<ul>
+<li>代表：<br>  404（请求路径没有对应的资源）<br>  405：请求方式没有对应的doXxx方法<br>  5xx：服务器端错误。代表：500(服务器内部出现异常)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>响应头<ol>
+<li>格式：头名称： 值</li>
+<li>常见的响应头：<ol>
+<li>Content-Type：服务器告诉客户端本次响应体数据格式以及编码格式</li>
+<li>Content-disposition：服务器告诉客户端以什么格式打开响应体数据<ul>
+<li>值：<ul>
+<li>in-line:默认值,在当前页面内打开</li>
+<li>attachment;filename=xxx：以附件形式打开响应体。文件下载</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>响应空行</li>
+<li>响应体:传输的数据</li>
+</ol>
+<ul>
+<li>响应字符串格式<br>```http<br>HTTP/1.1 200 OK<br>Content-Type: text/html;charset=UTF-8<br>Content-Length: 101<br>Date: Wed, 06 Jun 2018 07:08:42 GMT</li>
+</ul>
+<html>
+<head>
+<title>$Title$</title>
+</head>
+<body>
+hello , response
+</body>
+</html>
+```
+# Response
+
+<ol>
+<li><p>设置响应行</p>
+</li>
+<li><p>格式：HTTP/1.1 200 ok</p>
+</li>
+<li><p>设置状态码：setStatus(int sc) </p>
+</li>
+<li><p>设置响应头：setHeader(String name, String value) </p>
+</li>
+<li><p>设置响应体：</p>
+</li>
+</ol>
+<ul>
+<li><p>使用步骤：</p>
+<ol>
+<li>获取输出流</li>
+</ol>
+<ul>
+<li><p>字符输出流：PrintWriter getWriter()</p>
+</li>
+<li><p>字节输出流：ServletOutputStream getOutputStream()</p>
+</li>
+</ul>
+<ol start="2">
+<li>使用输出流，将数据输出到客户端浏览器</li>
+</ol>
+</li>
+</ul>
+<h2 id="重定向"><a href="#重定向" class="headerlink" title="重定向"></a>重定向</h2><ul>
+<li><p>重定向：资源跳转的方式</p>
+</li>
+<li><p>代码实现：</p>
+<pre><code class="java">//1. 设置状态码为302
+response.setStatus(302);
+//2.设置响应头location
+response.setHeader(&quot;location&quot;,&quot;/day15/responseDemo2&quot;);
+//简单的重定向方法
+response.sendRedirect(&quot;/day15/responseDemo2&quot;);
+</code></pre>
+</li>
+<li><p>重定向的特点:redirect</p>
+<ol>
+<li>地址栏发生变化</li>
+<li>重定向可以访问其他站点(服务器)的资源</li>
+<li>重定向是两次请求。不能使用request对象来共享数据</li>
+</ol>
+</li>
+<li><p>转发的特点：forward</p>
+<ol>
+<li>转发地址栏路径不变</li>
+<li>转发只能访问当前服务器下的资源</li>
+<li>转发是一次请求，可以使用request对象来共享数据</li>
+</ol>
+</li>
+<li><p>forward 和  redirect 区别</p>
+</li>
+<li><p>路径写法：</p>
+<ol>
+<li>路径分类<ol>
+<li>相对路径：通过相对路径不可以确定唯一资源<ul>
+<li>如：./index.html</li>
+</ul>
+</li>
+<li>绝对路径：通过绝对路径可以确定唯一资源<ul>
+<li>如：<a target="_blank" rel="noopener" href="http://localhost/day15/responseDemo2">http://localhost/day15/responseDemo2</a>        /day15/responseDemo2</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>代码</p>
+<pre><code class="java">package response;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+@WebServlet(&quot;/chong1&quot;)
+public class chong extends HttpServlet &#123;
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123;
+        System.out.println(&quot;chong1&quot;);
+//        resp.setStatus(302);
+//        resp.setHeader(&quot;location&quot;,&quot;/chong2&quot;);
+        String contextPath = req.getContextPath();
+
+        resp.sendRedirect(contextPath+&quot;mune.html&quot;);
+    &#125;
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123;
+        this.doPost(req, resp);
+    &#125;
+&#125;
+</code></pre>
+</li>
+</ul>
+<h2 id="传字符、字节"><a href="#传字符、字节" class="headerlink" title="传字符、字节"></a>传字符、字节</h2><p>服务器输出字符数据到浏览器<br>    * 步骤：<br>        1. 获取字符输出流<br>        2. 输出数据<br>    * 注意：<br>        * 乱码问题：<br>            1. PrintWriter pw = response.getWriter();获取的流的默认编码是ISO-8859-1<br>            2. 设置该流的默认编码<br>            3. 告诉浏览器响应体使用的编码</p>
+<p>//简单的形式，设置编码，是在获取流之前设置<br>response.setContentType(“text/html;charset=utf-8”);</p>
+<p>服务器输出字节数据到浏览器<br>    * 步骤：<br>        1. 获取字节输出流<br>        2. 输出数据</p>
+<p>代码</p>
+<pre><code class="java">//输出字符
+protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123;
+    resp.setContentType(&quot;text/html;charset=utf-8&quot;);
+    PrintWriter writer = resp.getWriter();
+    writer.write(&quot;nihao &quot;);
+&#125;
+</code></pre>
+<pre><code class="java">//输出字节
+protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123;
+    resp.setContentType(&quot;text/html;charset=utf-8&quot;);
+
+    //1.获取字节输出流
+    ServletOutputStream sos = resp.getOutputStream();
+    //2.输出数据
+    sos.write(&quot;你好&quot;.getBytes(&quot;utf-8&quot;));
+&#125;
+</code></pre>
+<h2 id="验证码"><a href="#验证码" class="headerlink" title="验证码"></a>验证码</h2><p>代码</p>
+<pre><code class="java">package response;
+
+import javax.imageio.ImageIO;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Random;
+
+@WebServlet(&quot;/checkcode&quot;)
+public class checkcode extends HttpServlet &#123;
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123;
+        int width = 100;
+        int height = 50;
+        BufferedImage image = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
+
+
+        //2.美化图片
+        //2.1 填充背景色
+        Graphics g = image.getGraphics();//画笔对象
+        g.setColor(Color.PINK);//设置画笔颜色
+        g.fillRect(0,0,width,height);
+
+        //2.2画边框
+        g.setColor(Color.BLUE);
+        g.drawRect(0,0,width - 1,height - 1);
+
+        String str = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789&quot;;
+        //生成随机角标
+        Random ran = new Random();
+
+        for (int i = 1; i &lt;= 4; i++) &#123;
+            int index = ran.nextInt(str.length());
+            //获取字符
+            char ch = str.charAt(index);//随机字符
+            //2.3写验证码
+            g.drawString(ch+&quot;&quot;,width/5*i,height/2);
+        &#125;
+
+
+        //2.4画干扰线
+        g.setColor(Color.GREEN);
+
+        //随机生成坐标点
+
+        for (int i = 0; i &lt; 10; i++) &#123;
+            int x1 = ran.nextInt(width);
+            int x2 = ran.nextInt(width);
+
+            int y1 = ran.nextInt(height);
+            int y2 = ran.nextInt(height);
+            g.drawLine(x1,y1,x2,y2);
+        &#125;
+
+
+        //3.将图片输出到页面展示
+        ImageIO.write(image,&quot;jpg&quot;,resp.getOutputStream());
+
+    &#125;
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException &#123;
+        this.doPost(req,resp);
+    &#125;
+&#125;
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/javaweb/" rel="tag"># javaweb</a>
+              <a href="/tags/http/" rel="tag"># http</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/15/java-12-servlet/" rel="prev" title="javaweb#12-servlet">
+      <i class="fa fa-chevron-left"></i> javaweb#12-servlet
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/17/java-14-%E4%BC%9A%E8%AF%9D%E6%8A%80%E6%9C%AF/" rel="next" title="javaweb#14-会话技术">
+      javaweb#14-会话技术 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-text">概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%B7%E6%B1%82%E6%B6%88%E6%81%AF%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F"><span class="nav-text">请求消息数据格式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E9%87%8D%E8%A6%81%E5%8A%9F%E8%83%BD"><span class="nav-text">其他重要功能</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%B7%E6%B1%82%E5%8F%82%E6%95%B0"><span class="nav-text">请求参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%B7%E6%B1%82%E8%BD%AC%E5%8F%91"><span class="nav-text">请求转发</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B1%E4%BA%AB%E6%95%B0%E6%8D%AE"><span class="nav-text">共享数据</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96ServletContext"><span class="nav-text">获取ServletContext</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%93%8D%E5%BA%94%E6%B6%88%E6%81%AF%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F"><span class="nav-text">响应消息数据格式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E5%AE%9A%E5%90%91"><span class="nav-text">重定向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E5%AD%97%E7%AC%A6%E3%80%81%E5%AD%97%E8%8A%82"><span class="nav-text">传字符、字节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E7%A0%81"><span class="nav-text">验证码</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

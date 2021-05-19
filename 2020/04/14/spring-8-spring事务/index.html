@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="spring在spring-framework:spring-tx中官方支持事务，本文对其做简要介绍。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring#8-spring事务">
+<meta property="og:url" content="http://yoursite.com/2020/04/14/spring-8-spring%E4%BA%8B%E5%8A%A1/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="spring在spring-framework:spring-tx中官方支持事务，本文对其做简要介绍。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/04/14/spring-8-spring%E4%BA%8B%E5%8A%A1/1587100356333.png">
+<meta property="og:image" content="http://yoursite.com/2020/04/14/spring-8-spring%E4%BA%8B%E5%8A%A1/1587100370211.png">
+<meta property="og:image" content="http://yoursite.com/2020/04/14/spring-8-spring%E4%BA%8B%E5%8A%A1/1587050296919.png">
+<meta property="article:published_time" content="2020-04-14T14:43:18.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:17:43.153Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/04/14/spring-8-spring%E4%BA%8B%E5%8A%A1/1587100356333.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/04/14/spring-8-spring%E4%BA%8B%E5%8A%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>spring#8-spring事务 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/14/spring-8-spring%E4%BA%8B%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spring#8-spring事务
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-14 22:43:18" itemprop="dateCreated datePublished" datetime="2020-04-14T22:43:18+08:00">2020-04-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>spring在<code>spring-framework:spring-tx</code>中官方支持事务，本文对其做简要介绍。</p>
+<span id="more"></span>
+
+<h1 id="事务意义"><a href="#事务意义" class="headerlink" title="事务意义"></a>事务意义</h1><p>第一:JavaEE 体系进行分层开发,事务处理位于业务层,Spring 提供了分层设计业务层的事务处理解决方案。</p>
+<p>第二:spring 框架为我们提供了一组事务控制的接口。具体在后面的第二小节介绍。这组接口是在<code>spring-tx-5.0.2.RELEASE.jar</code>中。</p>
+<p>第三:spring 的事务控制都是基于 AOP 的,它既可以使用编程的方式实现,也可以使用配置的方式实现。我们学习的重点是使用配置的方式实现。</p>
+<h1 id="API-介绍"><a href="#API-介绍" class="headerlink" title="API 介绍"></a>API 介绍</h1><h2 id="PlatformTransactionManager"><a href="#PlatformTransactionManager" class="headerlink" title="PlatformTransactionManager"></a>PlatformTransactionManager</h2><p>此接口是 spring 的事务管理器,它里面提供了我们常用的操作事务的方法,包含三个具体的操作：</p>
+<ul>
+<li>获取事务的状态<ul>
+<li><code>TransactionStatus getTransaction（TransactionDefinition definition）</code></li>
+</ul>
+</li>
+<li>提交事务<ul>
+<li><code>viod commit（TransactionStatus status）</code></li>
+</ul>
+</li>
+<li>回滚事务<ul>
+<li><code>void rollback（TransactionStatus status）</code></li>
+</ul>
+</li>
+</ul>
+<p>真正管理事务的对象是：</p>
+<ul>
+<li>使用spring JDBC或 ibatis进行持久化时<ul>
+<li><code>org.springframework.jdbc.datasource.DataSourceTransactionManager</code></li>
+</ul>
+</li>
+<li>使用Hibernate进行持久化时<ul>
+<li><code>org.springframework.orm.hibernate5.HibernateTransactionManager</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="TransactionDefinition"><a href="#TransactionDefinition" class="headerlink" title="TransactionDefinition"></a>TransactionDefinition</h2><pre><code class="java">//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by Fernflower decompiler)
+//
+
+package org.springframework.transaction;
+
+import org.springframework.lang.Nullable;
+
+public interface TransactionDefinition &#123;
+    int PROPAGATION_REQUIRED = 0;
+    int PROPAGATION_SUPPORTS = 1;
+    int PROPAGATION_MANDATORY = 2;
+    int PROPAGATION_REQUIRES_NEW = 3;
+    int PROPAGATION_NOT_SUPPORTED = 4;
+    int PROPAGATION_NEVER = 5;
+    int PROPAGATION_NESTED = 6;
+    int ISOLATION_DEFAULT = -1;
+    int ISOLATION_READ_UNCOMMITTED = 1;
+    int ISOLATION_READ_COMMITTED = 2;
+    int ISOLATION_REPEATABLE_READ = 4;
+    int ISOLATION_SERIALIZABLE = 8;
+    int TIMEOUT_DEFAULT = -1;
+
+    default int getPropagationBehavior() &#123;
+        return 0;
+    &#125;
+
+    default int getIsolationLevel() &#123;
+        return -1;
+    &#125;
+
+    default int getTimeout() &#123;
+        return -1;
+    &#125;
+
+    default boolean isReadOnly() &#123;
+        return false;
+    &#125;
+
+    @Nullable
+    default String getName() &#123;
+        return null;
+    &#125;
+
+    static TransactionDefinition withDefaults() &#123;
+        return StaticTransactionDefinition.INSTANCE;
+    &#125;
+&#125;
+</code></pre>
+<p>事务的定义信息对象有如下：</p>
+<ul>
+<li>获取事务名称<ul>
+<li><code>default String getName()</code></li>
+</ul>
+</li>
+<li>获取是否只读<ul>
+<li><code>default boolean isReadOnly()</code>    </li>
+</ul>
+</li>
+<li>获取事务的超时<ul>
+<li><code>default int getTimeout()</code></li>
+</ul>
+</li>
+<li>获取事务隔离级别<ul>
+<li><code>default int getIsolationLevel()</code></li>
+</ul>
+</li>
+<li>获取事物的传播行为<ul>
+<li><code>default int getPropagationBehavior()</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="事务的隔离级别"><a href="#事务的隔离级别" class="headerlink" title="事务的隔离级别"></a>事务的隔离级别</h3><p>事务的隔离级别反映了事务提交并发访问时的处理态度，先明白几个概念：</p>
+<ul>
+<li>脏读（读取未提交数据）</li>
+<li>不可重复读（前后多次读取，数据内容不一致）</li>
+<li>幻读（前后多次读取，数据总量不一致）</li>
+</ul>
+<p>在理解<code>spring-tx</code>的隔离级别</p>
+<ul>
+<li><p>ISOLATION_DEFAULT：如果指定隔离级别为ISOLATION_DEFAULT,则表示使用数据库默认的隔离级别，通常情况下是Read Committed。</p>
+</li>
+<li><p>ISOLATION_READ_UNC0MMITTED：对应Read Uncommitted隔离级别，无法避免脏读，不可重复读和幻读。</p>
+</li>
+<li><p>ISOLATION_READ_COMMITTED：对应Read Committed隔离级别，可以避免脏读，但无法避免不可重复读和幻读。</p>
+</li>
+<li><p>ISOLATION_REPEATABLEREADE：对应Repeatable read隔离级别，可以避免脏读和不可重复读，但不能避免幻读。</p>
+</li>
+<li><p>ISOLATION-SERIALIZABLE：对应Serializable隔离级别，可以避免所有的脏读，不可重复读以及幻读，但并发性效率最低。</p>
+</li>
+</ul>
+<h3 id="事务的传播行为"><a href="#事务的传播行为" class="headerlink" title="事务的传播行为"></a>事务的传播行为</h3><h4 id="PROPAGATION-REQUIREDE"><a href="#PROPAGATION-REQUIREDE" class="headerlink" title="PROPAGATION_REQUIREDE"></a>PROPAGATION_REQUIREDE</h4><p>如果当前没有事务,就新建一个事务,如果已经存在一个事务中,加入到这个事务中。一般的选择(默认值)。如果当前存在一个事务，则加入当前事务。如果不存在任何事务，则创建一个新的事务。总之，要至少保证在一个事务中运行。PROPAGATION_REQUIRED常作为默认的事务传播行为。</p>
+<h4 id="PROPAGATION-SUPPORTS"><a href="#PROPAGATION-SUPPORTS" class="headerlink" title="PROPAGATION_SUPPORTS"></a>PROPAGATION_SUPPORTS</h4><p>支持当前事务,如果当前没有事务,就以非事务方式执行(没有事务)如果当前存在一个事务，则加入当前事务。如果当前不存在事务，则直接执行。对于一些查询方法来说，PROPAGATION_SUPPORTS通常是比较合适的传播行为选择。如果当前方法直接执行，那么不需要事务的支持。如果当前方法被其他方法调用，而其他方法启动了一个事务，使用PROPAGATION_SUPPORTS可以保证当前方法能够加入当前事务，并洞察当前事务对数据资源所做的更新。比如，A.service()会首先更新数据库，然后调用B.service()进行查询，那么，如果B.service()是PR0PAGATI0N_SUPP0RTS的传播行为，就可以读取A.serviceO之前所做的最新更新结果(如下图所示)。而如果使用PROPAGATION_NOT_SUPPORTE ,则B. service ()将无法读取最新的更新结果，因为 A. service ()的事务在这时还没有提交(除非隔离级别是Read Uncommitted).</p>
+<p><img src="1587100356333.png" alt="1587100356333"></p>
+<h4 id="PROPAGATION-MANDATORY"><a href="#PROPAGATION-MANDATORY" class="headerlink" title="PROPAGATION_MANDATORY"></a>PROPAGATION_MANDATORY</h4><p>使用当前的事务,如果当前没有事务,就抛出异常。ROPAGATION_MANDATORY强制要求当前存在一个事务，如果不存在，则抛出异常。如果某个方法需要事务支持，但自身又不管理事务提交或者回滚，那么比较适合使用PROPAGATION_MANDATORY.</p>
+<h4 id="PROPAGATION-REQUIRES-NEW"><a href="#PROPAGATION-REQUIRES-NEW" class="headerlink" title="PROPAGATION_REQUIRES_NEW"></a>PROPAGATION_REQUIRES_NEW</h4><p>新建事务,如果当前在事务中,把当前事务挂起。不管当前是否存在事务，都会创建新的事务。如果当前存在事务，会将当前的事务挂起(Suspend)。如果某个业务对象所做的事情不想影响到外层事务，PROPAGATION_REQUIRES_EW应该是合适的选择。比如，假设当前的业务方法需要向数据库中更新某些日志信息，但即使这些日志信息更新失败，我们也不想因为该业务方法的事务回演, 而影响到外层事务的成功提交。因为这种情况下，当前业务方法的事务成功与否对外层事务来说是无关紧要的。</p>
+<h4 id="PROPAGATION-NOT-SUPPORTE"><a href="#PROPAGATION-NOT-SUPPORTE" class="headerlink" title="PROPAGATION_NOT_SUPPORTE"></a>PROPAGATION_NOT_SUPPORTE</h4><p>以非事务方式执行操作,如果当前存在事务,就把当前事务挂起。不支持当前事务，而是在没有事务的情况下执行。如果当前存在事务的话，当前事务原则上将被挂起(Suspend),但这要看对应的PlatformTransaction- Manager实现类是否支持事务的挂起。</p>
+<h4 id="PROPAGATION-NEVER"><a href="#PROPAGATION-NEVER" class="headerlink" title="PROPAGATION-NEVER"></a>PROPAGATION-NEVER</h4><p>以非事务方式运行,如果当前存在事务,抛出异常。永远不需要当前存在事务，如果存在当前事务，则抛出异常。</p>
+<h4 id="PROPAGATION-NESTED"><a href="#PROPAGATION-NESTED" class="headerlink" title="PROPAGATION_NESTED"></a>PROPAGATION_NESTED</h4><p>如果当前存在事务,则在嵌套事务内执行。如果当前没有事务,则执行 REQUIRED 类似的操作。如果存在当前事务，则在当前事务的一个嵌套事务中执行，否则与PRPAGATION_REQUIRED的行为类似，即创建新的事务，在新创建的事务中执行。PROPAGATION_NESTED粗看起来好像与PROPAGATION_REQUIRES_NEW的行为类似，实际上二者是有差别的。 PROPAGATION_REQUIRES_NEW创建的新事务与外层事务属于同一个“档次”，即二者的地位是相同的。当新创建的事务运行的时候，外层事务将被暂时挂起。而PROPAGATION_NESTED创建的嵌套事务则不然，它是寄生于当前外层事务的，它的地位比当前外层事务的地位要小一号。当内部嵌套事务运行的时候，外层事务也是处于active状态，下图演示了PROPAGATICM_ REQUIRES_NEW和PROPAGATION_NESTED中涉及的多个事务相互之间的地位。也就是说，虽然PROPAGATION_REQUIRES_NEW新创建的事务是左当前外层事务内执行，但新创建的事务是独立于当前外层事务而存在的，二者拥有各自独立的状态而互不干扰。而PROPAGATION_NESTED创建的事务属于当前外层事务的内部子事务(Sub-transaclion),内部子事务的 处理内容属于当前外层事务的一部分，不能独立于外层事务而存在，并且与外层事务共有事务状态。 我想这也就是为什么称其为内部嵌套事务的原因。</p>
+<p><img src="1587100370211.png" alt="1587100370211"></p>
+<h3 id="超时时间"><a href="#超时时间" class="headerlink" title="超时时间"></a>超时时间</h3><p>默认值是-1,没有超时限制。如果有,以秒为单位进行设置。线程已经跑到方法里面，如果已经过去60秒（设置时间）了还没跑完这个方法并且线程在这个方法中的后面还有涉及到对数据库的增删改查操作时会报事务超时错误（会回滚）。如果已经过去60秒了还没跑完但是后面已经没有涉及到对数据库的增删改查操作，那么这时不会报事务超时错误（不会回滚）。</p>
+<h3 id="只读事务"><a href="#只读事务" class="headerlink" title="只读事务"></a>只读事务</h3><p>建议查询时设置为只读。并不是不能在事务中进行修改等DML操作，它只是一个“暗示”，提示数据库驱动程序和数据库系统，这个事务并不包含更改数据的操作，那么JDBC驱动程序和数据库就有可能根据这种情况对该事务进行一些特定的优化，比方说不安排相应的数据库锁，以减轻事务对数据库的压力，毕竟事务也是要消耗数据库的资源的。</p>
+<p><strong>只读事务仅仅是一个性能优化的推荐配置而已，并非强制你非要这样处理不可。</strong> </p>
+<h2 id="TransactionStatus"><a href="#TransactionStatus" class="headerlink" title="TransactionStatus"></a>TransactionStatus</h2><p><img src="1587050296919.png" alt="1587050296919"></p>
+<h1 id="事务配置步骤"><a href="#事务配置步骤" class="headerlink" title="事务配置步骤"></a>事务配置步骤</h1><ol>
+<li><p>配置事务管理器</p>
+</li>
+<li><p>配置事务的通知</p>
+</li>
+<li><p>配置AOP中的通用切入点表达式</p>
+</li>
+<li><p>建立事务通知和切入点表达式的对应关系</p>
+</li>
+<li><p>配置事务的属性</p>
+</li>
+</ol>
+<h1 id="基于-XML-的声明式事务控制-配置方式"><a href="#基于-XML-的声明式事务控制-配置方式" class="headerlink" title="基于 XML 的声明式事务控制(配置方式)"></a>基于 XML 的声明式事务控制(配置方式)</h1><h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><h3 id="pom"><a href="#pom" class="headerlink" title="pom"></a><strong>pom</strong></h3><p>（看spring-tx依赖完整了没有）</p>
+<pre><code class="xml">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-tx&lt;/artifactId&gt;
+    &lt;version&gt;5.2.3.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;c3p0&lt;/groupId&gt;
+    &lt;artifactId&gt;c3p0&lt;/artifactId&gt;
+    &lt;version&gt;0.9.1.2&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;commons-dbutils&lt;/groupId&gt;
+    &lt;artifactId&gt;commons-dbutils&lt;/artifactId&gt;
+    &lt;version&gt;1.4&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;mysql&lt;/groupId&gt;
+    &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+    &lt;version&gt;8.0.19&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h3 id="约束"><a href="#约束" class="headerlink" title="约束"></a><strong>约束</strong></h3><pre><code class="xml-dtd">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
+xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot;
+xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd&quot;&gt;
+&lt;/beans&gt;
+</code></pre>
+<h3 id="database"><a href="#database" class="headerlink" title="database"></a><strong>database</strong></h3><pre><code class="mysql">#创建数据库:
+create database spring_day04;
+use spring_day04;
+#创建表:
+create table account(
+id int primary key auto_increment,
+name varchar(40),
+money float
+)character set utf8 collate utf8_general_ci;
+</code></pre>
+<h3 id="POJO"><a href="#POJO" class="headerlink" title="POJO"></a><strong>POJO</strong></h3><pre><code class="JAVA">package uestc.zhangkx.domain;
+
+import java.io.Serializable;
+
+/**
+ * 账户的实体类
+ */
+public class Account implements Serializable &#123;
+
+    private Integer id;
+    private String name;
+    private Float money;
+
+    public Integer getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Integer id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+
+    public Float getMoney() &#123;
+        return money;
+    &#125;
+
+    public void setMoney(Float money) &#123;
+        this.money = money;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Account&#123;&quot; +
+                &quot;id=&quot; + id +
+                &quot;, name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, money=&quot; + money +
+                &#39;&#125;&#39;;
+    &#125;
+&#125;
+</code></pre>
+<h3 id="dao"><a href="#dao" class="headerlink" title="dao"></a><strong>dao</strong></h3><pre><code class="java">package uestc.zhangkx.dao;
+
+import uestc.zhangkx.domain.Account;
+
+/**
+ * 账户的持久层接口
+ */
+public interface IAccountDao &#123;
+
+    /**
+     * 根据Id查询账户
+     * @param accountId
+     * @return
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 根据名称查询账户
+     * @param accountName
+     * @return
+     */
+    Account findAccountByName(String accountName);
+
+    /**
+     * 更新账户
+     * @param account
+     */
+    void updateAccount(Account account);
+&#125;
+</code></pre>
+<pre><code class="java">package uestc.zhangkx.dao.impl;
+
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.domain.Account;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+
+import java.util.List;
+
+/**
+ * 账户的持久层实现类
+ */
+public class AccountDaoImpl extends JdbcDaoSupport implements IAccountDao &#123;
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        List&lt;Account&gt; accounts = super.getJdbcTemplate().query(&quot;select * from account where id = ?&quot;,new BeanPropertyRowMapper&lt;Account&gt;(Account.class),accountId);
+        return accounts.isEmpty()?null:accounts.get(0);
+    &#125;
+
+    @Override
+    public Account findAccountByName(String accountName) &#123;
+        List&lt;Account&gt; accounts = super.getJdbcTemplate().query(&quot;select * from account where name = ?&quot;,new BeanPropertyRowMapper&lt;Account&gt;(Account.class),accountName);
+        if(accounts.isEmpty())&#123;
+            return null;
+        &#125;
+        if(accounts.size()&gt;1)&#123;
+            throw new RuntimeException(&quot;结果集不唯一&quot;);
+        &#125;
+        return accounts.get(0);
+    &#125;
+
+    @Override
+    public void updateAccount(Account account) &#123;
+        super.getJdbcTemplate().update(&quot;update account set name=?,money=? where id=?&quot;,account.getName(),account.getMoney(),account.getId());
+    &#125;
+&#125;
+</code></pre>
+<h3 id="service"><a href="#service" class="headerlink" title="service"></a><strong>service</strong></h3><pre><code class="java">package uestc.zhangkx.service;
+
+import uestc.zhangkx.domain.Account;
+
+/**
+ * 账户的业务层接口
+ */
+public interface IAccountService &#123;
+    /**
+     * 根据id查询账户信息
+     * @param accountId
+     * @return
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 转账
+     * @param sourceName    转成账户名称
+     * @param targetName    转入账户名称
+     * @param money         转账金额
+     */
+    void transfer(String sourceName,String targetName,Float money);
+&#125;
+</code></pre>
+<pre><code class="java">package uestc.zhangkx.service.impl;
+
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.domain.Account;
+import uestc.zhangkx.service.IAccountService;
+
+/**
+ * 账户的业务层实现类
+ *
+ * 事务控制应该都是在业务层
+ */
+public class AccountServiceImpl implements IAccountService&#123;
+
+    private IAccountDao accountDao;
+
+    public void setAccountDao(IAccountDao accountDao) &#123;
+        this.accountDao = accountDao;
+    &#125;
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        return accountDao.findAccountById(accountId);
+
+    &#125;
+
+    @Override
+    public void transfer(String sourceName, String targetName, Float money) &#123;
+        System.out.println(&quot;transfer....&quot;);
+        //2.1根据名称查询转出账户
+        Account source = accountDao.findAccountByName(sourceName);
+        //2.2根据名称查询转入账户
+        Account target = accountDao.findAccountByName(targetName);
+        //2.3转出账户减钱
+        source.setMoney(source.getMoney()-money);
+        //2.4转入账户加钱
+        target.setMoney(target.getMoney()+money);
+        //2.5更新转出账户
+        accountDao.updateAccount(source);
+        //2.6更新转入账户
+        accountDao.updateAccount(target);
+    &#125;
+&#125;
+</code></pre>
+<h2 id="bean中配置事务"><a href="#bean中配置事务" class="headerlink" title="bean中配置事务"></a>bean中配置事务</h2><p>根据之前事务配置的步骤一步步来：</p>
+<ol>
+<li>配置事务管理器</li>
+<li>配置事务的通知</li>
+<li>配置AOP中的通用切入点表达式</li>
+<li>建立事务通知和切入点表达式的对应关系</li>
+<li>配置事务的属性</li>
+</ol>
+<h3 id="1-配置事务管理器"><a href="#1-配置事务管理器" class="headerlink" title="1. 配置事务管理器"></a>1. 配置事务管理器</h3><pre><code class="xml">&lt;bean id=&quot;transactionManager&quot; class=&quot;org.springframework.jdbc.datasource.DataSourceTransactionManager&quot;&gt;
+    &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;
+&lt;/bean&gt;
+</code></pre>
+<p>事务管理器就是<code>DataSourceTransactionManager</code>，配置它就是生成一个bean对象。回顾之前，配置事务就是为了得到线程独立的<code>jdbcTemplate</code>，而它又可以通过<code>extends JdbcDaoSupport</code>从<code>Support</code>中继承。所以<code>DataSourceTransactionManager</code>只需要配置一个<code>dataSource</code>。</p>
+<p>说到这里，可以看看<code>JdbcDaoSupport</code>的源码：</p>
+<pre><code class="java">//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by Fernflower decompiler)
+//
+
+package org.springframework.jdbc.core.support;
+
+import java.sql.Connection;
+import javax.sql.DataSource;
+import org.springframework.dao.support.DaoSupport;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.support.SQLExceptionTranslator;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+
+public abstract class JdbcDaoSupport extends DaoSupport &#123;
+    @Nullable
+    private JdbcTemplate jdbcTemplate;
+
+    public JdbcDaoSupport() &#123;
+    &#125;
+
+    public final void setDataSource(DataSource dataSource) &#123;
+        if (this.jdbcTemplate == null || dataSource != this.jdbcTemplate.getDataSource()) &#123;
+            this.jdbcTemplate = this.createJdbcTemplate(dataSource);
+            this.initTemplateConfig();
+        &#125;
+
+    &#125;
+
+    protected JdbcTemplate createJdbcTemplate(DataSource dataSource) &#123;
+        return new JdbcTemplate(dataSource);
+    &#125;
+
+    @Nullable
+    public final DataSource getDataSource() &#123;
+        return this.jdbcTemplate != null ? this.jdbcTemplate.getDataSource() : null;
+    &#125;
+
+    public final void setJdbcTemplate(@Nullable JdbcTemplate jdbcTemplate) &#123;
+        this.jdbcTemplate = jdbcTemplate;
+        this.initTemplateConfig();
+    &#125;
+
+    @Nullable
+    public final JdbcTemplate getJdbcTemplate() &#123;
+        return this.jdbcTemplate;
+    &#125;
+
+    protected void initTemplateConfig() &#123;
+    &#125;
+
+    protected void checkDaoConfig() &#123;
+        if (this.jdbcTemplate == null) &#123;
+            throw new IllegalArgumentException(&quot;&#39;dataSource&#39; or &#39;jdbcTemplate&#39; is required&quot;);
+        &#125;
+    &#125;
+
+    protected final SQLExceptionTranslator getExceptionTranslator() &#123;
+        JdbcTemplate jdbcTemplate = this.getJdbcTemplate();
+        Assert.state(jdbcTemplate != null, &quot;No JdbcTemplate set&quot;);
+        return jdbcTemplate.getExceptionTranslator();
+    &#125;
+
+    protected final Connection getConnection() throws CannotGetJdbcConnectionException &#123;
+        DataSource dataSource = this.getDataSource();
+        Assert.state(dataSource != null, &quot;No DataSource set&quot;);
+        return DataSourceUtils.getConnection(dataSource);
+    &#125;
+
+    protected final void releaseConnection(Connection con) &#123;
+        DataSourceUtils.releaseConnection(con, this.getDataSource());
+    &#125;
+&#125;
+</code></pre>
+<p>关注重点，这串代码中，两个<code>set</code>，其实我们注入数据时候，只用注入一个<code>dataSource</code>就可以得到<code>jdbcTemplate</code>了。</p>
+<h3 id="2-配置事务的通知"><a href="#2-配置事务的通知" class="headerlink" title="2. 配置事务的通知"></a>2. 配置事务的通知</h3><pre><code class="xml">&lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt;
+&lt;/tx:advice&gt;
+</code></pre>
+<p>很简单的一部分，直接使用<code>tx:advice</code>即可。需要传入<code>transaction-manager，</code>注意。</p>
+<h3 id="3-配置AOP中的通用切入点表达式"><a href="#3-配置AOP中的通用切入点表达式" class="headerlink" title="3. 配置AOP中的通用切入点表达式"></a>3. 配置AOP中的通用切入点表达式</h3><pre><code class="xml">&lt;aop:config&gt;
+    &lt;aop:pointcut id=&quot;pc&quot; expression=&quot;execution(* uestc.zhangkx.service.impl.*.*(..))&quot;/&gt;
+&lt;/aop:config&gt;
+</code></pre>
+<h3 id="4-建立事务通知和切入点表达式的对应关系"><a href="#4-建立事务通知和切入点表达式的对应关系" class="headerlink" title="4. 建立事务通知和切入点表达式的对应关系"></a>4. 建立事务通知和切入点表达式的对应关系</h3><pre><code class="xml">&lt;aop:config&gt;
+    &lt;!-- 配置切入点表达式--&gt;
+    &lt;aop:pointcut id=&quot;pt1&quot; expression=&quot;execution(* uestc.zhangkx.service.impl.*.*(..))&quot;&gt;&lt;/aop:pointcut&gt;
+    &lt;!--建立切入点表达式和事务通知的对应关系 --&gt;
+    &lt;aop:advisor advice-ref=&quot;txAdvice&quot; pointcut-ref=&quot;pt1&quot;&gt;&lt;/aop:advisor&gt;
+&lt;/aop:config&gt;
+</code></pre>
+<h3 id="5-配置事务的属性"><a href="#5-配置事务的属性" class="headerlink" title="5. 配置事务的属性"></a>5. 配置事务的属性</h3><pre><code class="xml">&lt;!-- 配置事务的通知--&gt;
+&lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt;
+    &lt;!-- 配置事务的属性
+isolation：用于指定事务的隔离级别。默认值是DEFAULT，表示使用数据库的默认隔离级别。
+propagation：用于指定事务的传播行为。默认值是REQUIRED，表示一定会有事务，增删改的选择。查询方法可以选择SUPPORTS。
+read-only：用于指定事务是否只读。只有查询方法才能设置为true。默认值是false，表示读写。
+timeout：用于指定事务的超时时间，默认值是-1，表示永不超时。如果指定了数值，以秒为单位。
+rollback-for：用于指定一个异常，当产生该异常时，事务回滚，产生其他异常时，事务不回滚。没有默认值。表示任何异常都回滚。
+no-rollback-for：用于指定一个异常，当产生该异常时，事务不回滚，产生其他异常时事务回滚。没有默认值。表示任何异常都回滚。
+        --&gt;
+    &lt;tx:attributes&gt;
+        &lt;tx:method name=&quot;*&quot; propagation=&quot;REQUIRED&quot; read-only=&quot;false&quot;/&gt;
+        &lt;tx:method name=&quot;find*&quot; propagation=&quot;SUPPORTS&quot; read-only=&quot;true&quot;&gt;&lt;/tx:method&gt;
+    &lt;/tx:attributes&gt;
+&lt;/tx:advice&gt;
+</code></pre>
+<p>完整配置：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
+       xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot;
+       xsi:schemaLocation=&quot;
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd&quot;&gt;
+
+    &lt;!-- 配置业务层--&gt;
+    &lt;bean id=&quot;accountService&quot; class=&quot;uestc.zhangkx.service.impl.AccountServiceImpl&quot;&gt;
+        &lt;property name=&quot;accountDao&quot; ref=&quot;accountDao&quot;/&gt;
+    &lt;/bean&gt;
+
+    &lt;!-- 配置账户的持久层--&gt;
+    &lt;bean id=&quot;accountDao&quot; class=&quot;uestc.zhangkx.dao.impl.AccountDaoImpl&quot;&gt;
+        &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;
+     &lt;/bean&gt;
+
+
+    &lt;!-- 配置数据源--&gt;
+    &lt;bean id=&quot;dataSource&quot; class=&quot;com.mchange.v2.c3p0.ComboPooledDataSource&quot;&gt;
+        &lt;property name=&quot;driverClass&quot; value=&quot;com.mysql.cj.jdbc.Driver&quot;/&gt;
+        &lt;property name=&quot;jdbcUrl&quot; value=&quot;jdbc:mysql://localhost:3306/spring&quot;/&gt;
+        &lt;property name=&quot;user&quot; value=&quot;root&quot;/&gt;
+        &lt;property name=&quot;password&quot; value=&quot;0217&quot;/&gt;
+    &lt;/bean&gt;
+
+    &lt;!-- spring中基于XML的声明式事务控制配置步骤
+        1、配置事务管理器
+        2、配置事务的通知
+                此时我们需要导入事务的约束 tx名称空间和约束，同时也需要aop的
+                使用tx:advice标签配置事务通知
+                    属性：
+                        id：给事务通知起一个唯一标识
+                        transaction-manager：给事务通知提供一个事务管理器引用
+        3、配置AOP中的通用切入点表达式
+        4、建立事务通知和切入点表达式的对应关系
+        5、配置事务的属性
+               是在事务的通知tx:advice标签的内部
+
+     --&gt;
+    &lt;!-- 配置事务管理器 --&gt;
+    &lt;bean id=&quot;transactionManager&quot; class=&quot;org.springframework.jdbc.datasource.DataSourceTransactionManager&quot;&gt;
+        &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;
+    &lt;/bean&gt;
+
+    &lt;!-- 配置事务的通知--&gt;
+    &lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt;
+        &lt;!-- 配置事务的属性
+                isolation：用于指定事务的隔离级别。默认值是DEFAULT，表示使用数据库的默认隔离级别。
+                propagation：用于指定事务的传播行为。默认值是REQUIRED，表示一定会有事务，增删改的选择。查询方法可以选择SUPPORTS。
+                read-only：用于指定事务是否只读。只有查询方法才能设置为true。默认值是false，表示读写。
+                timeout：用于指定事务的超时时间，默认值是-1，表示永不超时。如果指定了数值，以秒为单位。
+                rollback-for：用于指定一个异常，当产生该异常时，事务回滚，产生其他异常时，事务不回滚。没有默认值。表示任何异常都回滚。
+                no-rollback-for：用于指定一个异常，当产生该异常时，事务不回滚，产生其他异常时事务回滚。没有默认值。表示任何异常都回滚。
+        --&gt;
+        &lt;tx:attributes&gt;
+            &lt;tx:method name=&quot;*&quot; propagation=&quot;REQUIRED&quot; read-only=&quot;false&quot;/&gt;
+            &lt;tx:method name=&quot;find*&quot; propagation=&quot;SUPPORTS&quot; read-only=&quot;true&quot;/&gt;
+        &lt;/tx:attributes&gt;
+    &lt;/tx:advice&gt;
+
+    &lt;!-- 配置aop--&gt;
+
+        &lt;!-- 配置切入点表达式--&gt;
+
+        &lt;!--建立切入点表达式和事务通知的对应关系 --&gt;
+    &lt;aop:config&gt;
+        &lt;aop:pointcut id=&quot;pc&quot; expression=&quot;execution(* uestc.zhangkx.service.impl.*.*(..))&quot;/&gt;
+        &lt;aop:advisor advice-ref=&quot;txAdvice&quot; pointcut-ref=&quot;pc&quot;/&gt;
+    &lt;/aop:config&gt;
+&lt;/beans&gt;
+</code></pre>
+<h1 id="基于anno的声明式事务控制-配置方式"><a href="#基于anno的声明式事务控制-配置方式" class="headerlink" title="基于anno的声明式事务控制(配置方式)"></a>基于anno的声明式事务控制(配置方式)</h1><h2 id="扫描anno"><a href="#扫描anno" class="headerlink" title="扫描anno"></a>扫描anno</h2><h3 id="pojo"><a href="#pojo" class="headerlink" title="pojo"></a>pojo</h3><pre><code class="java">package uestc.zhangkx.domain;
+
+import java.io.Serializable;
+
+/**
+ * 账户的实体类
+ */
+public class Account implements Serializable &#123;
+
+    private Integer id;
+    private String name;
+    private Float money;
+
+    public Integer getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Integer id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+
+    public Float getMoney() &#123;
+        return money;
+    &#125;
+
+    public void setMoney(Float money) &#123;
+        this.money = money;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Account&#123;&quot; +
+                &quot;id=&quot; + id +
+                &quot;, name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, money=&quot; + money +
+                &#39;&#125;&#39;;
+    &#125;
+&#125;
+</code></pre>
+<h3 id="dao-1"><a href="#dao-1" class="headerlink" title="dao"></a>dao</h3><pre><code class="java">package uestc.zhangkx.dao;
+
+import uestc.zhangkx.domain.Account;
+
+/**
+ * 账户的持久层接口
+ */
+public interface IAccountDao &#123;
+
+    /**
+     * 根据Id查询账户
+     * @param accountId
+     * @return
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 根据名称查询账户
+     * @param accountName
+     * @return
+     */
+    Account findAccountByName(String accountName);
+
+    /**
+     * 更新账户
+     * @param account
+     */
+    void updateAccount(Account account);
+&#125;
+</code></pre>
+<pre><code class="java">package uestc.zhangkx.dao.impl;
+
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.domain.Account;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+/**
+ * 账户的持久层实现类
+ */
+@Repository(&quot;accountDao&quot;)
+public class AccountDaoImpl implements IAccountDao &#123;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        List&lt;Account&gt; accounts = jdbcTemplate.query(&quot;select * from account where id = ?&quot;,new BeanPropertyRowMapper&lt;Account&gt;(Account.class),accountId);
+        return accounts.isEmpty()?null:accounts.get(0);
+    &#125;
+
+    @Override
+    public Account findAccountByName(String accountName) &#123;
+        List&lt;Account&gt; accounts = jdbcTemplate.query(&quot;select * from account where name = ?&quot;,new BeanPropertyRowMapper&lt;Account&gt;(Account.class),accountName);
+        if(accounts.isEmpty())&#123;
+            return null;
+        &#125;
+        if(accounts.size()&gt;1)&#123;
+            throw new RuntimeException(&quot;结果集不唯一&quot;);
+        &#125;
+        return accounts.get(0);
+    &#125;
+
+    @Override
+    public void updateAccount(Account account) &#123;
+        jdbcTemplate.update(&quot;update account set name=?,money=? where id=?&quot;,account.getName(),account.getMoney(),account.getId());
+    &#125;
+&#125;
+</code></pre>
+<h3 id="service-1"><a href="#service-1" class="headerlink" title="service"></a>service</h3><pre><code class="java">package uestc.zhangkx.service;
+
+import uestc.zhangkx.domain.Account;
+
+/**
+ * 账户的业务层接口
+ */
+public interface IAccountService &#123;
+    /**
+     * 根据id查询账户信息
+     * @param accountId
+     * @return
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 转账
+     * @param sourceName    转成账户名称
+     * @param targetName    转入账户名称
+     * @param money         转账金额
+     */
+    void transfer(String sourceName,String targetName,Float money);
+&#125;
+</code></pre>
+<pre><code class="java">package uestc.zhangkx.service.impl;
+
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.domain.Account;
+import uestc.zhangkx.service.IAccountService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * 账户的业务层实现类
+ *
+ * 事务控制应该都是在业务层
+ */
+@Service(&quot;accountService&quot;)
+@Transactional(propagation= Propagation.SUPPORTS,readOnly=true)//只读型事务的配置
+public class AccountServiceImpl implements IAccountService&#123;
+
+    @Autowired
+    private IAccountDao accountDao;
+
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        return accountDao.findAccountById(accountId);
+
+    &#125;
+
+
+    //需要的是读写型事务配置
+    @Transactional(propagation= Propagation.REQUIRED,readOnly=false)
+    @Override
+    public void transfer(String sourceName, String targetName, Float money) &#123;
+        System.out.println(&quot;transfer....&quot;);
+            //2.1根据名称查询转出账户
+            Account source = accountDao.findAccountByName(sourceName);
+            //2.2根据名称查询转入账户
+            Account target = accountDao.findAccountByName(targetName);
+            //2.3转出账户减钱
+            source.setMoney(source.getMoney()-money);
+            //2.4转入账户加钱
+            target.setMoney(target.getMoney()+money);
+            //2.5更新转出账户
+            accountDao.updateAccount(source);
+
+            int i=1/0;
+
+            //2.6更新转入账户
+            accountDao.updateAccount(target);
+    &#125;
+&#125;
+</code></pre>
+<h3 id="resource"><a href="#resource" class="headerlink" title="resource"></a>resource</h3><pre><code class="xml-dtd">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
+xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot;
+xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+xsi:schemaLocation=&quot;
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd&quot;&gt;
+
+&lt;!-- 配置spring创建容器时要扫描的包--&gt;
+&lt;context:component-scan base-package=&quot;uestc.zhangkx&quot;&gt;&lt;/context:component-scan&gt;
+
+&lt;!-- 配置JdbcTemplate--&gt;
+&lt;bean id=&quot;jdbcTemplate&quot; class=&quot;org.springframework.jdbc.core.JdbcTemplate&quot;&gt;
+&lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;&gt;&lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;!-- 配置数据源--&gt;
+&lt;bean id=&quot;dataSource&quot; class=&quot;org.springframework.jdbc.datasource.DriverManagerDataSource&quot;&gt;
+&lt;property name=&quot;driverClassName&quot; value=&quot;com.mysql.jdbc.Driver&quot;&gt;&lt;/property&gt;
+&lt;property name=&quot;url&quot; value=&quot;jdbc:mysql://localhost:3306/eesy&quot;&gt;&lt;/property&gt;
+&lt;property name=&quot;username&quot; value=&quot;root&quot;&gt;&lt;/property&gt;
+&lt;property name=&quot;password&quot; value=&quot;1234&quot;&gt;&lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;!-- spring中基于注解 的声明式事务控制配置步骤
+1、配置事务管理器
+2、开启spring对注解事务的支持
+3、在需要事务支持的地方使用@Transactional注解
+
+--&gt;
+&lt;!-- 配置事务管理器 --&gt;
+&lt;bean id=&quot;transactionManager&quot; class=&quot;org.springframework.jdbc.datasource.DataSourceTransactionManager&quot;&gt;
+&lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;&gt;&lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;!-- 开启spring对注解事务的支持--&gt;
+&lt;tx:annotation-driven transaction-manager=&quot;transactionManager&quot;&gt;&lt;/tx:annotation-driven&gt;
+
+&lt;/beans&gt;
+</code></pre>
+<h2 id="全局anno"><a href="#全局anno" class="headerlink" title="全局anno"></a>全局anno</h2><p>pojo、dao、service和扫描anno一样</p>
+<h3 id="JdbcConfig"><a href="#JdbcConfig" class="headerlink" title="JdbcConfig"></a>JdbcConfig</h3><pre><code class="java">package config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
+
+/**
+ * 和连接数据库相关的配置类
+ */
+public class JdbcConfig &#123;
+
+    @Value(&quot;$&#123;jdbc.driver&#125;&quot;)
+    private String driver;
+
+    @Value(&quot;$&#123;jdbc.url&#125;&quot;)
+    private String url;
+
+    @Value(&quot;$&#123;jdbc.username&#125;&quot;)
+    private String username;
+
+    @Value(&quot;$&#123;jdbc.password&#125;&quot;)
+    private String password;
+
+    /**
+     * 创建JdbcTemplate
+     * @param dataSource
+     * @return
+     */
+    @Bean(name=&quot;jdbcTemplate&quot;)
+    public JdbcTemplate createJdbcTemplate(DataSource dataSource)&#123;
+        return new JdbcTemplate(dataSource);
+    &#125;
+
+    /**
+     * 创建数据源对象
+     * @return
+     */
+    @Bean(name=&quot;dataSource&quot;)
+    public DataSource createDataSource()&#123;
+        DriverManagerDataSource ds = new DriverManagerDataSource();
+        ds.setDriverClassName(driver);
+        ds.setUrl(url);
+        ds.setUsername(username);
+        ds.setPassword(password);
+        return ds;
+    &#125;
+&#125;
+</code></pre>
+<h3 id="TransactionConfig"><a href="#TransactionConfig" class="headerlink" title="TransactionConfig"></a>TransactionConfig</h3><pre><code class="java">package config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.sql.DataSource;
+
+/**
+ * 和事务相关的配置类
+ */
+public class TransactionConfig &#123;
+
+    /**
+     * 用于创建事务管理器对象
+     * @param dataSource
+     * @return
+     */
+    @Bean(name=&quot;transactionManager&quot;)
+    public PlatformTransactionManager createTransactionManager(DataSource dataSource)&#123;
+        return new DataSourceTransactionManager(dataSource);
+    &#125;
+&#125;
+</code></pre>
+<h3 id="SpringConfiguration"><a href="#SpringConfiguration" class="headerlink" title="SpringConfiguration"></a>SpringConfiguration</h3><pre><code class="java">package config;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+/**
+ * spring的配置类，相当于bean.xml
+ */
+@Configuration
+@ComponentScan(&quot;uestc.zhangkx&quot;)
+@Import(&#123;JdbcConfig.class,TransactionConfig.class&#125;)
+@PropertySource(&quot;jdbcConfig.properties&quot;)
+@EnableTransactionManagement
+public class SpringConfiguration &#123;
+&#125;
+</code></pre>
+<pre><code class="properties">jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/eesy
+jdbc.username=root
+jdbc.password=1234
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/spring/" rel="tag"># spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/13/mybatis%E6%BA%90%E7%A0%81-2-%E6%98%A0%E5%B0%84%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/" rel="prev" title="mybatis源码#2-映射文件解析">
+      <i class="fa fa-chevron-left"></i> mybatis源码#2-映射文件解析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/15/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" rel="next" title="springMVC#1-快速入门">
+      springMVC#1-快速入门 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%84%8F%E4%B9%89"><span class="nav-text">事务意义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#API-%E4%BB%8B%E7%BB%8D"><span class="nav-text">API 介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#PlatformTransactionManager"><span class="nav-text">PlatformTransactionManager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TransactionDefinition"><span class="nav-text">TransactionDefinition</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="nav-text">事务的隔离级别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E4%BC%A0%E6%92%AD%E8%A1%8C%E4%B8%BA"><span class="nav-text">事务的传播行为</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PROPAGATION-REQUIREDE"><span class="nav-text">PROPAGATION_REQUIREDE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PROPAGATION-SUPPORTS"><span class="nav-text">PROPAGATION_SUPPORTS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PROPAGATION-MANDATORY"><span class="nav-text">PROPAGATION_MANDATORY</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PROPAGATION-REQUIRES-NEW"><span class="nav-text">PROPAGATION_REQUIRES_NEW</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PROPAGATION-NOT-SUPPORTE"><span class="nav-text">PROPAGATION_NOT_SUPPORTE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PROPAGATION-NEVER"><span class="nav-text">PROPAGATION-NEVER</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PROPAGATION-NESTED"><span class="nav-text">PROPAGATION_NESTED</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B6%85%E6%97%B6%E6%97%B6%E9%97%B4"><span class="nav-text">超时时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AA%E8%AF%BB%E4%BA%8B%E5%8A%A1"><span class="nav-text">只读事务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TransactionStatus"><span class="nav-text">TransactionStatus</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A4"><span class="nav-text">事务配置步骤</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E-XML-%E7%9A%84%E5%A3%B0%E6%98%8E%E5%BC%8F%E4%BA%8B%E5%8A%A1%E6%8E%A7%E5%88%B6-%E9%85%8D%E7%BD%AE%E6%96%B9%E5%BC%8F"><span class="nav-text">基于 XML 的声明式事务控制(配置方式)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">环境搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pom"><span class="nav-text">pom</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%A6%E6%9D%9F"><span class="nav-text">约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#database"><span class="nav-text">database</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#POJO"><span class="nav-text">POJO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dao"><span class="nav-text">dao</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#service"><span class="nav-text">service</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bean%E4%B8%AD%E9%85%8D%E7%BD%AE%E4%BA%8B%E5%8A%A1"><span class="nav-text">bean中配置事务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E9%85%8D%E7%BD%AE%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86%E5%99%A8"><span class="nav-text">1. 配置事务管理器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AE%E4%BA%8B%E5%8A%A1%E7%9A%84%E9%80%9A%E7%9F%A5"><span class="nav-text">2. 配置事务的通知</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E9%85%8D%E7%BD%AEAOP%E4%B8%AD%E7%9A%84%E9%80%9A%E7%94%A8%E5%88%87%E5%85%A5%E7%82%B9%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-text">3. 配置AOP中的通用切入点表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%BB%BA%E7%AB%8B%E4%BA%8B%E5%8A%A1%E9%80%9A%E7%9F%A5%E5%92%8C%E5%88%87%E5%85%A5%E7%82%B9%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%9A%84%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="nav-text">4. 建立事务通知和切入点表达式的对应关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E9%85%8D%E7%BD%AE%E4%BA%8B%E5%8A%A1%E7%9A%84%E5%B1%9E%E6%80%A7"><span class="nav-text">5. 配置事务的属性</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Eanno%E7%9A%84%E5%A3%B0%E6%98%8E%E5%BC%8F%E4%BA%8B%E5%8A%A1%E6%8E%A7%E5%88%B6-%E9%85%8D%E7%BD%AE%E6%96%B9%E5%BC%8F"><span class="nav-text">基于anno的声明式事务控制(配置方式)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%AB%E6%8F%8Fanno"><span class="nav-text">扫描anno</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pojo"><span class="nav-text">pojo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dao-1"><span class="nav-text">dao</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#service-1"><span class="nav-text">service</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#resource"><span class="nav-text">resource</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%B1%80anno"><span class="nav-text">全局anno</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JdbcConfig"><span class="nav-text">JdbcConfig</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TransactionConfig"><span class="nav-text">TransactionConfig</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SpringConfiguration"><span class="nav-text">SpringConfiguration</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

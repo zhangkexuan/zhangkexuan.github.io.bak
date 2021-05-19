@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="今天来介绍一个不太常见也不太常用的类——ArrayDeque，这是一个很不错的容器类，如果对它还不了解的话，那么就好好看看这篇文章吧。 　　看完本篇，你将会了解到： 　　1、ArrayDeque是什么？ 　　2、ArrayDeque如何使用？ 　　3、ArrayDeque的内部结构是怎样的？ 　　4、ArrayDeque的各个方法是如何实现的？ 　　5、ArrayDeque是如何扩容的？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java容器#15-ArrayDeque详解">
+<meta property="og:url" content="http://yoursite.com/2020/06/21/java%E5%AE%B9%E5%99%A8-15-ArrayDeque%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="今天来介绍一个不太常见也不太常用的类——ArrayDeque，这是一个很不错的容器类，如果对它还不了解的话，那么就好好看看这篇文章吧。 　　看完本篇，你将会了解到： 　　1、ArrayDeque是什么？ 　　2、ArrayDeque如何使用？ 　　3、ArrayDeque的内部结构是怎样的？ 　　4、ArrayDeque的各个方法是如何实现的？ 　　5、ArrayDeque是如何扩容的？">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/06/21/java%E5%AE%B9%E5%99%A8-15-ArrayDeque%E8%AF%A6%E8%A7%A3/image-20200625234441418.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/21/java%E5%AE%B9%E5%99%A8-15-ArrayDeque%E8%AF%A6%E8%A7%A3/image-20200625234552824.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/21/java%E5%AE%B9%E5%99%A8-15-ArrayDeque%E8%AF%A6%E8%A7%A3/image-20200625234622064.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/21/java%E5%AE%B9%E5%99%A8-15-ArrayDeque%E8%AF%A6%E8%A7%A3/image-20200625234757152.png">
+<meta property="article:published_time" content="2020-06-21T15:04:51.000Z">
+<meta property="article:modified_time" content="2021-05-19T01:56:39.265Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java容器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/06/21/java%E5%AE%B9%E5%99%A8-15-ArrayDeque%E8%AF%A6%E8%A7%A3/image-20200625234441418.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/21/java%E5%AE%B9%E5%99%A8-15-ArrayDeque%E8%AF%A6%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>java容器#15-ArrayDeque详解 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/21/java%E5%AE%B9%E5%99%A8-15-ArrayDeque%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          java容器#15-ArrayDeque详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-21 23:04:51" itemprop="dateCreated datePublished" datetime="2020-06-21T23:04:51+08:00">2020-06-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%AE%B9%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">java容器</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>　　今天来介绍一个不太常见也不太常用的类——ArrayDeque，这是一个很不错的容器类，如果对它还不了解的话，那么就好好看看这篇文章吧。</p>
+<p>　　看完本篇，你将会了解到：</p>
+<p>　　1、ArrayDeque是什么？</p>
+<p>　　2、ArrayDeque如何使用？</p>
+<p>　　3、ArrayDeque的内部结构是怎样的？</p>
+<p>　　4、ArrayDeque的各个方法是如何实现的？</p>
+<p>　　5、ArrayDeque是如何扩容的？</p>
+<p>　　6、ArrayDeque的容量有什么限制？</p>
+<p>　　7、ArrayDeque和LinkedList相比有什么优势？</p>
+<p>　　8、ArrayDeque的应用场景是什么？</p>
+<span id="more"></span>
+
+<h1 id="ArrayDeque简介"><a href="#ArrayDeque简介" class="headerlink" title="ArrayDeque简介"></a>ArrayDeque简介</h1><p>　　ArrayDeque是JDK容器中的一个双端队列实现，内部使用数组进行元素存储，不允许存储null值，可以高效的进行元素查找和尾部插入取出，是用作队列、双端队列、栈的绝佳选择，性能比LinkedList还要好。听到这里，不熟悉ArrayDeque的你是不是有点尴尬？JDK中竟然还有这么好的一个容器类？</p>
+<p>　　别慌，现在了解还来得及，趁响指还没有弹下去，快上车吧，没时间解释了</p>
+<p>　　来看一个ArrayDeque的使用小栗子：</p>
+<pre><code class="java">public class DequeTest &#123;
+    public static void main(String[] args)&#123;
+        // 初始化容量为4
+        ArrayDeque&lt;String&gt; arrayDeque = new ArrayDeque&lt;&gt;(4);
+        //添加元素
+        arrayDeque.add(&quot;A&quot;);
+        arrayDeque.add(&quot;B&quot;);
+        arrayDeque.add(&quot;C&quot;);
+        arrayDeque.add(&quot;D&quot;);
+        arrayDeque.add(&quot;E&quot;);
+        arrayDeque.add(&quot;F&quot;);
+        arrayDeque.add(&quot;G&quot;);
+        arrayDeque.add(&quot;H&quot;);
+        arrayDeque.add(&quot;I&quot;);
+        System.out.println(arrayDeque);
+
+        // 获取元素
+        String a = arrayDeque.getFirst();
+        String a1 = arrayDeque.pop();
+        String b = arrayDeque.element();
+        String b1 = arrayDeque.removeFirst();
+        String c = arrayDeque.peek();
+        String c1 = arrayDeque.poll();
+        String d = arrayDeque.pollFirst();
+        String i = arrayDeque.pollLast();
+        String e = arrayDeque.peekFirst();
+        String h = arrayDeque.peekLast();
+        String h1 = arrayDeque.removeLast();
+        System.out.printf(&quot;a = %s, a1 = %s, b = %s, b1 = %s, c = %s, c1 = %s, d = %s, i = %s, e = %s, h = %s, h1 = %s&quot;, a,a1,b,b1,c,c1,d,i,e,h,h1);
+        System.out.println();
+        
+        // 添加元素
+        arrayDeque.push(e);
+        arrayDeque.add(h);
+        arrayDeque.offer(d);
+        arrayDeque.offerFirst(i);
+        arrayDeque.offerLast(c);
+        arrayDeque.offerLast(h);
+        arrayDeque.offerLast(c);
+        arrayDeque.offerLast(h);
+        arrayDeque.offerLast(i);
+        arrayDeque.offerLast(c);
+        System.out.println(arrayDeque);
+
+        // 移除第一次出现的C
+        arrayDeque.removeFirstOccurrence(c);
+        System.out.println(arrayDeque);
+
+        // 移除最后一次出现的C
+        arrayDeque.removeLastOccurrence(c);
+        System.out.println(arrayDeque);
+        
+    &#125;
+&#125;
+</code></pre>
+<p>　　输出如下：</p>
+<pre><code>[A, B, C, D, E, F, G, H, I]
+a = A, a1 = A, b = B, b1 = B, c = C, c1 = C, d = D, i = I, e = E, h = H, h1 = H
+[I, E, E, F, G, H, D, C, H, C, H, I, C]
+[I, E, E, F, G, H, D, H, C, H, I, C]
+[I, E, E, F, G, H, D, H, C, H, I]
+</code></pre>
+<p>　　可以看到，从ArrayDeque中取出元素的姿势可谓是五花八门，不过别慌，稍后会对这些方法进行一一讲解，现在只需要知道，get、peek、element方法都是获取元素，但是不会将它移除，而pop、poll、remove都会将元素移除并返回，add和push、offer都是插入元素，它们的不同点在于插入元素的位置以及插入失败后的结果。</p>
+<h1 id="ArrayDeque的内部结构"><a href="#ArrayDeque的内部结构" class="headerlink" title="ArrayDeque的内部结构"></a>ArrayDeque的内部结构</h1><p>　　ArrayDeque的整体继承结构如下：　　</p>
+<p>　<img src="image-20200625234441418.png" alt="image-20200625234441418"></p>
+<p>　　ArrayDeque是继承自Deque接口，Deque继承自Queue接口，Queue是队列，而Deque是双端队列，也就是可以从前或者从后插入或者取出元素，也就是比队列存取更加方便一点，单向队列只能从一头插入，从另一头取出。</p>
+<p>　　再来看看ArrayDeque的内部结构，其实从名字就可以看出来，ArrayDeque自然是基于Array的双端队列，内部结构自然是数组：</p>
+<pre><code class="java">   //存储元素的数组
+   transient Object[] elements; // 非private访问限制，以便内部类访问
+
+    /**
+     * 头部节点序号
+     */
+    transient int head;
+
+    /**
+     * 尾部节点序号，（指向最后一点节点的后一个位置）
+     */
+    transient int tail;
+
+    /**
+     * 双端队列的最小容量，必须是2的幂
+     */
+    private static final int MIN_INITIAL_CAPACITY = 8;
+</code></pre>
+<p>　　这里可以看到，元素都存储在Object数组中，head记录首节点的序号，tail记录尾节点后一个位置的序号，队列的容量最小为8，而且必须为2的幂。看到这里，有没有想到HashMap的元素个数限制也必须为2的幂，嗯，这里同HashMap一样，自有妙用，后面会有分析</p>
+<h1 id="ArrayDeque的常用方法"><a href="#ArrayDeque的常用方法" class="headerlink" title="ArrayDeque的常用方法"></a>ArrayDeque的常用方法</h1><table>
+<thead>
+<tr>
+<th align="left"></th>
+<th align="left"></th>
+<th align="left">从队列首部插入/取出</th>
+<th align="left"></th>
+<th align="left">从队列尾部插入/取出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"></td>
+<td align="left">失败抛出异常</td>
+<td align="left">失败返回特殊值</td>
+<td align="left">失败抛出异常</td>
+<td align="left">失败返回特殊值</td>
+</tr>
+<tr>
+<td align="left">插入</td>
+<td align="left">addFirst(e)  push()</td>
+<td align="left">offerFirst(e)</td>
+<td align="left">addLast(e)</td>
+<td align="left">offerLast(e)</td>
+</tr>
+<tr>
+<td align="left">移除</td>
+<td align="left">removeFirst() pop()</td>
+<td align="left">pollFirst()</td>
+<td align="left">removeLast()</td>
+<td align="left">pollLast()</td>
+</tr>
+<tr>
+<td align="left">获取</td>
+<td align="left">getFirst()</td>
+<td align="left">peekFirst()</td>
+<td align="left">getLast()</td>
+<td align="left">peekLast()</td>
+</tr>
+</tbody></table>
+<p> 　嗯，几乎绝大多数常用方法都在这里了，基本上可以分成两类，一类是以add，remove，get开头的方法，这类方法失败后会抛出异常，一类是以offer，poll，peek开头的方法，这类方法失败之后会返回特殊值，如null。大部分方法基本上都是可以根据命名来推断其作用，如addFirst，当然就是从队列头部插入，removeLast，便是从队列尾部移除，get和peek只获取元素而不移除，getFirst方法调用时，如果队列为空，会抛出NoSuchElementException异常，而peekFirst在队列为空时调用则返回null。</p>
+<p>　　一下摆出这么多方法有些难以接受？别慌别慌，接下来让我们从源码的角度一起来看看这些方法，用图说话，来解释我们最开始那个栗子中到底发生了哪些事情</p>
+<h1 id="ArrayDeque源码分析"><a href="#ArrayDeque源码分析" class="headerlink" title="ArrayDeque源码分析"></a>ArrayDeque源码分析</h1><p>　　先来看看构造函数：</p>
+<pre><code class="java">    /**
+     * 构造一个初始容量为16的空队列
+     */
+    public ArrayDeque() &#123;
+        elements = new Object[16];
+    &#125;
+
+    /**
+     * 构造一个能容纳指定大小的空队列
+     */
+    public ArrayDeque(int numElements) &#123;
+        allocateElements(numElements);
+    &#125;
+
+    /**
+     * 构造一个包含指定集合所有元素的队列
+     */
+    public ArrayDeque(Collection&lt;? extends E&gt; c) &#123;
+        allocateElements(c.size());
+        addAll(c);
+    &#125;
+</code></pre>
+<p>　　所以之前栗子中，</p>
+<pre><code>ArrayDeque&lt;String&gt; arrayDeque = new ArrayDeque&lt;&gt;(4);
+</code></pre>
+<p>　　调用的是第二个构造函数，里面有这么一个函数allocateElements，让我们来看看它的实现：</p>
+<pre><code class="java"> 1     private void allocateElements(int numElements) &#123;
+ 2         elements = new Object[calculateSize(numElements)];
+ 3     &#125;
+ 4 
+ 5     private static int calculateSize(int numElements) &#123;
+ 6         int initialCapacity = MIN_INITIAL_CAPACITY;
+ 7         if (numElements &gt;= initialCapacity) &#123;
+ 8             initialCapacity = numElements;
+ 9             initialCapacity |= (initialCapacity &gt;&gt;&gt;  1);
+10             initialCapacity |= (initialCapacity &gt;&gt;&gt;  2);
+11             initialCapacity |= (initialCapacity &gt;&gt;&gt;  4);
+12             initialCapacity |= (initialCapacity &gt;&gt;&gt;  8);
+13             initialCapacity |= (initialCapacity &gt;&gt;&gt; 16);
+14             initialCapacity++;
+15 
+16             if (initialCapacity &lt; 0) 
+17                 initialCapacity &gt;&gt;&gt;= 1;
+18         &#125;
+19         return initialCapacity;
+20     &#125;
+</code></pre>
+<p>　　allocateElements方法主要用于给内部的数组分配合适大小的空间，calculateSize方法用于计算比numElements大的最小2的幂次方，如果指定的容量大小小于MIN_INITIAL_CAPACITY（值为8），那么将容量设置为8，否则通过多次无符号右移进行最小2次幂计算。先将initialCapacity赋值为numElements，接下来，进行5次无符号右移，下面将以一个小栗子介绍这样运算的妙处</p>
+<p>　　在Java中，int类型是占4字节，也就是32位。简单起见，这里以一个8位二进制数来演示前三次操作。假设这个二进制数对应的十进制为89，整个过程如下：</p>
+<p><img src="image-20200625234552824.png" alt="image-20200625234552824"></p>
+<p>　　可以看到最后，除了第一位，其他位全部变成了1，然后这个结果再加一，即得到大于89的最小的2次幂，怎么样，很巧妙吧，也许你会想，为什么右移的数值要分别是1，2，4，8，16呢？嗯，好问题。其实仔细观察就会发现，先右移在进行或操作，其实我们只需要关注第一个不为0的位即可，下面以64为例再演示一次：</p>
+<p><img src="image-20200625234622064.png" alt="image-20200625234622064"></p>
+<p>　　所以，事实上，在这系列操作中，其他位只是配角，我们只需要关注第一个不为0的位即可，假设其为第n位，先右移一位然后进行或操作，得到的结果，第n位和第n-1位肯定为1，这样就有两个位为1了，然后进行右移两位，再进行或操作，那么第n位到第n-3位一定都为1，然后右移4位，依次类推。int为32位，因此，最后只需要移动16位即可。1+2+4+8+16 = 31，所以经过这一波操作，原数字对应的二进制，操作得到的结果将是从其第一个不为0的位开始，往后的位均为1。然后：</p>
+<pre><code>initialCapacity++;
+</code></pre>
+<p>　　再自增一下，目标完成。观察到还有下面这一小节代码：</p>
+<pre><code>if (initialCapacity &lt; 0) 
+    initialCapacity &gt;&gt;&gt;= 1;
+</code></pre>
+<p>　　其实它是为了防止进行这一波操作之后，得到了负数，即原来第31位为1，得到的结果第32位将为1，第32位为符号位，1代表负数，这样的话就必须回退一步，将得到的数右移一位（即2 ^ 30）。 嗯，那么这一部分就先告一段落了。</p>
+<p>　　来看看之前的那些函数。　　</p>
+<pre><code class="java">    public boolean add(E e) &#123;
+        addLast(e);
+        return true;
+    &#125;
+
+    /**
+     * 在队列头部插入元素，如果元素为null，则抛出异常
+     */
+   public void addFirst(E e) &#123;
+        if (e == null)
+            throw new NullPointerException();
+        elements[head = (head - 1) &amp; (elements.length - 1)] = e;
+        if (head == tail)
+            doubleCapacity();
+    &#125;
+
+    /**
+     * 在队列尾部插入元素，如果元素为null，则抛出异常
+     */
+    public void addLast(E e) &#123;
+        if (e == null)
+            throw new NullPointerException();
+        elements[tail] = e;
+        if ( (tail = (tail + 1) &amp; (elements.length - 1)) == head)
+            doubleCapacity();
+    &#125;
+</code></pre>
+<p>　　add的几个函数比较简单，在头部或者尾部插入元素，如果直接调用add方法，则是在尾部插入，这时直接在对应位置塞入该元素即可。</p>
+<pre><code>elements[tail] = e;
+</code></pre>
+<p>　　然后把tail记录其后一个位置，如果tail记录的位置已经是数组的最后一个位置了怎么办？嗯，这里又有一个巧妙的操作，跟HashMap中的取模是一样的：</p>
+<pre><code>tail = (tail + 1) &amp; (elements.length - 1)
+</code></pre>
+<p>　　因为elements.length是2的幂次方，所以减一后就变成了掩码，tail如果记录的是最后一个位置，即 elements.length - 1，tail + 1 则等于elements.length，与 elements.length - 1 做与操作后，就变成了0，嗯，没错，这样就变成了一个循环数组，如果tail与head相等，则表示没有剩余空间可以存放更多元素了，则调用doubleCapacity进行扩容：</p>
+<pre><code class="java">    private void doubleCapacity() &#123;
+        assert head == tail;
+        int p = head;
+        int n = elements.length;
+        int r = n - p; // number of elements to the right of p
+        int newCapacity = n &lt;&lt; 1;
+        if (newCapacity &lt; 0)
+            throw new IllegalStateException(&quot;Sorry, deque too big&quot;);
+        Object[] a = new Object[newCapacity];
+        System.arraycopy(elements, p, a, 0, r);
+        System.arraycopy(elements, 0, a, r, p);
+        elements = a;
+        head = 0;
+        tail = n;
+    &#125;
+</code></pre>
+<p>　　扩容其实也是很简单粗暴的，先记录一下原来head的位置，然后把容量变为原来的两倍，然后把head之后的元素复制到新数组的开头，把剩余的元素复制到新数组之后。以之前的栗子为例，新建的ArrayDeque实例容量为8，然后我们调用add插入元素，插入H之后，tail指向第一个位置，与head重合，就会触发扩容。</p>
+<pre><code>        arrayDeque.add(&quot;A&quot;);
+        arrayDeque.add(&quot;B&quot;);
+        arrayDeque.add(&quot;C&quot;);
+        arrayDeque.add(&quot;D&quot;);
+        arrayDeque.add(&quot;E&quot;);
+        arrayDeque.add(&quot;F&quot;);
+        arrayDeque.add(&quot;G&quot;);
+        arrayDeque.add(&quot;H&quot;);
+        arrayDeque.add(&quot;I&quot;);
+</code></pre>
+<p><img src="image-20200625234757152.png" alt="image-20200625234757152"></p>
+<p>　　看图应该就比较清楚了，然后来看看获取元素的几个方法：</p>
+<pre><code class="java">        // 获取元素
+        String a = arrayDeque.getFirst();
+        String a1 = arrayDeque.pop();
+        String b = arrayDeque.element();
+        String b1 = arrayDeque.removeFirst();
+        String c = arrayDeque.peek();
+        String c1 = arrayDeque.poll();
+        String d = arrayDeque.pollFirst();
+        String i = arrayDeque.pollLast();
+        String e = arrayDeque.peekFirst();
+        String h = arrayDeque.peekLast();
+        String h1 = arrayDeque.removeLast();
+        System.out.printf(&quot;a = %s, a1 = %s, b = %s, b1 = %s, c = %s, c1 = %s, d = %s, i = %s, e = %s, h = %s, h1 = %s&quot;, a,a1,b,b1,c,c1,d,i,e,h,h1);
+        System.out.println();
+</code></pre>
+<p>　　getFirst方法直接取head位置的元素，如果为null则抛出异常。</p>
+<pre><code class="java">    public E getFirst() &#123;
+        @SuppressWarnings(&quot;unchecked&quot;)
+        E result = (E) elements[head];
+        if (result == null)
+            throw new NoSuchElementException();
+        return result;
+    &#125;
+</code></pre>
+<p>　　getLast也是类似，取出tail所在位置的前一个位置，这里也做了掩码操作。</p>
+<pre><code class="java">    public E getLast() &#123;
+        @SuppressWarnings(&quot;unchecked&quot;)
+        E result = (E) elements[(tail - 1) &amp; (elements.length - 1)];
+        if (result == null)
+            throw new NoSuchElementException();
+        return result;
+    &#125;
+</code></pre>
+<p>　　element方法直接调用的是getFirst方法：</p>
+<pre><code class="java">    public E element() &#123;
+        return getFirst();
+    &#125;
+</code></pre>
+<p>　　remove方法有三个：</p>
+<pre><code class="java">    public E remove() &#123;
+        return removeFirst();
+    &#125;
+
+    public E removeFirst() &#123;
+        E x = pollFirst();
+        if (x == null)
+            throw new NoSuchElementException();
+        return x;
+    &#125;
+
+    public E removeLast() &#123;
+        E x = pollLast();
+        if (x == null)
+            throw new NoSuchElementException();
+        return x;
+    &#125;
+</code></pre>
+<p>　　remove方法其实是调用的对应的poll方法，poll方法也有三个：</p>
+<pre><code class="java">    public E poll() &#123;
+        return pollFirst();
+    &#125;
+
+    public E pollFirst() &#123;
+        int h = head;
+        @SuppressWarnings(&quot;unchecked&quot;)
+        E result = (E) elements[h];
+        // 如果结果为null则返回null
+        if (result == null)
+            return null;
+        elements[h] = null;     // Must null out slot
+        head = (h + 1) &amp; (elements.length - 1);
+        return result;
+    &#125;
+
+    public E pollLast() &#123;
+        int t = (tail - 1) &amp; (elements.length - 1);
+        @SuppressWarnings(&quot;unchecked&quot;)
+        E result = (E) elements[t];
+        if (result == null)
+            return null;
+        elements[t] = null;
+        tail = t;
+        return result;
+    &#125;
+</code></pre>
+<p>　　其实也很简单，都是先取出对应的元素，如果为null则返回null，否则取出对应的元素并对head或tail进行调整。</p>
+<p>　　pop方法调用的是removeFirst方法，removeFIrst方法调用的是pollFirst方法，所以方法看起来这么多，实际上最后真正调用的就那么几个</p>
+<pre><code class="java">    public E pop() &#123;
+        return removeFirst();
+    &#125;
+</code></pre>
+<p>　　peek方法是取出元素但是不移除，也有三个方法：</p>
+<pre><code class="java">    public E peek() &#123;
+        return peekFirst();
+    &#125;
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public E peekFirst() &#123;
+        // elements[head] is null if deque empty
+        return (E) elements[head];
+    &#125;
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public E peekLast() &#123;
+        return (E) elements[(tail - 1) &amp; (elements.length - 1)];
+    &#125;
+</code></pre>
+<p>　　这里没有做任何校验，所以如果如果取到的元素是null，返回的也是null。</p>
+<p>　　再来看看插入元素的其它几个方法：</p>
+<pre><code class="java">    public boolean offer(E e) &#123;
+        return offerLast(e);
+    &#125;
+
+    public boolean offerLast(E e) &#123;
+        addLast(e);
+        return true;
+    &#125;
+
+    public boolean offerFirst(E e) &#123;
+        addFirst(e);
+        return true;
+    &#125;
+
+    public void push(E e) &#123;
+        addFirst(e);
+    &#125;        
+</code></pre>
+<p>　　offer方法直接调用的是add方法。</p>
+<p>　　emmm，都是相互调用，为啥要设置那么多方法呢？其实主要是为了模拟不同的数据结构，如栈操作：pop，push，peek，队列操作：add，offer，remove，poll，peek，element，双端队列操作：addFirst，addLast，getFirst，getLast，peekFirst，peekLast，removeFirst，removeLast，pollFirst，pollLast。不过确实稍微多了一点。</p>
+<p>　　之前的栗子里还有用到两个方法，removeFirstOccurrence和removeLastOccurrence，前者是移除首次出现的位置，后者是移除最后一次出现的位置。</p>
+<pre><code class="java">    public boolean removeFirstOccurrence(Object o) &#123;
+        if (o == null)
+            return false;
+        int mask = elements.length - 1;
+        int i = head;
+        Object x;
+        while ( (x = elements[i]) != null) &#123;
+            if (o.equals(x)) &#123;
+                delete(i);
+                return true;
+            &#125;
+            i = (i + 1) &amp; mask;
+        &#125;
+        return false;
+    &#125;
+
+    public boolean removeLastOccurrence(Object o) &#123;
+        if (o == null)
+            return false;
+        int mask = elements.length - 1;
+        int i = (tail - 1) &amp; mask;
+        Object x;
+        while ( (x = elements[i]) != null) &#123;
+            if (o.equals(x)) &#123;
+                delete(i);
+                return true;
+            &#125;
+            i = (i - 1) &amp; mask;
+        &#125;
+        return false;
+    &#125;
+</code></pre>
+<p>　　其实都是通过循环遍历的方式进行查找一个是从head开始往后查找，一个是从tail开始往前查找。</p>
+<p>　　最后，我们再来看看它的迭代器类。</p>
+<pre><code class="java">    public Iterator&lt;E&gt; iterator() &#123;
+        return new DeqIterator();
+    &#125;
+
+    private class DeqIterator implements Iterator&lt;E&gt; &#123;
+
+        private int cursor = head;
+
+        private int fence = tail;
+
+        private int lastRet = -1;
+
+        public boolean hasNext() &#123;
+            return cursor != fence;
+        &#125;
+
+        public E next() &#123;
+            if (cursor == fence)
+                throw new NoSuchElementException();
+            @SuppressWarnings(&quot;unchecked&quot;)
+            E result = (E) elements[cursor];
+            if (tail != fence || result == null)
+                throw new ConcurrentModificationException();
+            lastRet = cursor;
+            cursor = (cursor + 1) &amp; (elements.length - 1);
+            return result;
+        &#125;
+
+        public void remove() &#123;
+            if (lastRet &lt; 0)
+                throw new IllegalStateException();
+            if (delete(lastRet)) &#123; 
+                cursor = (cursor - 1) &amp; (elements.length - 1);
+                fence = tail;
+            &#125;
+            lastRet = -1;
+        &#125;
+
+        public void forEachRemaining(Consumer&lt;? super E&gt; action) &#123;
+            Objects.requireNonNull(action);
+            Object[] a = elements;
+            int m = a.length - 1, f = fence, i = cursor;
+            cursor = f;
+            while (i != f) &#123;
+                @SuppressWarnings(&quot;unchecked&quot;) E e = (E)a[i];
+                i = (i + 1) &amp; m;
+                if (e == null)
+                    throw new ConcurrentModificationException();
+                action.accept(e);
+            &#125;
+        &#125;
+    &#125;
+</code></pre>
+<p>　　在迭代器类中，cursor记录的是head的位置，fence记录的是tail的位置，lastRet记录的是调用next返回的元素的序号，如果调用了remove方法，lastRet会置为-1，这里没有像其它容器那样使用modCount来实现fast-fail机制，而是通过在next方法中进行修改判断。</p>
+<pre><code class="java">        // 如果移除了尾部元素，会导致 tail != fence
+        // 如果移除了头部元素，会导致 result == null
+        if (tail != fence || result == null)
+            throw new ConcurrentModificationException();
+</code></pre>
+<p>　　当然，这种检测比较弱，如果先移除一个尾部元素，然后再添加一个尾部元素，那么tail依旧和fence相等，这种情况就检测不出来了。</p>
+<p>　　在调用remove方法的时候，调用了一个delete方法，这是ArrayDeque类中的一个私有方法。</p>
+<pre><code class="java">    private boolean delete(int i) &#123;
+        // 先做不变性检测，判断是否当前结构满足删除需求
+        checkInvariants();
+        final Object[] elements = this.elements;
+        // mask即掩码
+        final int mask = elements.length - 1;
+        final int h = head;
+        final int t = tail;
+        // front代表i到头部的距离
+        final int front = (i - h) &amp; mask;
+        // back代表i到尾部的距离
+        final int back  = (t - i) &amp; mask;
+
+        // 再次校验，如果i到头部的距离大于等于尾部到头部的距离，表示当前队列已经被修改了，通过最开始检测后，i是不应该满足该条件的
+        if (front &gt;= ((t - h) &amp; mask))
+            throw new ConcurrentModificationException();
+
+        // 为移动尽量少的元素做优化，如果离头部比较近，则将该位置到头部的元素进行移动，如果离尾部比较近，则将该位置到尾部的元素进行移动
+        if (front &lt; back) &#123;
+            if (h &lt;= i) &#123;
+                System.arraycopy(elements, h, elements, h + 1, front);
+            &#125; else &#123; // Wrap around
+                System.arraycopy(elements, 0, elements, 1, i);
+                elements[0] = elements[mask];
+                System.arraycopy(elements, h, elements, h + 1, mask - h);
+            &#125;
+            elements[h] = null;
+            head = (h + 1) &amp; mask;
+            return false;
+        &#125; else &#123;
+            if (i &lt; t) &#123; // Copy the null tail as well
+                System.arraycopy(elements, i + 1, elements, i, back);
+                tail = t - 1;
+            &#125; else &#123; // Wrap around
+                System.arraycopy(elements, i + 1, elements, i, mask - i);
+                elements[mask] = elements[0];
+                System.arraycopy(elements, 1, elements, 0, t);
+                tail = (t - 1) &amp; mask;
+            &#125;
+            return true;
+        &#125;
+    &#125;    
+</code></pre>
+<p>　　所以这个delete还是花了一点心思的，不仅做了两次校验，还对元素移动进行了优化。嗯，到此为止，源码部分就差不多了。</p>
+<p>　　那么现在再回到最开始提的问题。</p>
+<p>　　1、ArrayDeque是什么？ArrayDeque是一个用循环数组实现的双端队列。</p>
+<p>　　2、ArrayDeque如何使用？通过add，offer，poll等方法进行操作。</p>
+<p>　　3、ArrayDeque的内部结构是怎样的？内部结构是一个循环数组。</p>
+<p>　　4、ArrayDeque的各个方法是如何实现的？嗯，见上文。</p>
+<p>　　5、ArrayDeque是如何扩容的？扩容成原来的两倍，然后将原来的内容复制到新数组中。</p>
+<p>　　6、ArrayDeque的容量有什么限制？容量必须为2的幂次方，最小为8，默认为16.</p>
+<p>　　7、ArrayDeque和LinkedList相比有什么优势？ArrayDeque通常来说比LinkedList更高效，因为可以在常量时间通过序号对元素进行定位，并且省去了对元素进行包装的空间和时间成本。</p>
+<p>　　8、ArrayDeque的应用场景是什么？在很多场景下可以用来代替LinkedList，可以用做队列或者栈。</p>
+<p>　　到此，本篇圆满结束。如果觉得还不错的话，记得动动小手点个赞，也欢迎关注博主，你们的支持是我写出更好博客的动力。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java%E5%AE%B9%E5%99%A8/" rel="tag"># java容器</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/20/java%E5%AE%B9%E5%99%A8-14-TreeSet%E8%AF%A6%E8%A7%A3/" rel="prev" title="java容器#14-TreeSet详解">
+      <i class="fa fa-chevron-left"></i> java容器#14-TreeSet详解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/22/java%E5%AE%B9%E5%99%A8-16-PriorityQueue%E8%AF%A6%E8%A7%A3/" rel="next" title="java容器#16-PriorityQueue详解">
+      java容器#16-PriorityQueue详解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ArrayDeque%E7%AE%80%E4%BB%8B"><span class="nav-text">ArrayDeque简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ArrayDeque%E7%9A%84%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84"><span class="nav-text">ArrayDeque的内部结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ArrayDeque%E7%9A%84%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95"><span class="nav-text">ArrayDeque的常用方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ArrayDeque%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-text">ArrayDeque源码分析</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

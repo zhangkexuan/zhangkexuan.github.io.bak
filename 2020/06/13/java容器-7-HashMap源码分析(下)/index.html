@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前两篇对HashMap这家伙的主要方法，主要算法做了一个详细的介绍，本篇主要介绍HashMap中默默无闻地工作着的集合们，包括KeySet，values，EntrySet，以及对应的迭代器：HashIterator，KeyIterator，ValueIterator，EntryIterator和 fast-fail 机制。会介绍三个集合的作用以及它们中隐藏的惊人秘密。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java容器#7-HashMap源码分析(下)">
+<meta property="og:url" content="http://yoursite.com/2020/06/13/java%E5%AE%B9%E5%99%A8-7-HashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%8B)/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="前两篇对HashMap这家伙的主要方法，主要算法做了一个详细的介绍，本篇主要介绍HashMap中默默无闻地工作着的集合们，包括KeySet，values，EntrySet，以及对应的迭代器：HashIterator，KeyIterator，ValueIterator，EntryIterator和 fast-fail 机制。会介绍三个集合的作用以及它们中隐藏的惊人秘密。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-12T18:53:37.000Z">
+<meta property="article:modified_time" content="2021-05-19T01:56:56.903Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java容器">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/13/java%E5%AE%B9%E5%99%A8-7-HashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%8B)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>java容器#7-HashMap源码分析(下) | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/13/java%E5%AE%B9%E5%99%A8-7-HashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%8B)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          java容器#7-HashMap源码分析(下)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-13 02:53:37" itemprop="dateCreated datePublished" datetime="2020-06-13T02:53:37+08:00">2020-06-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%AE%B9%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">java容器</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>　前两篇对HashMap这家伙的主要方法，主要算法做了一个详细的介绍，本篇主要介绍HashMap中默默无闻地工作着的集合们，包括KeySet，values，EntrySet，以及对应的迭代器：HashIterator，KeyIterator，ValueIterator，EntryIterator和 fast-fail 机制。会介绍三个集合的作用以及它们中隐藏的惊人秘密。</p>
+<span id="more"></span>
+
+<h1 id="KeySet"><a href="#KeySet" class="headerlink" title="KeySet"></a>KeySet</h1><p>　　我们先来看看KeySet，HashMap中的成员变量keySet保存了所有的Key集合，事实上，这是继承自它的父类AbstractMap的成员变量：</p>
+<pre><code class="java">transient Set&lt;K&gt; keySet;
+</code></pre>
+<p>　　而keySet方法，也是覆盖了父类的方法：</p>
+<pre><code class="java">//AbstractMap 中的keySet方法
+
+    public Set&lt;K&gt; keySet() &#123;
+        Set&lt;K&gt; ks = keySet;
+        if (ks == null) &#123;
+            ks = new AbstractSet&lt;K&gt;() &#123;
+                public Iterator&lt;K&gt; iterator() &#123;
+                    return new Iterator&lt;K&gt;() &#123;
+                        private Iterator&lt;Entry&lt;K,V&gt;&gt; i = entrySet().iterator();
+
+                        public boolean hasNext() &#123;
+                            return i.hasNext();
+                        &#125;
+
+                        public K next() &#123;
+                            return i.next().getKey();
+                        &#125;
+
+                        public void remove() &#123;
+                            i.remove();
+                        &#125;
+                    &#125;;
+                &#125;
+
+                public int size() &#123;
+                    return AbstractMap.this.size();
+                &#125;
+
+                public boolean isEmpty() &#123;
+                    return AbstractMap.this.isEmpty();
+                &#125;
+
+                public void clear() &#123;
+                    AbstractMap.this.clear();
+                &#125;
+
+                public boolean contains(Object k) &#123;
+                    return AbstractMap.this.containsKey(k);
+                &#125;
+            &#125;;
+            keySet = ks;
+        &#125;
+        return ks;
+    &#125;
+//HashMap 中的keySet方法
+    /**
+     * 返回一个键值的集合视图，该集合由map支持，因此对map的更改会反映在集合中，反之亦然。
+     * 如果在对集合进行迭代的过程中修改了map中的映射（除了通过迭代器的删除操作），迭代的结果是未定义的。
+     * 该集合支持元素删除，通过Iterator.remove，Set.remove，removeAll，retainAll和clear操作
+     * 从映射中删除相应的映射。 它不支持add或addAll操作。
+     */
+    public Set&lt;K&gt; keySet() &#123;
+        Set&lt;K&gt; ks = keySet;
+        if (ks == null) &#123;
+            ks = new KeySet();
+            keySet = ks;
+        &#125;
+        return ks;
+    &#125;
+</code></pre>
+<p>　　可以看到，AbstractMap中keySet是一个AbstractSet类型，而覆盖后的keySet方法中，keySet被赋值为KeySet类型。翻翻构造器可以发现，在构造器中并没有初始化keySet，而是在KeySet方法中对keySet进行的初始化（HashMap中都是使用类似的懒加载机制），KeySet是HashMap中的一个内部类，让我们再来看看这个KeySet类型的全貌：</p>
+<pre><code class="java">    final class KeySet extends AbstractSet&lt;K&gt; &#123;
+        public final int size()                 &#123; return size; &#125;
+        public final void clear()               &#123; this.clear(); &#125;
+        public final Iterator&lt;K&gt; iterator()     &#123; return new KeyIterator(); &#125;
+        public final boolean contains(Object o) &#123; return containsKey(o); &#125;
+        public final boolean remove(Object key) &#123;
+            return removeNode(hash(key), key, null, false, true) != null;
+        &#125;
+        public final Spliterator&lt;K&gt; spliterator() &#123;
+            return new KeySpliterator&lt;&gt;(HashMap.this, 0, -1, 0, 0);
+        &#125;
+        public final void forEach(Consumer&lt;? super K&gt; action) &#123;
+            Node&lt;K,V&gt;[] tab;
+            if (action == null)
+                throw new NullPointerException();
+            if (size &gt; 0 &amp;&amp; (tab = table) != null) &#123;
+                int mc = modCount;
+                for (int i = 0; i &lt; tab.length; ++i) &#123;
+                    for (Node&lt;K,V&gt; e = tab[i]; e != null; e = e.next)
+                        action.accept(e.key);
+                &#125;
+                if (modCount != mc)
+                    throw new ConcurrentModificationException();
+            &#125;
+        &#125;
+    &#125;
+</code></pre>
+<p>　　其实KeySet就是继承自AbstractSet，并覆盖了其中的大部分方法，遍历KeySet时，会使用其中的KeyIterator，至于Spliterator，是为并行遍历设计的，一般是用于Stream的并行操作。forEach方法则是用于遍历操作，将函数式接口操作action应用于每一个元素，我们来看一个小栗子：</p>
+<pre><code class="java">public class Test &#123;
+
+    public static void main(String[] args) &#123;
+        Map&lt;String, Integer&gt; map = new HashMap();
+        map.put(&quot;小明&quot;, 66);
+        map.put(&quot;小李&quot;, 77);
+        map.put(&quot;小红&quot;, 88);
+        map.put(&quot;小刚&quot;, 89);
+        map.put(&quot;小力&quot;, 90);
+        map.put(&quot;小王&quot;, 91);
+        map.put(&quot;小黄&quot;, 92);
+        map.put(&quot;小青&quot;, 93);
+        map.put(&quot;小绿&quot;, 94);
+        map.put(&quot;小黑&quot;, 95);
+        map.put(&quot;小蓝&quot;, 96);
+        map.put(&quot;小紫&quot;, 97);
+        map.put(&quot;小橙&quot;, 98);
+        map.put(&quot;小赤&quot;, 99);
+        map.put(&quot;Frank&quot;, 100);
+        
+        Set&lt;String&gt; ks = map.keySet();
+        System.out.printf(&quot;keySet:%s,keySet的大小:%d,keySet中是否包含Frank:%s&quot;, ks, ks.size(), ks.contains(&quot;Frank&quot;));
+        System.out.println();
+        ks.forEach((item) -&gt; System.out.println(item));
+    &#125;
+&#125;
+</code></pre>
+<p>　　输出如下：</p>
+<pre><code>keySet:[小刚, 小橙, 小蓝, 小力, 小青, 小黑, 小明, 小李, 小王, 小紫, 小红, 小绿, Frank, 小黄, 小赤],keySet的大小:15,keySet中是否包含Frank:true
+小刚
+小橙
+小蓝
+小力
+小青
+小黑
+小明
+小李
+小王
+小紫
+小红
+小绿
+Frank
+小黄
+小赤
+</code></pre>
+<p>　　如果不记得这个AbstractMap和AbstractSet在容器框架中是什么地位，可以往前翻翻这系列文章的第一篇，看看容器家族的族谱。</p>
+<p>　　但是说了这么多，这个keySet。里面的元素是什么时候放进去的呢？我们自然会想到，大概就是调用put方法往里添加元素的时候，顺便把key放进keySet中，完美！让我们再回顾一下putVal方法，来看看是不是这样的：</p>
+<pre><code class="java">    final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+                   boolean evict) &#123;
+        Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; int n, i;
+        //如果当前table未初始化，则先重新调整大小至初始容量
+        if ((tab = table) == null || (n = tab.length) == 0)
+            n = (tab = resize()).length;
+        //（n-1）&amp; hash 这个地方即根据hash求序号，想了解更多散列相关内容可以查看下一篇
+        if ((p = tab[i = (n - 1) &amp; hash]) == null)
+            //不存在，则新建节点
+            tab[i] = newNode(hash, key, value, null);
+        else &#123;
+            Node&lt;K,V&gt; e; K k;
+            //先找到对应的node
+            if (p.hash == hash &amp;&amp;
+                    ((k = p.key) == key || (key != null &amp;&amp; key.equals(k))))
+                e = p;
+            else if (p instanceof TreeNode)
+                //如果是树节点，则调用相应的putVal方法，这部分放在第三篇内容里
+                //todo putTreeVal
+                e = ((TreeNode&lt;K,V&gt;)p).putTreeVal(this, tab, hash, key, value);
+            else &#123;
+                //如果是链表则之间遍历查找
+                for (int binCount = 0; ; ++binCount) &#123;
+                    if ((e = p.next) == null) &#123;
+                        //如果没有找到则在该链表新建一个节点挂在最后
+                        p.next = newNode(hash, key, value, null);
+                        if (binCount &gt;= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                            //如果链表长度达到树化的最大长度，则进行树化，该函数内容也放在第三篇
+                            //todo treeifyBin
+                            treeifyBin(tab, hash);
+                        break;
+                    &#125;
+                    if (e.hash == hash &amp;&amp;
+                            ((k = e.key) == key || (key != null &amp;&amp; key.equals(k))))
+                        break;
+                    p = e;
+                &#125;
+            &#125;
+            //如果已存在该key的映射，则将值进行替换
+            if (e != null) &#123; // existing mapping for key
+                V oldValue = e.value;
+                if (!onlyIfAbsent || oldValue == null)
+                    e.value = value;
+                afterNodeAccess(e);
+                return oldValue;
+            &#125;
+        &#125;
+        //修改次数加一
+        ++modCount;
+        if (++size &gt; threshold)
+            resize();
+        afterNodeInsertion(evict);
+        return null;
+    &#125;
+</code></pre>
+<p>　　emmmmm，好像没找到？你也许会想，会不会是在TreeNode的putTreeVal方法或者在treeifyBin方法中对key进行插入？好了好了，不要再翻了，其实这个奥秘隐藏在KeySet的迭代器中，再回头看看，它的迭代器返回的是一个KeyIterator，而KeyIterator也是HashMap中的一个内部类，继承自HashMap中的另一个内部类HashIterator。</p>
+<h1 id="HashIterator"><a href="#HashIterator" class="headerlink" title="HashIterator"></a>HashIterator</h1><p>　　让我们带着这个疑问，来看看这个HashIterator类里到底有什么玄机：</p>
+<pre><code class="java">    abstract class HashIterator &#123;
+        //指向下一个节点
+        Node&lt;K,V&gt; next;
+        //当前节点
+        Node&lt;K,V&gt; current;
+        //为实现 fast-fail 机制而设置的期望修改数
+        int expectedModCount;
+        //当前遍历到的序号
+        int index;
+
+        HashIterator() &#123;
+            expectedModCount = modCount;
+            Node&lt;K,V&gt;[] t = table;
+            current = next = null;
+            index = 0;
+            if (t != null &amp;&amp; size &gt; 0) &#123;
+                // 移动到第一个非null节点
+                do &#123;&#125; while (index &lt; t.length &amp;&amp; (next = t[index++]) == null);
+            &#125;
+        &#125;
+
+        public final boolean hasNext() &#123;
+            return next != null;
+        &#125;
+
+        final Node&lt;K,V&gt; nextNode() &#123;
+            Node&lt;K,V&gt;[] t;
+            Node&lt;K,V&gt; e = next;
+            // fast-fail 机制的实现 即在迭代器往后遍历时，每次都检测expectedModCount是否和modCount相等
+            // 不相等则抛出ConcurrentModificationException异常
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            //如果遍历越界，则抛出NoSuchElementException异常
+            if (e == null)
+                throw new NoSuchElementException();
+            if ((next = (current = e).next) == null &amp;&amp; (t = table) != null) &#123;
+                //如果遍历到末尾，则跳到table中下一个不为null的节点处
+                do &#123;&#125; while (index &lt; t.length &amp;&amp; (next = t[index++]) == null);
+            &#125;
+            return e;
+        &#125;
+
+        public final void remove() &#123;
+            Node&lt;K,V&gt; p = current;
+            if (p == null)
+                throw new IllegalStateException();
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            current = null;
+            K key = p.key;
+            //移除节点
+            removeNode(hash(key), key, null, false, false);
+            expectedModCount = modCount;
+        &#125;
+    &#125;
+</code></pre>
+<p>　　可以发现，在迭代器中，使用nextNode进行遍历时，先把next引用赋值给current，然后把next.next赋值给next，再获取了外部类HashMap中的table引用（t = table），这样就直接通过遍历table的方式来实现对key，value和entry的读取。</p>
+<pre><code class="java"> if ((next = (current = e).next) == null &amp;&amp; (t = table) != null) &#123;
+     //如果遍历到末尾，则跳到table中下一个不为null的节点处
+     do &#123;&#125; while (index &lt; t.length &amp;&amp; (next = t[index++]) == null);
+&#125;
+</code></pre>
+<p>　　KeyIterator，ValueIterator，EntryIterator都是HashIterator的子类，实现也很简单，仅仅修改了泛型类型：</p>
+<pre><code class="java">    final class KeyIterator extends HashIterator
+            implements Iterator&lt;K&gt; &#123;
+        public final K next() &#123; return nextNode().key; &#125;
+    &#125;
+
+    final class ValueIterator extends HashIterator
+            implements Iterator&lt;V&gt; &#123;
+        public final V next() &#123; return nextNode().value; &#125;
+    &#125;
+
+    final class EntryIterator extends HashIterator
+            implements Iterator&lt;Map.Entry&lt;K,V&gt;&gt; &#123;
+        public final Map.Entry&lt;K,V&gt; next() &#123; return nextNode(); &#125;
+    &#125;
+</code></pre>
+<p>　　这样keySet在遍历的时候，就可以通过它的迭代器去遍历访问外部类HashMap中的table，类似的，values和entrySet也是使用相似的方式进行遍历。</p>
+<pre><code class="java">    public Collection&lt;V&gt; values() &#123;
+        Collection&lt;V&gt; vs = values;
+        if (vs == null) &#123;
+            vs = new Values();
+            values = vs;
+        &#125;
+        return vs;
+    &#125;
+
+    final class Values extends AbstractCollection&lt;V&gt; &#123;
+        public final int size()                 &#123; return size; &#125;
+        public final void clear()               &#123; this.clear(); &#125;
+        public final Iterator&lt;V&gt; iterator()     &#123; return new ValueIterator(); &#125;
+        public final boolean contains(Object o) &#123; return containsValue(o); &#125;
+        public final Spliterator&lt;V&gt; spliterator() &#123;
+            return new ValueSpliterator&lt;&gt;(HashMap.this, 0, -1, 0, 0);
+        &#125;
+        public final void forEach(Consumer&lt;? super V&gt; action) &#123;
+            Node&lt;K,V&gt;[] tab;
+            if (action == null)
+                throw new NullPointerException();
+            if (size &gt; 0 &amp;&amp; (tab = table) != null) &#123;
+                int mc = modCount;
+                for (int i = 0; i &lt; tab.length; ++i) &#123;
+                    for (Node&lt;K,V&gt; e = tab[i]; e != null; e = e.next)
+                        action.accept(e.value);
+                &#125;
+                if (modCount != mc)
+                    throw new ConcurrentModificationException();
+            &#125;
+        &#125;
+    &#125;
+    public Set&lt;Map.Entry&lt;K,V&gt;&gt; entrySet() &#123;
+        Set&lt;Map.Entry&lt;K,V&gt;&gt; es;
+        return (es = entrySet) == null ? (entrySet = new EntrySet()) : es;
+    &#125;
+
+    final class EntrySet extends AbstractSet&lt;Map.Entry&lt;K,V&gt;&gt; &#123;
+        public final int size()                 &#123; return size; &#125;
+        public final void clear()               &#123; this.clear(); &#125;
+        public final Iterator&lt;Map.Entry&lt;K,V&gt;&gt; iterator() &#123;
+            return new EntryIterator();
+        &#125;
+        public final boolean contains(Object o) &#123;
+            if (!(o instanceof Map.Entry))
+                return false;
+            Map.Entry&lt;?,?&gt; e = (Map.Entry&lt;?,?&gt;) o;
+            Object key = e.getKey();
+            Node&lt;K,V&gt; candidate = getNode(hash(key), key);
+            return candidate != null &amp;&amp; candidate.equals(e);
+        &#125;
+        public final boolean remove(Object o) &#123;
+            if (o instanceof Map.Entry) &#123;
+                Map.Entry&lt;?,?&gt; e = (Map.Entry&lt;?,?&gt;) o;
+                Object key = e.getKey();
+                Object value = e.getValue();
+                return removeNode(hash(key), key, value, true, true) != null;
+            &#125;
+            return false;
+        &#125;
+        public final Spliterator&lt;Map.Entry&lt;K,V&gt;&gt; spliterator() &#123;
+            return new EntrySpliterator&lt;K,V&gt;(HashMap.this, 0, -1, 0, 0);
+        &#125;
+        public final void forEach(Consumer&lt;? super Map.Entry&lt;K,V&gt;&gt; action) &#123;
+            Node&lt;K,V&gt;[] tab;
+            if (action == null)
+                throw new NullPointerException();
+            if (size &gt; 0 &amp;&amp; (tab = table) != null) &#123;
+                int mc = modCount;
+                for (int i = 0; i &lt; tab.length; ++i) &#123;
+                    for (Node&lt;K,V&gt; e = tab[i]; e != null; e = e.next)
+                        action.accept(e);
+                &#125;
+                if (modCount != mc)
+                    throw new ConcurrentModificationException();
+            &#125;
+        &#125;
+    &#125;
+</code></pre>
+<p>　　至此，这个未解之谜算是告一段落了。</p>
+<h1 id="transient"><a href="#transient" class="headerlink" title="transient"></a>transient</h1><p>　　但是，细心的同学可能会发现，HashMap中的table，entrySet，keySet，value等成员变量，都是用transient修饰的，为什么要这样做呢？</p>
+<p>　　首先，我们还是先说说这个transient是干嘛用的，这就要涉及Java中的序列化了，序列化是什么东西呢？</p>
+<pre><code>Java中对象的序列化指的是将对象转换成以字节序列的形式来表示，这些字节序列包含了对象的数据和信息。
+一个序列化后的对象可以被写到数据库或文件中，也可用于网络传输，一般当我们使用缓存cache（内存空间不够有可能会本地存储到硬盘）或远程调用rpc（网络传输）的时候，
+经常需要让我们的实体类实现Serializable接口，目的就是为了让其可序列化。
+</code></pre>
+<p>　　当然，就像数据存储是为了读取那样，序列化后的最终目的是为了恢复成原先的Java对象，要不然序列化后干嘛呢，这个过程就叫做反序列化。</p>
+<p>　　当我们使用实现Serializable接口的方式来进行序列化时，所有字段都会被序列化，那如果不想让某个字段被序列化（比如出于安全考虑，不将敏感字段序列化传输），便可以使用transient关键字来标志，表示不想让这个字段被序列化。</p>
+<p>　　那么问题来了，存储节点信息的table用transient修饰了，那么序列化和反序列化的时候，数据还怎么传输？？？</p>
+<p>　　emmmm，这又涉及到一个蛋疼的操作，序列化并没有那么简单，实现了Serializable接口后，在序列化时，会先检测这个类是否存在writeObject和readObject方法，如果存在，则调用相应的方法：</p>
+<pre><code class="java">    /**
+     * 将HashMap的实例状态保存到一个流中
+     */
+    private void writeObject(java.io.ObjectOutputStream s)
+            throws IOException &#123;
+        int buckets = capacity();
+        // 写出threshold，loadfactor和所有隐藏的成员
+        s.defaultWriteObject();
+        s.writeInt(buckets);
+        s.writeInt(size);
+        internalWriteEntries(s);
+    &#125;
+
+    /**
+     * 从流中重构HashMap实例
+     */
+    private void readObject(java.io.ObjectInputStream s)
+            throws IOException, ClassNotFoundException &#123;
+        // 读取threshold，loadfactor和所有隐藏的成员
+        s.defaultReadObject();
+        reinitialize();
+        if (loadFactor &lt;= 0 || Float.isNaN(loadFactor))
+            throw new InvalidObjectException(&quot;Illegal load factor: &quot; +
+                    loadFactor);
+        // 读取并忽略桶的数量
+        s.readInt();
+        // 读取映射的数量
+        int mappings = s.readInt();
+        if (mappings &lt; 0)
+            throw new InvalidObjectException(&quot;Illegal mappings count: &quot; +
+                    mappings);
+        else if (mappings &gt; 0) &#123;
+            // (如果是0，则使用默认值)
+            // Size the table using given load factor only if within
+            // range of 0.25...4.0
+            float lf = Math.min(Math.max(0.25f, loadFactor), 4.0f);
+            float fc = (float)mappings / lf + 1.0f;
+            int cap = ((fc &lt; DEFAULT_INITIAL_CAPACITY) ?
+                    DEFAULT_INITIAL_CAPACITY :
+                    (fc &gt;= MAXIMUM_CAPACITY) ?
+                            MAXIMUM_CAPACITY :
+                            tableSizeFor((int)fc));
+            float ft = (float)cap * lf;
+            threshold = ((cap &lt; MAXIMUM_CAPACITY &amp;&amp; ft &lt; MAXIMUM_CAPACITY) ?
+                    (int)ft : Integer.MAX_VALUE);
+            
+            SharedSecrets.getJavaOISAccess().checkArray(s, Map.Entry[].class, cap);
+            @SuppressWarnings(&#123;&quot;rawtypes&quot;,&quot;unchecked&quot;&#125;)
+            Node&lt;K,V&gt;[] tab = (Node&lt;K,V&gt;[])new Node[cap];
+            table = tab;
+
+            // 读取键值对信息，然后把映射插入HashMap实例中
+            for (int i = 0; i &lt; mappings; i++) &#123;
+                @SuppressWarnings(&quot;unchecked&quot;)
+                K key = (K) s.readObject();
+                @SuppressWarnings(&quot;unchecked&quot;)
+                V value = (V) s.readObject();
+                putVal(hash(key), key, value, false, false);
+            &#125;
+        &#125;
+    &#125;
+</code></pre>
+<p>　　这确实是一个极其糟糕的设计。。。而且这里还是一个private方法。</p>
+<p>　　那么直接使用默认的序列化不好吗？非要大费周章的骚操作一波？一部分原因是为了解决效率问题，因为HashMap中很多桶是空的，将其序列化没有任何意义，所以需要手动使用 writeObject() 方法，只序列化实际存储元素的数组。另一个很重要的原因便是，HashMap的存储是依赖于对象的hashCode的，而Object.hashCode()方法是依赖于具体虚拟机的，所以同一个对象，在不同虚拟机中的HashCode可能不同，那这样映射到的HashMap中的位置也不一样，这样序列化和反序列化的对象就不一样了。引用大神的一段话：</p>
+<pre><code>For example, consider the case of a hash table. The physical
+representation is a sequence of hash buckets containing key-value
+entries. The bucket that an entry resides in is a function of the hash
+code of its key, which is not, in general, guaranteed to be the same
+from JVM implementation to JVM implementation. In fact, it isn&#39;t even
+guaranteed to be the same from run to run. Therefore, accepting the
+default serialized form for a hash table would constitute a serious
+bug. Serializing and deserializing the hash table could yield an
+object whose invariants were seriously corrupt.
+</code></pre>
+<p>　　蹩脚翻译一下：</p>
+<pre><code>例如，考虑散列表的情况。 它的物理存储是一系列包含键值条目的散列桶。 条目驻留的存储区是其密钥的哈希码的函数，
+通常，JVM的实现不保证相同。 事实上，它甚至不能保证每次运行都是一样的。 因此，接受哈希表的默认序列化形式将构成严重的错误。 
+对哈希表进行序列化和反序列化可能会产生不变性被严重损毁的对象。
+</code></pre>
+<p>　　好了，到此为止，这部分内容算是over了，后面会继续介绍HashMap中最麻烦的一部分.</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java%E5%AE%B9%E5%99%A8/" rel="tag"># java容器</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/12/java%E5%AE%B9%E5%99%A8-6-HashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%AD)/" rel="prev" title="java容器#6-HashMap源码分析(中)">
+      <i class="fa fa-chevron-left"></i> java容器#6-HashMap源码分析(中)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/14/java%E5%AE%B9%E5%99%A8-8-HashMap%E7%BA%A2%E9%BB%91%E6%A0%91%E8%A7%A3%E6%9E%90/" rel="next" title="java容器#8-HashMap红黑树解析">
+      java容器#8-HashMap红黑树解析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#KeySet"><span class="nav-text">KeySet</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HashIterator"><span class="nav-text">HashIterator</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#transient"><span class="nav-text">transient</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

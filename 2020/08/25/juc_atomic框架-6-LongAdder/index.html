@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="JDK1.8时，java.util.concurrent.atomic包中提供了一个新的原子类：LongAdder。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="juc_atomic框架#6-LongAdder">
+<meta property="og:url" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="JDK1.8时，java.util.concurrent.atomic包中提供了一个新的原子类：LongAdder。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925132152566.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925132834100.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925133044621.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925133658047.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925133750235.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925133804570.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925133823085.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925133838236.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925133909935.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925133926170.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925133938095.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134016481.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134047772.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134104567.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134117170.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134131869.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134146152.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134158350.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134216964.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134238004.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134252257.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134305169.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925134325904.png">
+<meta property="article:published_time" content="2020-08-25T01:34:33.000Z">
+<meta property="article:modified_time" content="2021-05-19T01:58:11.847Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="深入并发">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/image-20200925132152566.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>juc_atomic框架#6-LongAdder | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/25/juc_atomic%E6%A1%86%E6%9E%B6-6-LongAdder/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          juc_atomic框架#6-LongAdder
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-25 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-25T09:34:33+08:00">2020-08-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>JDK1.8时，<code>java.util.concurrent.atomic</code>包中提供了一个新的原子类：<code>LongAdder</code>。</p>
+<span id="more"></span>
+
+<h2 id="一、LongAdder简介"><a href="#一、LongAdder简介" class="headerlink" title="一、LongAdder简介"></a>一、LongAdder简介</h2><p>根据Oracle官方文档的介绍，LongAdder在高并发的场景下会比它的前辈————AtomicLong 具有更好的性能，代价是消耗更多的内存空间：<br><img src="image-20200925132152566.png" alt="1"></p>
+<p>那么，问题来了：</p>
+<blockquote>
+<p><strong>为什么要引入<code>LongAdder</code>？ <code>AtomicLong</code>在高并发的场景下有什么问题吗？ 如果低并发环境下，<code>LongAdder</code>和<code>AtomicLong</code>性能差不多，那<code>LongAdder</code>是否就可以替代<code>AtomicLong</code>了？</strong></p>
+</blockquote>
+<h3 id="为什么要引入LongAdder？"><a href="#为什么要引入LongAdder？" class="headerlink" title="为什么要引入LongAdder？"></a>为什么要引入LongAdder？</h3><p>我们知道，<strong>AtomicLong</strong>是利用了底层的CAS操作来提供并发性的，比如<strong>addAndGet</strong>方法：</p>
+<p><img src="image-20200925132834100.png" alt="image-20200925132834100"></p>
+<p>上述方法调用了<strong>Unsafe</strong>类的<strong>getAndAddLong</strong>方法，该方法内部是个<strong>native</strong>方法，它的逻辑是采用自旋的方式不断更新目标值，直到更新成功。</p>
+<p>在并发量较低的环境下，线程冲突的概率比较小，自旋的次数不会很多。但是，高并发环境下，N个线程同时进行自旋操作，会出现大量失败并不断自旋的情况，此时<strong>AtomicLong</strong>的自旋会成为瓶颈。</p>
+<p>这就是<strong>LongAdder</strong>引入的初衷——解决高并发环境下<strong>AtomicLong</strong>的自旋瓶颈问题。</p>
+<h3 id="LongAdder快在哪里？"><a href="#LongAdder快在哪里？" class="headerlink" title="LongAdder快在哪里？"></a>LongAdder快在哪里？</h3><p>既然说到<strong>LongAdder</strong>可以显著提升高并发环境下的性能，那么它是如何做到的？这里先简单的说下<strong>LongAdder</strong>的思路，第二部分会详述<strong>LongAdder</strong>的原理。</p>
+<p>我们知道，<strong>AtomicLong</strong>中有个内部变量<strong>value</strong>保存着实际的long值，所有的操作都是针对该变量进行。也就是说，高并发环境下，value变量其实是一个热点，也就是N个线程竞争一个热点。</p>
+<p><strong>LongAdder</strong>的基本思路就是<strong>分散热点</strong>，将value值分散到一个数组中，不同线程会命中到数组的不同槽中，各个线程只对自己槽中的那个值进行CAS操作，这样热点就被分散了，冲突的概率就小很多。如果要获取真正的long值，只要将各个槽中的变量值累加返回。</p>
+<p>这种做法有没有似曾相识的感觉？没错，ConcurrentHashMap中的“分段锁”其实就是类似的思路。</p>
+<h3 id="LongAdder能否替代AtomicLong？"><a href="#LongAdder能否替代AtomicLong？" class="headerlink" title="LongAdder能否替代AtomicLong？"></a>LongAdder能否替代AtomicLong？</h3><p>回答这个问题之前，我们先来看下<strong>LongAdder</strong>提供的API：<br><img src="image-20200925133044621.png" alt="image-20200925133044621"></p>
+<p>可以看到，<strong>LongAdder</strong>提供的API和<strong>AtomicLong</strong>比较接近，两者都能以原子的方式对long型变量进行增减。</p>
+<p>但是<strong>AtomicLong</strong>提供的功能其实更丰富，尤其是<strong>addAndGet</strong>、<strong>decrementAndGet</strong>、<strong>compareAndSet</strong>这些方法。</p>
+<p><strong>addAndGet</strong>、<strong>decrementAndGet</strong>除了单纯的做自增自减外，还可以立即获取增减后的值，而<strong>LongAdder</strong>则需要做同步控制才能精确获取增减后的值。如果业务需求需要精确的控制计数，做计数比较，<strong>AtomicLong</strong>也更合适。</p>
+<p>另外，从空间方面考虑，<strong>LongAdder</strong>其实是一种“空间换时间”的思想，从这一点来讲<strong>AtomicLong</strong>更适合。当然，如果你一定要跟我杠现代主机的内存对于这点消耗根本不算什么，那我也办法。</p>
+<p>总之，低并发、一般的业务场景下AtomicLong是足够了。如果并发量很多，存在大量写多读少的情况，那LongAdder可能更合适。适合的才是最好的，如果真出现了需要考虑到底用AtomicLong好还是LongAdder的业务场景，那么这样的讨论是没有意义的，因为这种情况下要么进行性能测试，以准确评估在当前业务场景下两者的性能，要么换个思路寻求其它解决方案。</p>
+<p>最后，给出国外一位博主对LongAdder和AtomicLong的性能评测，以供参考：<a target="_blank" rel="noopener" href="http://blog.palominolabs.com/2014/02/10/java-8-performance-improvements-longadder-vs-atomiclong">http://blog.palominolabs.com/…</a></p>
+<h2 id="二、LongAdder原理"><a href="#二、LongAdder原理" class="headerlink" title="二、LongAdder原理"></a>二、LongAdder原理</h2><p>之前说了，<strong>AtomicLong</strong>是多个线程针对单个热点值value进行原子操作。而<strong>LongAdder</strong>是每个线程拥有自己的槽，各个线程一般只对自己槽中的那个值进行CAS操作。</p>
+<blockquote>
+<p>比如有三个ThreadA、ThreadB、ThreadC，每个线程对value增加10。</p>
+</blockquote>
+<p>对于<strong>AtomicLong</strong>，最终结果的计算始终是下面这个形式：<br>value = 10 + 10 + 10 = 30</p>
+<p>但是对于<strong>LongAdder</strong>来说，内部有一个<code>base</code>变量，一个<code>Cell[]</code>数组。<br><code>base</code>变量：非竞态条件下，直接累加到该变量上<br><code>Cell[]</code>数组：竞态条件下，累加个各个线程自己的槽<code>Cell[i]</code>中<br>最终结果的计算是下面这个形式：<br><img src="image-20200925133658047.png" alt="image-20200925133658047"></p>
+<h3 id="LongAdder的内部结构"><a href="#LongAdder的内部结构" class="headerlink" title="LongAdder的内部结构"></a>LongAdder的内部结构</h3><p><strong>LongAdder</strong>只有一个空构造器，其本身也没有什么特殊的地方，所有复杂的逻辑都在它的父类<strong>Striped64</strong>中。<br><img src="image-20200925133750235.png" alt="image-20200925133750235"></p>
+<p>来看下<strong>Striped64</strong>的内部结构，这个类实现一些核心操作，处理64位数据。<br><strong>Striped64</strong>只有一个空构造器，初始化时，通过Unsafe获取到类字段的偏移量，以便后续CAS操作：<br><img src="image-20200925133804570.png" alt="image-20200925133804570"></p>
+<p>上面有个比较特殊的字段是<code>threadLocalRandomProbe</code>，可以把它看成是线程的hash值。这个后面我们会讲到。</p>
+<p>定义了一个内部Cell类，这就是我们之前所说的槽，每个Cell对象存有一个value值，可以通过<strong>Unsafe</strong>来CAS操作它的值：<br><img src="image-20200925133823085.png" alt="image-20200925133823085"></p>
+<p>其它的字段：<br>可以看到<strong>Cell[]<strong>就是之前提到的槽数组，</strong>base</strong>就是非并发条件下的基数累计值。<br><img src="image-20200925133838236.png" alt="image-20200925133838236"></p>
+<h3 id="LongAdder的核心方法"><a href="#LongAdder的核心方法" class="headerlink" title="LongAdder的核心方法"></a>LongAdder的核心方法</h3><p>还是通过例子来看：<br>假设现在有一个<strong>LongAdder</strong>对象la，四个线程A、B、C、D同时对la进行累加操作。</p>
+<pre><code>LongAdder la = new LongAdder();
+la.add(10);
+</code></pre>
+<p>①<strong>ThreadA调用add方法（假设此时没有并发）：</strong><br><img src="image-20200925133909935.png" alt="image-20200925133909935"></p>
+<p>初始时Cell[]为null，base为0。所以ThreadA会调用<strong>casBase</strong>方法（定义在<strong>Striped64</strong>中），因为没有并发，CAS操作成功将base变为10：<br><img src="image-20200925133926170.png" alt="image-20200925133926170"></p>
+<p>可以看到，如果线程A、B、C、D线性执行，那<strong>casBase</strong>永远不会失败，也就永远不会进入到<strong>base</strong>方法的if块中，所有的值都会累积到<strong>base</strong>中。<br>那么，如果任意线程有并发冲突，导致<strong>caseBase</strong>失败呢？</p>
+<p>失败就会进入if方法体：<br><img src="image-20200925133938095.png" alt="image-20200925133938095"></p>
+<p>这个方法体会先再次判断<strong>Cell[]<strong>槽数组有没初始化过，如果初始化过了，以后所有的CAS操作都只针对槽中的Cell；否则，进入</strong>longAccumulate</strong>方法。</p>
+<p>整个<strong>add</strong>方法的逻辑如下图：<br><img src="image-20200925134016481.png" alt="image-20200925134016481"></p>
+<blockquote>
+<p>可以看到，只有从未出现过并发冲突的时候，base基数才会使用到，一旦出现了并发冲突，之后所有的操作都只针对<code>Cell[]</code>数组中的单元Cell。<br>如果<code>Cell[]</code>数组未初始化，会调用父类的<code>longAccumelate</code>去初始化<code>Cell[]</code>，如果<code>Cell[]</code>已经初始化但是冲突发生在<code>Cell</code>单元内，则也调用父类的<code>longAccumelate</code>，此时可能就需要对<code>Cell[]</code>扩容了。</p>
+</blockquote>
+<p><strong>这也是LongAdder设计的精妙之处：尽量减少热点冲突，不到最后万不得已，尽量将CAS操作延迟。</strong></p>
+<h3 id="Striped64的核心方法"><a href="#Striped64的核心方法" class="headerlink" title="Striped64的核心方法"></a>Striped64的核心方法</h3><p>我们来看下<strong>Striped64</strong>的核心方法<strong>longAccumulate</strong>到底做了什么：<br><img src="image-20200925134047772.png" alt="image-20200925134047772"></p>
+<p>上述代码首先给当前线程分配一个hash值，然后进入一个自旋，这个自旋分为三个分支：</p>
+<ul>
+<li>*<strong>CASE1：Cell[]数组已经初始化*</strong></li>
+<li>*<strong>CASE2：Cell[]数组未初始化*</strong></li>
+<li>*<strong>CASE3：Cell[]数组正在初始化中*</strong></li>
+</ul>
+<h3 id="CASE2：Cell-数组未初始化"><a href="#CASE2：Cell-数组未初始化" class="headerlink" title="CASE2：Cell[]数组未初始化"></a>CASE2：Cell[]数组未初始化</h3><p>我们之前讨论了，初始时**Cell[]**数组还没有初始化，所以会进入分支②：<br><img src="image-20200925134104567.png" alt="image-20200925134104567"></p>
+<p>首先会将<strong>cellsBusy</strong>置为*<strong>1-加锁状态*</strong><br><img src="image-20200925134117170.png" alt="image-20200925134117170"></p>
+<p>然后，初始化<strong>Cell[]<strong>数组（初始大小为2），根据当前线程的hash值计算映射的索引，并创建对应的</strong>Cell</strong>对象，<strong>Cell</strong>单元中的初始值x就是本次要累加的值。</p>
+<h3 id="CASE3：Cell-数组正在初始化中"><a href="#CASE3：Cell-数组正在初始化中" class="headerlink" title="CASE3：Cell[]数组正在初始化中"></a>CASE3：Cell[]数组正在初始化中</h3><p>如果在初始化过程中，另一个线程ThreadB也进入了<strong>longAccumulate</strong>方法，就会进入分支③：<br><img src="image-20200925134131869.png" alt="image-20200925134131869"></p>
+<p>可以看到，分支③直接操作<strong>base</strong>基数，将值累加到<strong>base</strong>上。</p>
+<h3 id="CASE1：Cell-数组已经初始化"><a href="#CASE1：Cell-数组已经初始化" class="headerlink" title="CASE1：Cell[]数组已经初始化"></a>CASE1：Cell[]数组已经初始化</h3><p>如果初始化完成后，其它线程也进入了<strong>longAccumulate</strong>方法，就会进入分支①：<br><img src="image-20200925134146152.png" alt="image-20200925134146152"></p>
+<p>整个<strong>longAccumulate</strong>的流程图如下：<br><img src="image-20200925134158350.png" alt="2"></p>
+<h3 id="LongAdder的sum方法"><a href="#LongAdder的sum方法" class="headerlink" title="LongAdder的sum方法"></a>LongAdder的sum方法</h3><p>最后，我们来看下<strong>LongAdder</strong>的<strong>sum</strong>方法：<br><img src="image-20200925134216964.png" alt="3"></p>
+<p><strong>sum</strong>求和的公式就是我们开头说的：<br><img src="image-20200925134238004.png" alt="image-20200925134238004"></p>
+<p>需要注意的是，这个方法只能得到某个时刻的近似值，这也就是<strong>LongAdder</strong>并不能完全替代<strong>LongAtomic</strong>的原因之一。</p>
+<h2 id="三、LongAdder的其它兄弟"><a href="#三、LongAdder的其它兄弟" class="headerlink" title="三、LongAdder的其它兄弟"></a>三、LongAdder的其它兄弟</h2><p>JDK1.8时，<code>java.util.concurrent.atomic</code>包中，除了新引入<strong>LongAdder</strong>外，还有引入了它的三个兄弟类：<em><strong>LongAccumulator*<strong>、*</strong>DoubleAdder**<em>、</em></strong>DoubleAccumulator*</em>*</p>
+<p><img src="image-20200925134252257.png" alt="image-20200925134252257"></p>
+<h3 id="LongAccumulator"><a href="#LongAccumulator" class="headerlink" title="LongAccumulator"></a>LongAccumulator</h3><p><strong>LongAccumulator</strong>是<strong>LongAdder</strong>的增强版。<strong>LongAdder</strong>只能针对数值的进行加减运算，而<strong>LongAccumulator</strong>提供了自定义的函数操作。其构造函数如下：<br><img src="image-20200925134305169.png" alt="image-20200925134305169"></p>
+<p>通过<strong>LongBinaryOperator</strong>，可以自定义对入参的任意操作，并返回结果（<strong>LongBinaryOperator</strong>接收2个long作为参数，并返回1个long）</p>
+<p><strong>LongAccumulator</strong>内部原理和LongAdder几乎完全一样，都是利用了父类<strong>Striped64</strong>的<strong>longAccumulate</strong>方法。这里就不再赘述了，读者可以自己阅读源码。</p>
+<h3 id="DoubleAdder和DoubleAccumulator"><a href="#DoubleAdder和DoubleAccumulator" class="headerlink" title="DoubleAdder和DoubleAccumulator"></a>DoubleAdder和DoubleAccumulator</h3><p>从名字也可以看出，<strong>DoubleAdder</strong>和<strong>DoubleAccumulator</strong>用于操作double原始类型。</p>
+<p>与<strong>LongAdder</strong>的唯一区别就是，其内部会通过一些方法，将原始的double类型，转换为long类型，其余和<strong>LongAdder</strong>完全一样：<br><img src="image-20200925134325904.png" alt="image-20200925134325904"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+              <a href="/tags/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" rel="tag"># 深入并发</a>
+              <a href="/tags/juc/" rel="tag"># juc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/24/juc_atomic%E6%A1%86%E6%9E%B6-5-FieldUpdater/" rel="prev" title="juc_atomic框架#5-FieldUpdater">
+      <i class="fa fa-chevron-left"></i> juc_atomic框架#5-FieldUpdater
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/26/juc_sync%E5%90%8C%E6%AD%A5%E5%99%A8%E6%A1%86%E6%9E%B6/" rel="next" title="juc_sync同步器框架">
+      juc_sync同步器框架 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81LongAdder%E7%AE%80%E4%BB%8B"><span class="nav-text">一、LongAdder简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%BC%95%E5%85%A5LongAdder%EF%BC%9F"><span class="nav-text">为什么要引入LongAdder？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LongAdder%E5%BF%AB%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F"><span class="nav-text">LongAdder快在哪里？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LongAdder%E8%83%BD%E5%90%A6%E6%9B%BF%E4%BB%A3AtomicLong%EF%BC%9F"><span class="nav-text">LongAdder能否替代AtomicLong？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81LongAdder%E5%8E%9F%E7%90%86"><span class="nav-text">二、LongAdder原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LongAdder%E7%9A%84%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84"><span class="nav-text">LongAdder的内部结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LongAdder%E7%9A%84%E6%A0%B8%E5%BF%83%E6%96%B9%E6%B3%95"><span class="nav-text">LongAdder的核心方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Striped64%E7%9A%84%E6%A0%B8%E5%BF%83%E6%96%B9%E6%B3%95"><span class="nav-text">Striped64的核心方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CASE2%EF%BC%9ACell-%E6%95%B0%E7%BB%84%E6%9C%AA%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">CASE2：Cell[]数组未初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CASE3%EF%BC%9ACell-%E6%95%B0%E7%BB%84%E6%AD%A3%E5%9C%A8%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%AD"><span class="nav-text">CASE3：Cell[]数组正在初始化中</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CASE1%EF%BC%9ACell-%E6%95%B0%E7%BB%84%E5%B7%B2%E7%BB%8F%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">CASE1：Cell[]数组已经初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LongAdder%E7%9A%84sum%E6%96%B9%E6%B3%95"><span class="nav-text">LongAdder的sum方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81LongAdder%E7%9A%84%E5%85%B6%E5%AE%83%E5%85%84%E5%BC%9F"><span class="nav-text">三、LongAdder的其它兄弟</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LongAccumulator"><span class="nav-text">LongAccumulator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DoubleAdder%E5%92%8CDoubleAccumulator"><span class="nav-text">DoubleAdder和DoubleAccumulator</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

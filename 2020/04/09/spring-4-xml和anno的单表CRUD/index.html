@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="直接引入案例，对单表的crud。使用xml方式，再逐步将xml方式转换到anno方式。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring#4-xml和anno的单表CRUD">
+<meta property="og:url" content="http://yoursite.com/2020/04/09/spring-4-xml%E5%92%8Canno%E7%9A%84%E5%8D%95%E8%A1%A8CRUD/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="直接引入案例，对单表的crud。使用xml方式，再逐步将xml方式转换到anno方式。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-09T09:23:25.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:17:38.946Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="spring">
+<meta property="article:tag" content="anno">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/04/09/spring-4-xml%E5%92%8Canno%E7%9A%84%E5%8D%95%E8%A1%A8CRUD/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>spring#4-xml和anno的单表CRUD | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/09/spring-4-xml%E5%92%8Canno%E7%9A%84%E5%8D%95%E8%A1%A8CRUD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spring#4-xml和anno的单表CRUD
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-09 17:23:25" itemprop="dateCreated datePublished" datetime="2020-04-09T17:23:25+08:00">2020-04-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>直接引入案例，对单表的crud。使用xml方式，再逐步将xml方式转换到anno方式。</p>
+<span id="more"></span>
+
+<h1 id="基于xml的单表crud"><a href="#基于xml的单表crud" class="headerlink" title="基于xml的单表crud"></a>基于xml的单表crud</h1><p>使用 spring 的 IoC 实现对象的管理<br>使用 DBAssit 作为持久层解决方案<br>使用 c3p0 数据源</p>
+<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><p><strong>pom.xml:</strong></p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;uestc.zhangkx&lt;/groupId&gt;
+    &lt;artifactId&gt;spring&lt;/artifactId&gt;
+    &lt;packaging&gt;pom&lt;/packaging&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+    &lt;modules&gt;
+        &lt;module&gt;DI&lt;/module&gt;
+        &lt;module&gt;IOC&lt;/module&gt;
+        &lt;module&gt;IOC_CRUD&lt;/module&gt;
+        &lt;module&gt;annotation&lt;/module&gt;
+    &lt;/modules&gt;
+    &lt;dependencies&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+            &lt;version&gt;5.2.4.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-test&lt;/artifactId&gt;
+            &lt;version&gt;5.0.2.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;javax.annotation&lt;/groupId&gt;
+            &lt;artifactId&gt;javax.annotation-api&lt;/artifactId&gt;
+            &lt;version&gt;1.3.2&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;commons-dbutils&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-dbutils&lt;/artifactId&gt;
+            &lt;version&gt;1.4&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;mysql&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+            &lt;version&gt;8.0.19&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;c3p0&lt;/groupId&gt;
+            &lt;artifactId&gt;c3p0&lt;/artifactId&gt;
+            &lt;version&gt;0.9.1.2&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;junit&lt;/groupId&gt;
+            &lt;artifactId&gt;junit&lt;/artifactId&gt;
+            &lt;version&gt;4.13&lt;/version&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+
+    &lt;/dependencies&gt;
+
+&lt;/project&gt;
+</code></pre>
+<p><strong>SQL：</strong></p>
+<pre><code class="SQL">create table account(
+id int primary key auto_increment,
+name varchar(40),
+money float
+)character set utf8 collate utf8_general_ci;
+insert into account(name,money) values(&#39;aaa&#39;,1000);
+insert into account(name,money) values(&#39;bbb&#39;,1000);
+insert into account(name,money) values(&#39;ccc&#39;,1000);
+</code></pre>
+<p><strong>POJO：</strong></p>
+<pre><code class="JAVA">package uestc.zhangkx.domain;
+
+import java.io.Serializable;
+
+/**
+ * 账户的实体类
+ * @author zhangkx
+ */
+public class Account implements Serializable &#123;
+
+    private Integer id;
+    private String name;
+    private Float money;
+
+    public Integer getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Integer id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+
+    public Float getMoney() &#123;
+        return money;
+    &#125;
+
+    public void setMoney(Float money) &#123;
+        this.money = money;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Account&#123;&quot; +
+            &quot;id=&quot; + id +
+            &quot;, name=&#39;&quot; + name + &#39;\&#39;&#39; +
+            &quot;, money=&quot; + money +
+            &#39;&#125;&#39;;
+    &#125;
+&#125;
+</code></pre>
+<p><strong>service层:</strong></p>
+<pre><code class="java">package uestc.zhangkx.service;
+
+import uestc.zhangkx.domain.Account;
+import java.util.List;
+
+/**
+ * 账户的业务层接口
+ * @author zhangkx
+ */
+public interface IAccountService &#123;
+
+    /**
+     * 查询所有
+     */
+    List&lt;Account&gt; findAllAccount();
+
+    /**
+     * 查询一个
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 保存
+     */
+    void saveAccount(Account account);
+
+    /**
+     * 更新
+     */
+    void updateAccount(Account account);
+
+    /**
+     * 删除
+     */
+    void deleteAccount(Integer acccountId);
+&#125;
+</code></pre>
+<pre><code class="java">package uestc.zhangkx.service.impl;
+
+
+
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.dao.impl.AccountDaoImpl;
+import uestc.zhangkx.domain.Account;
+import uestc.zhangkx.service.IAccountService;
+
+import java.util.List;
+
+/**
+ * 账户的业务层实现类
+ */
+public class AccountServiceImpl implements IAccountService &#123;
+
+    private IAccountDao accountDao;
+
+    public AccountServiceImpl(IAccountDao accountDao) &#123;
+        this.accountDao = accountDao;
+    &#125;
+
+    @Override
+    public List&lt;Account&gt; findAllAccount() &#123;
+        return accountDao.findAllAccount();
+    &#125;
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        return accountDao.findAccountById(accountId);
+    &#125;
+
+    @Override
+    public void saveAccount(Account account) &#123;
+        accountDao.saveAccount(account);
+    &#125;
+
+    @Override
+    public void updateAccount(Account account) &#123;
+        accountDao.updateAccount(account);
+    &#125;
+
+    @Override
+    public void deleteAccount(Integer acccountId) &#123;
+        accountDao.deleteAccount(acccountId);
+    &#125;
+&#125;
+</code></pre>
+<p><strong>dao层：</strong></p>
+<pre><code class="java">package uestc.zhangkx.dao;
+
+
+
+import uestc.zhangkx.domain.Account;
+
+import java.util.List;
+
+/**
+ * 账户的持久层接口
+ * @author zhangkx
+ */
+public interface IAccountDao &#123;
+
+    /**
+     * 查询所有
+     * @return
+     */
+    List&lt;Account&gt; findAllAccount();
+
+    /**
+     * 查询一个
+     * @return
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 保存
+     * @param account
+     */
+    void saveAccount(Account account);
+
+    /**
+     * 更新
+     * @param account
+     */
+    void updateAccount(Account account);
+
+    /**
+     * 删除
+     * @param acccountId
+     */
+    void deleteAccount(Integer acccountId);
+&#125;
+</code></pre>
+<pre><code class="java">package uestc.zhangkx.dao.impl;
+
+
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.domain.Account;
+
+import java.util.List;
+
+/**
+ * 账户的持久层实现类
+ */
+public class AccountDaoImpl implements IAccountDao &#123;
+
+    private QueryRunner runner;
+
+    public void setRunner(QueryRunner runner) &#123;
+        this.runner = runner;
+    &#125;
+
+    @Override
+    public List&lt;Account&gt; findAllAccount() &#123;
+        try&#123;
+            return runner.query(&quot;select * from account&quot;,new BeanListHandler&lt;Account&gt;(Account.class));
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        try&#123;
+            return runner.query(&quot;select * from account where id = ? &quot;,new BeanHandler&lt;Account&gt;(Account.class),accountId);
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public void saveAccount(Account account) &#123;
+        try&#123;
+            runner.update(&quot;insert into account(name,money)values(?,?)&quot;,account.getName(),account.getMoney());
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public void updateAccount(Account account) &#123;
+        try&#123;
+            runner.update(&quot;update account set name=?,money=? where id=?&quot;,account.getName(),account.getMoney(),account.getId());
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public void deleteAccount(Integer accountId) &#123;
+        try&#123;
+            runner.update(&quot;delete from account where id=?&quot;,accountId);
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>这些就是基本的准备，持久层用的DBAssit，过两天我要将持久层的技术给总结一下。</p>
+<p>service层实现类用的构造函数，dao层实现用的setter方法，还引入了外部工厂。这些几乎涵盖了DI的方式。</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>直接先贴<code>bean.xml</code>:</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+    &lt;!--配置service --&gt;
+    &lt;bean id=&quot;accountService&quot; class=&quot;uestc.zhangkx.service.impl.AccountServiceImpl&quot;&gt;
+        &lt;!-- 注入dao --&gt;
+        &lt;constructor-arg name=&quot;accountDao&quot; ref=&quot;accountDao&quot;/&gt;
+    &lt;/bean&gt;
+
+    &lt;!-- 配置dao --&gt;
+    &lt;bean id=&quot;accountDao&quot; class=&quot;uestc.zhangkx.dao.impl.AccountDaoImpl&quot;&gt;
+        &lt;!--注入QueryRunner--&gt;
+        &lt;property name=&quot;runner&quot; ref=&quot;runner&quot;/&gt;
+    &lt;/bean&gt;
+
+    &lt;!--配置QueryRunner--&gt;
+    &lt;bean id=&quot;runner&quot; class=&quot;org.apache.commons.dbutils.QueryRunner&quot; scope=&quot;prototype&quot;&gt;
+        &lt;!-- 注入数据源 --&gt;
+        &lt;constructor-arg name=&quot;ds&quot; ref=&quot;dataSource&quot;/&gt;
+    &lt;/bean&gt;
+
+    &lt;!-- 配置数据源 --&gt;
+    &lt;bean id=&quot;dataSource&quot; class=&quot;com.mchange.v2.c3p0.ComboPooledDataSource&quot;&gt;
+        &lt;!--注入连接数据库--&gt;
+        &lt;property name=&quot;driverClass&quot; value=&quot;com.mysql.cj.jdbc.Driver&quot;/&gt;
+        &lt;property name=&quot;jdbcUrl&quot; value=&quot;jdbc:mysql://localhost:3306/spring&quot;/&gt;
+        &lt;property name=&quot;user&quot; value=&quot;root&quot;/&gt;
+        &lt;property name=&quot;password&quot; value=&quot;0217&quot;/&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;
+</code></pre>
+<p>已经非常明显了，很简单的配置实现。下做简单说明：</p>
+<p>第一个bean</p>
+<ul>
+<li><code>id</code>：是给调用者用的标志，通过这个id来确定调用的是这个bean</li>
+<li><code>class</code>：制定这个bean制作的实例对象</li>
+<li><code>constructor-arg</code>：传参构造时候的参数构造器<ul>
+<li><code>name</code>：构造函数中需要的参数</li>
+<li><code>value</code>：（这里没有）给参数的值，如果类型不是基本类型，需要用<code>ref</code>给指出来。</li>
+<li><code>ref</code>：指定value为其他的bean。</li>
+</ul>
+</li>
+</ul>
+<p>第二个bean</p>
+<ul>
+<li><code>property</code>：用于setter构造的参数构造器，dao运行是需要runner的，需要构造一个runner实例</li>
+</ul>
+<p>第三个bean</p>
+<ul>
+<li>她是用来生成runner的</li>
+<li><code>scope</code>：是想保证多例，这样才线程安全</li>
+</ul>
+<p>第四个bean</p>
+<ul>
+<li>c3p0的用处——提供了一个ds</li>
+</ul>
+<p>下面贴测试用例：</p>
+<pre><code class="java">package uestc.zhangkx.test;
+
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import uestc.zhangkx.domain.Account;
+import uestc.zhangkx.service.IAccountService;
+
+import java.util.List;
+
+public class AccountServiceTest &#123;
+    ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;bean.xml&quot;);
+    IAccountService as = ac.getBean(&quot;accountService&quot;,IAccountService.class);
+
+    @Test
+    public void testFindAll() &#123;
+        //3.执行方法
+        List&lt;Account&gt; accounts = as.findAllAccount();
+        for(Account account : accounts)&#123;
+            System.out.println(account);
+        &#125;
+    &#125;
+
+    @Test
+    public void testFindOne() &#123;
+        //3.执行方法
+        Account account = as.findAccountById(1);
+        System.out.println(account);
+    &#125;
+
+    @Test
+    public void testSave() &#123;
+        Account account = new Account();
+        account.setName(&quot;test&quot;);
+        account.setMoney(12345f);
+        //3.执行方法
+        as.saveAccount(account);
+
+    &#125;
+
+    @Test
+    public void testUpdate() &#123;
+        //3.执行方法
+        Account account = as.findAccountById(4);
+        account.setMoney(23456f);
+        as.updateAccount(account);
+    &#125;
+
+    @Test
+    public void testDelete() &#123;
+        //3.执行方法
+        as.deleteAccount(4);
+    &#125;
+
+&#125;
+</code></pre>
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><h3 id="依赖关系"><a href="#依赖关系" class="headerlink" title="依赖关系"></a>依赖关系</h3><p>serviceimpl依赖daoimpl的实现类、test依赖serviceimpl实现类</p>
+<p>但两者的处理方式是不一样的，test中是直接读取<code>ApplicationContext</code>，将整个bean的map得到，在通过<code>ac.getBean()</code>可直接得到实例对象。这是方式之一</p>
+<p>而在service中，则是通过依赖注入的方式。在serviceimpl中提供setter或者提供构造方法，可直接在spring配置的bean文件中注入该实例。</p>
+<h3 id="制作成bean"><a href="#制作成bean" class="headerlink" title="制作成bean"></a>制作成bean</h3><p>关于制作成bean，其实就是维护spring中bean的map，给出一个bean的制作写法：</p>
+<p><code>&lt;bean id=&quot;$&#123;map.key&#125;&quot; class=&quot;$&#123;map.value&#125;&quot;&gt;</code>制作的key是字符串，value是实例对象</p>
+<p>这里需要注意一下bean实例对象的完整性，如果实例创建不够完整的话，就会产生空指针异常，完整性步骤如下：</p>
+<p>必须的检查这个实例对象是否还需要其他实例对象的依赖，通常可以使用构造方式或者setter来引入注入接口，是依赖完整注入到实例对象中。</p>
+<h1 id="xml-annotation的单表crud"><a href="#xml-annotation的单表crud" class="headerlink" title="xml+annotation的单表crud"></a>xml+annotation的单表crud</h1><p>注解配置和 xml 配置要实现的功能都是一样的,都是要降低程序间的耦合。只是配置的形式不一样。其实可以发现，springIoC的核心是那个bean维护的map集合。而这依赖于那个Bean.xml文件。我们先暴力与xml，其他地方用anno替换。</p>
+<pre><code>/**
+ * 账户的业务层实现类
+ *
+ * 曾经XML的配置：
+ *  &lt;bean id=&quot;accountService&quot; class=&quot;com.itheima.service.impl.AccountServiceImpl&quot;
+ *        scope=&quot;&quot;  init-method=&quot;&quot; destroy-method=&quot;&quot;&gt;
+ *      &lt;property name=&quot;&quot;  value=&quot;&quot; | ref=&quot;&quot;&gt;&lt;/property&gt;
+ *  &lt;/bean&gt;
+ *
+ * 用于创建对象的
+ *      他们的作用就和在XML配置文件中编写一个&lt;bean&gt;标签实现的功能是一样的
+ *      Component:
+ *          作用：用于把当前类对象存入spring容器中
+ *          属性：
+ *              value：用于指定bean的id。当我们不写时，它的默认值是当前类名，且首字母改小写。
+ *      Controller：一般用在表现层
+ *      Service：一般用在业务层
+ *      Repository：一般用在持久层
+ *      以上三个注解他们的作用和属性与Component是一模一样。
+ *      他们三个是spring框架为我们提供明确的三层使用的注解，使我们的三层对象更加清晰
+ *
+ *
+ * 用于注入数据的
+ *      他们的作用就和在xml配置文件中的bean标签中写一个&lt;property&gt;标签的作用是一样的
+ *      Autowired:
+ *          作用：自动按照类型注入。只要容器中有唯一的一个bean对象类型和要注入的变量类型匹配，就可以注入成功
+ *                如果ioc容器中没有任何bean的类型和要注入的变量类型匹配，则报错。
+ *                如果Ioc容器中有多个类型匹配时：
+ *          出现位置：
+ *              可以是变量上，也可以是方法上
+ *          细节：
+ *              在使用注解注入时，set方法就不是必须的了。
+ *      Qualifier:
+ *          作用：在按照类中注入的基础之上再按照名称注入。它在给类成员注入时不能单独使用。但是在给方法参数注入时可以（稍后我们讲）
+ *          属性：
+ *              value：用于指定注入bean的id。
+ *      Resource
+ *          作用：直接按照bean的id注入。它可以独立使用
+ *          属性：
+ *              name：用于指定bean的id。
+ *      以上三个注入都只能注入其他bean类型的数据，而基本类型和String类型无法使用上述注解实现。
+ *      另外，集合类型的注入只能通过XML来实现。
+ *
+ *      Value
+ *          作用：用于注入基本类型和String类型的数据
+ *          属性：
+ *              value：用于指定数据的值。它可以使用spring中SpEL(也就是spring的el表达式）
+ *                      SpEL的写法：$&#123;表达式&#125;
+ *
+ * 用于改变作用范围的
+ *      他们的作用就和在bean标签中使用scope属性实现的功能是一样的
+ *      Scope
+ *          作用：用于指定bean的作用范围
+ *          属性：
+ *              value：指定范围的取值。常用取值：singleton prototype
+ *
+ * 和生命周期相关 了解
+ *      他们的作用就和在bean标签中使用init-method和destroy-methode的作用是一样的
+ *      PreDestroy
+ *          作用：用于指定销毁方法
+ *      PostConstruct
+ *          作用：用于指定初始化方法
+ */
+</code></pre>
+<h2 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h2><p>因为有xml维护，就很简单</p>
+<p><strong>domain：</strong></p>
+<pre><code class="java">package uestc.zhangkx.domain;
+
+import java.io.Serializable;
+
+/**
+ * 账户的实体类
+ */
+public class Account implements Serializable &#123;
+
+    private Integer id;
+    private String name;
+    private Float money;
+
+    public Integer getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Integer id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+
+    public Float getMoney() &#123;
+        return money;
+    &#125;
+
+    public void setMoney(Float money) &#123;
+        this.money = money;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Account&#123;&quot; +
+                &quot;id=&quot; + id +
+                &quot;, name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, money=&quot; + money +
+                &#39;&#125;&#39;;
+    &#125;
+&#125;
+</code></pre>
+<p><strong>dao层：</strong></p>
+<pre><code class="java">package uestc.zhangkx.dao;
+
+
+import uestc.zhangkx.domain.Account;
+
+import java.util.List;
+
+/**
+ * 账户的持久层接口
+ * @author zhangkx
+ */
+public interface IAccountDao &#123;
+
+    /**
+     * 查询所有
+     * @return
+     */
+    List&lt;Account&gt; findAllAccount();
+
+    /**
+     * 查询一个
+     * @return
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 保存
+     * @param account
+     */
+    void saveAccount(Account account);
+
+    /**
+     * 更新
+     * @param account
+     */
+    void updateAccount(Account account);
+
+    /**
+     * 删除
+     * @param acccountId
+     */
+    void deleteAccount(Integer acccountId);
+&#125;
+</code></pre>
+<pre><code class="java">package uestc.zhangkx.dao.impl;
+
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.domain.Account;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+/**
+ * 账户的持久层实现类
+ */
+@Repository(&quot;accountDao&quot;)
+public class AccountDaoImpl implements IAccountDao &#123;
+
+    @Autowired
+    private QueryRunner runner;
+
+    @Override
+    public List&lt;Account&gt; findAllAccount() &#123;
+        try&#123;
+            return runner.query(&quot;select * from account&quot;,new BeanListHandler&lt;Account&gt;(Account.class));
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        try&#123;
+            return runner.query(&quot;select * from account where id = ? &quot;,new BeanHandler&lt;Account&gt;(Account.class),accountId);
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public void saveAccount(Account account) &#123;
+        try&#123;
+            runner.update(&quot;insert into account(name,money)values(?,?)&quot;,account.getName(),account.getMoney());
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public void updateAccount(Account account) &#123;
+        try&#123;
+            runner.update(&quot;update account set name=?,money=? where id=?&quot;,account.getName(),account.getMoney(),account.getId());
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Override
+    public void deleteAccount(Integer accountId) &#123;
+        try&#123;
+            runner.update(&quot;delete from account where id=?&quot;,accountId);
+        &#125;catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p><strong>service层：</strong></p>
+<pre><code class="java">package uestc.zhangkx.service;
+
+
+
+import uestc.zhangkx.domain.Account;
+
+import java.util.List;
+
+/**
+ * 账户的业务层接口
+ */
+public interface IAccountService &#123;
+
+    /**
+     * 查询所有
+     * @return
+     */
+    List&lt;Account&gt; findAllAccount();
+
+    /**
+     * 查询一个
+     * @return
+     */
+    Account findAccountById(Integer accountId);
+
+    /**
+     * 保存
+     * @param account
+     */
+    void saveAccount(Account account);
+
+    /**
+     * 更新
+     * @param account
+     */
+    void updateAccount(Account account);
+
+    /**
+     * 删除
+     * @param acccountId
+     */
+    void deleteAccount(Integer acccountId);
+
+
+&#125;
+</code></pre>
+<pre><code class="java">package uestc.zhangkx.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import uestc.zhangkx.dao.IAccountDao;
+import uestc.zhangkx.domain.Account;
+import uestc.zhangkx.service.IAccountService;
+
+import java.util.List;
+
+/**
+ * 账户的业务层实现类
+ */
+@Service(&quot;accountService&quot;)
+public class AccountServiceImpl implements IAccountService &#123;
+
+    @Autowired
+    private IAccountDao accountDao;
+
+    @Override
+    public List&lt;Account&gt; findAllAccount() &#123;
+        return accountDao.findAllAccount();
+    &#125;
+
+    @Override
+    public Account findAccountById(Integer accountId) &#123;
+        return accountDao.findAccountById(accountId);
+    &#125;
+
+    @Override
+    public void saveAccount(Account account) &#123;
+        accountDao.saveAccount(account);
+    &#125;
+
+    @Override
+    public void updateAccount(Account account) &#123;
+        accountDao.updateAccount(account);
+    &#125;
+
+    @Override
+    public void deleteAccount(Integer acccountId) &#123;
+        accountDao.deleteAccount(acccountId);
+    &#125;
+&#125;
+</code></pre>
+<p><strong>test类：</strong></p>
+<pre><code class="java">package uestc.zhangkx.test;
+
+
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import uestc.zhangkx.domain.Account;
+import uestc.zhangkx.service.IAccountService;
+
+import java.util.List;
+
+public class AnnotationTest &#123;
+    ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;bean.xml&quot;);
+    IAccountService as = ac.getBean(&quot;accountService&quot;,IAccountService.class);
+
+    @Test
+    public void testFindAll() &#123;
+        //3.执行方法
+        List&lt;Account&gt; accounts = as.findAllAccount();
+        for(Account account : accounts)&#123;
+            System.out.println(account);
+        &#125;
+    &#125;
+
+    @Test
+    public void testFindOne() &#123;
+        //3.执行方法
+        Account account = as.findAccountById(1);
+        System.out.println(account);
+    &#125;
+
+    @Test
+    public void testSave() &#123;
+        Account account = new Account();
+        account.setName(&quot;test&quot;);
+        account.setMoney(12345f);
+        //3.执行方法
+        as.saveAccount(account);
+
+    &#125;
+
+    @Test
+    public void testUpdate() &#123;
+        //3.执行方法
+        Account account = as.findAccountById(4);
+        account.setMoney(23456f);
+        as.updateAccount(account);
+    &#125;
+
+    @Test
+    public void testDelete() &#123;
+        //3.执行方法
+        as.deleteAccount(4);
+    &#125;
+
+&#125;
+</code></pre>
+<h2 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h2><h3 id="加入扫描包"><a href="#加入扫描包" class="headerlink" title="加入扫描包"></a>加入扫描包</h3><p><code>&lt;context:component-scan base-package=&quot;uestc.zhangkx&quot;/&gt;</code></p>
+<h3 id="制作bean"><a href="#制作bean" class="headerlink" title="制作bean"></a>制作bean</h3><p>在纯xml配置中，对于所有的需要被创建的实体类，都使用了 <code>&lt;bean&gt;</code>来创建一个对象。</p>
+<p>anno方式中，也需要创建这个对象，但不用<code>&lt;bean&gt;</code>了，而是使用<code>@Component</code>当然他有三个子anno：<code>Controller</code>、<code>Service</code>、<code>Repository</code></p>
+<h3 id="依赖注入"><a href="#依赖注入" class="headerlink" title="依赖注入"></a>依赖注入</h3><p>xml中，直接在<code>&lt;bean&gt;</code>的子标签中注入即可，对应anno的<code>@Autowired</code>(找map中的类型匹配)+<code>@Qualifier</code>（id匹配）。或者使用<code>@Resource</code>直接按id匹配。</p>
+<p>其实这个anno配置只是更换了<code>制作bean</code>和<code>注入bean</code>两个地方。其他地方的配置还是xml的。</p>
+<h1 id="annotation的单表crud"><a href="#annotation的单表crud" class="headerlink" title="annotation的单表crud"></a>annotation的单表crud</h1><p>我们发现,之所以我们现在离不开 xml 配置文件,是因为我们有一句很关键的配置:</p>
+<p><code>&lt;context:component-scan base-package=&quot;uestc.zhangkx&quot;&gt;&lt;/context:component-scan&gt;</code><br>如果他要也能用注解配置,那么我们就离脱离 xml 文件又进了一步。</p>
+<p>另外,数据源和 JdbcTemplate 的配置也需要靠注解来实现。</p>
+<h2 id="实现-2"><a href="#实现-2" class="headerlink" title="实现"></a>实现</h2><p>使用conf类来代替bean.xml</p>
+<pre><code class="java">package config;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.apache.commons.dbutils.QueryRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+import javax.sql.DataSource;
+
+@Configuration
+@ComponentScan(&quot;uestc.zhangkx&quot;)
+public class springConf &#123;
+
+    @Bean(name = &quot;runner&quot;)
+    public QueryRunner createQR(DataSource dataSource) &#123;
+        return new QueryRunner(dataSource);
+    &#125;
+
+    @Bean(name = &quot;dataSource&quot;)
+    public DataSource createDS() &#123;
+        try &#123;
+            ComboPooledDataSource ds = new ComboPooledDataSource();
+            ds.setUser(&quot;root&quot;);
+            ds.setPassword(&quot;0217&quot;);
+            ds.setDriverClass(&quot;com.mysql.cj.jdbc.Driver&quot;);
+            ds.setJdbcUrl(&quot;jdbc:mysql://localhost:3306/spring&quot;);
+            return ds;
+        &#125; catch (Exception e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>再修改test类：</p>
+<pre><code class="java">ApplicationContext ac = new AnnotationConfigApplicationContext(springConf.class);
+IAccountService as = ac.getBean(&quot;accountService&quot;,IAccountService.class);
+</code></pre>
+<h2 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h2><p>增加config包,内含:</p>
+<pre><code class="java">package config;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.apache.commons.dbutils.QueryRunner;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
+
+import javax.sql.DataSource;
+
+/**
+ * 和spring连接数据库相关的配置类
+ */
+public class jdbcConfig &#123;
+
+    @Value(&quot;$&#123;jdbc.driver&#125;&quot;)
+    private String driver;
+
+    @Value(&quot;$&#123;jdbc.url&#125;&quot;)
+    private String url;
+
+    @Value(&quot;$&#123;jdbc.username&#125;&quot;)
+    private String username;
+
+    @Value(&quot;$&#123;jdbc.password&#125;&quot;)
+    private String password;
+
+    /**
+     * 用于创建一个QueryRunner对象
+     * @param dataSource
+     * @return
+     */
+    @Bean(name=&quot;runner&quot;)
+    @Scope(&quot;prototype&quot;)
+    public QueryRunner createQueryRunner(@Qualifier(&quot;ds2&quot;) DataSource dataSource)&#123;
+        return new QueryRunner(dataSource);
+    &#125;
+
+    /**
+     * 创建数据源对象
+     * @return
+     */
+    @Bean(name=&quot;ds2&quot;)
+    public DataSource createDataSource()&#123;
+        try &#123;
+            ComboPooledDataSource ds = new ComboPooledDataSource();
+            ds.setDriverClass(driver);
+            ds.setJdbcUrl(url);
+            ds.setUser(username);
+            ds.setPassword(password);
+            return ds;
+        &#125;catch (Exception e)&#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    @Bean(name=&quot;ds1&quot;)
+    public DataSource createDataSource1()&#123;
+        try &#123;
+            ComboPooledDataSource ds = new ComboPooledDataSource();
+            ds.setDriverClass(driver);
+            ds.setJdbcUrl(&quot;jdbc:mysql://localhost:3306/eesy02&quot;);
+            ds.setUser(username);
+            ds.setPassword(password);
+            return ds;
+        &#125;catch (Exception e)&#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<pre><code class="java">package config;
+
+import org.springframework.context.annotation.*;
+
+@ComponentScan(&quot;uestc.zhangkx&quot;)
+@Import(jdbcConfig.class)
+@PropertySource(&quot;classpath:jdbcConfig.properties&quot;)
+public class SpringConfiguration &#123;
+&#125;
+</code></pre>
+<p>还对测试类进行改进:</p>
+<pre><code class="java">package uestc.zhangkx.test;
+
+import config.SpringConfiguration;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import uestc.zhangkx.domain.Account;
+import uestc.zhangkx.service.IAccountService;
+
+import java.util.List;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = SpringConfiguration.class)
+public class AnnotationTest &#123;
+
+    @Autowired
+    private IAccountService as = null;
+
+
+    @Test
+    public void testFindAll() &#123;
+        //3.执行方法
+        List&lt;Account&gt; accounts = as.findAllAccount();
+        for(Account account : accounts)&#123;
+            System.out.println(account);
+        &#125;
+    &#125;
+
+    @Test
+    public void testFindOne() &#123;
+        //3.执行方法
+        Account account = as.findAccountById(1);
+        System.out.println(account);
+    &#125;
+
+    @Test
+    public void testSave() &#123;
+        Account account = new Account();
+        account.setName(&quot;test&quot;);
+        account.setMoney(12345f);
+        //3.执行方法
+        as.saveAccount(account);
+
+    &#125;
+
+    @Test
+    public void testUpdate() &#123;
+        //3.执行方法
+        Account account = as.findAccountById(4);
+        account.setMoney(23456f);
+        as.updateAccount(account);
+    &#125;
+
+    @Test
+    public void testDelete() &#123;
+        //3.执行方法
+        as.deleteAccount(4);
+    &#125;
+
+&#125;
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/spring/" rel="tag"># spring</a>
+              <a href="/tags/anno/" rel="tag"># anno</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/08/mybatis%E6%BA%90%E7%A0%81-1-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/" rel="prev" title="mybatis源码#1-配置文件解析">
+      <i class="fa fa-chevron-left"></i> mybatis源码#1-配置文件解析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/10/spring-5-anno%E5%85%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/" rel="next" title="spring#5-anno全注解分析">
+      spring#5-anno全注解分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Exml%E7%9A%84%E5%8D%95%E8%A1%A8crud"><span class="nav-text">基于xml的单表crud</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%86%E5%A4%87"><span class="nav-text">准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%9E%90"><span class="nav-text">分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96%E5%85%B3%E7%B3%BB"><span class="nav-text">依赖关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%B6%E4%BD%9C%E6%88%90bean"><span class="nav-text">制作成bean</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#xml-annotation%E7%9A%84%E5%8D%95%E8%A1%A8crud"><span class="nav-text">xml+annotation的单表crud</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-1"><span class="nav-text">实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%9E%90-1"><span class="nav-text">分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A0%E5%85%A5%E6%89%AB%E6%8F%8F%E5%8C%85"><span class="nav-text">加入扫描包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%B6%E4%BD%9Cbean"><span class="nav-text">制作bean</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5"><span class="nav-text">依赖注入</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#annotation%E7%9A%84%E5%8D%95%E8%A1%A8crud"><span class="nav-text">annotation的单表crud</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-2"><span class="nav-text">实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B9%E8%BF%9B"><span class="nav-text">改进</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

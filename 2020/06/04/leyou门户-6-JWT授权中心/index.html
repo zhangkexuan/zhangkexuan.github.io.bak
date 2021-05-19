@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="运用jwt授权中心，无状态登录-授权-判断-网关的整个流程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="leyou门户#6-JWT授权中心">
+<meta property="og:url" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="运用jwt授权中心，无状态登录-授权-判断-网关的整个流程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527300483893.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533033734163.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527322512370.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527305891424.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527312464328.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527313765010.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533263572529.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533263656410.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533264701684.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533264779361.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533264903853.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533265001140.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533265056671.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533266035185.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533268835892.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533282579972.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533282630089.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533282665940.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533282760203.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533282875434.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533282931796.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533282968301.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533283024844.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533295409903.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533295465634.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533295716082.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533296452053.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533301291420.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533301145953.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533301466739.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533301495759.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527517811770.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527517866435.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527518012727.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533302034190.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527518456220.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527518532739.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527518649379.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533303181817.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533303213902.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533303544219.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533303659673.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533716093162.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533716136698.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/01348FC2.gif">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1534225751381.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533732985089.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533733081367.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533733356133.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533733550548.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533733618901.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533733732779.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533733810408.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533733946470.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533734761745.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533734803538.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533734834479.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533736124053.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1534200523009.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533737074966.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533737234087.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1533737743491.png">
+<meta property="article:published_time" content="2020-06-04T09:25:20.000Z">
+<meta property="article:modified_time" content="2021-05-19T02:12:45.962Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="JWT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/1527300483893.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>leyou门户#6-JWT授权中心 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/04/leyou%E9%97%A8%E6%88%B7-6-JWT%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          leyou门户#6-JWT授权中心
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-04 17:25:20" itemprop="dateCreated datePublished" datetime="2020-06-04T17:25:20+08:00">2020-06-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leyou/" itemprop="url" rel="index"><span itemprop="name">leyou</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>运用jwt授权中心，无状态登录-授权-判断-网关的整个流程。</p>
+<span id="more"></span>
+
+<h1 id="1-无状态登录原理"><a href="#1-无状态登录原理" class="headerlink" title="1.无状态登录原理"></a>1.无状态登录原理</h1><h2 id="1-1-什么是有状态？"><a href="#1-1-什么是有状态？" class="headerlink" title="1.1.什么是有状态？"></a>1.1.什么是有状态？</h2><p>有状态服务，即服务端需要记录每次会话的客户端信息，从而识别客户端身份，根据用户身份进行请求的处理，典型的设计如tomcat中的session。</p>
+<p>例如登录：用户登录后，我们把登录者的信息保存在服务端session中，并且给用户一个cookie值，记录对应的session。然后下次请求，用户携带cookie值来，我们就能识别到对应session，从而找到用户的信息。</p>
+<p>缺点是什么？</p>
+<ul>
+<li>服务端保存大量数据，增加服务端压力</li>
+<li>服务端保存用户状态，无法进行水平扩展</li>
+<li>客户端请求依赖服务端，多次请求必须访问同一台服务器</li>
+</ul>
+<h2 id="1-2-什么是无状态"><a href="#1-2-什么是无状态" class="headerlink" title="1.2.什么是无状态"></a>1.2.什么是无状态</h2><p>微服务集群中的每个服务，对外提供的都是Rest风格的接口。而Rest风格的一个最重要的规范就是：服务的无状态性，即：</p>
+<ul>
+<li>服务端不保存任何客户端请求者信息</li>
+<li>客户端的每次请求必须具备自描述信息，通过这些信息识别客户端身份</li>
+</ul>
+<p>带来的好处是什么呢？</p>
+<ul>
+<li>客户端请求不依赖服务端的信息，任何多次请求不需要必须访问到同一台服务</li>
+<li>服务端的集群和状态对客户端透明</li>
+<li>服务端可以任意的迁移和伸缩</li>
+<li>减小服务端存储压力</li>
+</ul>
+<h2 id="1-3-如何实现无状态"><a href="#1-3-如何实现无状态" class="headerlink" title="1.3.如何实现无状态"></a>1.3.如何实现无状态</h2><p>无状态登录的流程：</p>
+<ul>
+<li>当客户端第一次请求服务时，服务端对用户进行信息认证（登录）</li>
+<li>认证通过，将用户信息进行加密形成token，返回给客户端，作为登录凭证</li>
+<li>以后每次请求，客户端都携带认证的token</li>
+<li>服务的对token进行解密，判断是否有效。</li>
+</ul>
+<p>流程图：</p>
+<p> <img src="1527300483893.png"></p>
+<p>整个登录过程中，最关键的点是什么？</p>
+<p><strong>token的安全性</strong></p>
+<p>token是识别客户端身份的唯一标示，如果加密不够严密，被人伪造那就完蛋了。</p>
+<p>采用何种方式加密才是安全可靠的呢？</p>
+<p>我们将采用<code>JWT + RSA非对称加密</code></p>
+<h2 id="1-4-JWT"><a href="#1-4-JWT" class="headerlink" title="1.4.JWT"></a>1.4.JWT</h2><h3 id="1-4-1-简介"><a href="#1-4-1-简介" class="headerlink" title="1.4.1.简介"></a>1.4.1.简介</h3><p>JWT，全称是Json Web Token， 是JSON风格轻量级的授权和身份认证规范，可实现无状态、分布式的Web应用授权；官网：<a target="_blank" rel="noopener" href="https://jwt.io/">https://jwt.io</a></p>
+<p><img src="1533033734163.png" alt="1533033734163"></p>
+<p>GitHub上jwt的java客户端：<a target="_blank" rel="noopener" href="https://github.com/jwtk/jjwt">https://github.com/jwtk/jjwt</a></p>
+<h3 id="1-4-2-数据格式"><a href="#1-4-2-数据格式" class="headerlink" title="1.4.2.数据格式"></a>1.4.2.数据格式</h3><p>JWT包含三部分数据：</p>
+<ul>
+<li><p>Header：头部，通常头部有两部分信息：</p>
+<ul>
+<li>声明类型，这里是JWT</li>
+</ul>
+<p>我们会对头部进行base64编码，得到第一部分数据</p>
+</li>
+<li><p>Payload：载荷，就是有效数据，一般包含下面信息：</p>
+<ul>
+<li>用户身份信息（注意，这里因为采用base64编码，可解码，因此不要存放敏感信息）</li>
+<li>注册声明：如token的签发时间，过期时间，签发人等</li>
+</ul>
+<p>这部分也会采用base64编码，得到第二部分数据</p>
+</li>
+<li><p>Signature：签名，是整个数据的认证信息。一般根据前两步的数据，再加上服务的的密钥（secret）（不要泄漏，最好周期性更换），通过加密算法生成。用于验证整个数据完整和可靠性</p>
+</li>
+</ul>
+<p>生成的数据格式：token==个人证件  jwt=个人身份证</p>
+<p><img src="1527322512370.png" alt="1527322512370"></p>
+<p>可以看到分为3段，每段就是上面的一部分数据</p>
+<h3 id="1-4-3-JWT交互流程"><a href="#1-4-3-JWT交互流程" class="headerlink" title="1.4.3.JWT交互流程"></a>1.4.3.JWT交互流程</h3><p>流程图：</p>
+<p> <img src="1527305891424.png" alt="1527305891424"></p>
+<p>步骤翻译：</p>
+<ul>
+<li>1、用户登录</li>
+<li>2、服务的认证，通过后根据secret生成token</li>
+<li>3、将生成的token返回给浏览器</li>
+<li>4、用户每次请求携带token</li>
+<li>5、服务端利用公钥解读jwt签名，判断签名有效后，从Payload中获取用户信息</li>
+<li>6、处理请求，返回响应结果</li>
+</ul>
+<p>因为JWT签发的token中已经包含了用户的身份信息，并且每次请求都会携带，这样服务的就无需保存用户信息，甚至无需去数据库查询，完全符合了Rest的无状态规范。</p>
+<h3 id="1-4-4-非对称加密"><a href="#1-4-4-非对称加密" class="headerlink" title="1.4.4.非对称加密"></a>1.4.4.非对称加密</h3><p>加密技术是对信息进行编码和解码的技术，编码是把原来可读信息（又称明文）译成代码形式（又称密文），其逆过程就是解码（解密），加密技术的要点是加密算法，加密算法可以分为三类：  </p>
+<ul>
+<li>对称加密，如AES<ul>
+<li>基本原理：将明文分成N个组，然后使用密钥对各个组进行加密，形成各自的密文，最后把所有的分组密文进行合并，形成最终的密文。</li>
+<li>优势：算法公开、计算量小、加密速度快、加密效率高</li>
+<li>缺陷：双方都使用同样密钥，安全性得不到保证 </li>
+</ul>
+</li>
+<li>非对称加密，如RSA<ul>
+<li>基本原理：同时生成两把密钥：私钥和公钥，私钥隐秘保存，公钥可以下发给信任客户端<ul>
+<li>私钥加密，持有私钥或公钥才可以解密</li>
+<li>公钥加密，持有私钥才可解密</li>
+</ul>
+</li>
+<li>优点：安全，难以破解</li>
+<li>缺点：算法比较耗时</li>
+</ul>
+</li>
+<li>不可逆加密，如MD5，SHA <ul>
+<li>基本原理：加密过程中不需要使用<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E5%AF%86%E9%92%A5">密钥</a>，输入明文后由系统直接经过加密算法处理成密文，这种加密后的数据是无法被解密的，无法根据密文推算出明文。</li>
+</ul>
+</li>
+</ul>
+<p>RSA算法历史：</p>
+<p>1977年，三位数学家Rivest、Shamir 和 Adleman 设计了一种算法，可以实现非对称加密。这种算法用他们三个人的名字缩写：RSA</p>
+<h2 id="1-5-结合Zuul的鉴权流程"><a href="#1-5-结合Zuul的鉴权流程" class="headerlink" title="1.5.结合Zuul的鉴权流程"></a>1.5.结合Zuul的鉴权流程</h2><p>我们逐步演进系统架构设计。需要注意的是：secret是签名的关键，因此一定要保密，我们放到鉴权中心保存，其它任何服务中都不能获取secret。</p>
+<h3 id="1-5-1-没有RSA加密时"><a href="#1-5-1-没有RSA加密时" class="headerlink" title="1.5.1.没有RSA加密时"></a>1.5.1.没有RSA加密时</h3><p>在微服务架构中，我们可以把服务的鉴权操作放到网关中，将未通过鉴权的请求直接拦截，如图：</p>
+<p><img src="1527312464328.png" alt="1527312464328"></p>
+<ul>
+<li>1、用户请求登录</li>
+<li>2、Zuul将请求转发到授权中心，请求授权</li>
+<li>3、授权中心校验完成，颁发JWT凭证</li>
+<li>4、客户端请求其它功能，携带JWT</li>
+<li>5、Zuul将jwt交给授权中心校验，通过后放行</li>
+<li>6、用户请求到达微服务</li>
+<li>7、微服务将jwt交给鉴权中心，鉴权同时解析用户信息</li>
+<li>8、鉴权中心返回用户数据给微服务</li>
+<li>9、微服务处理请求，返回响应</li>
+</ul>
+<p>发现什么问题了？</p>
+<p>每次鉴权都需要访问鉴权中心，系统间的网络请求频率过高，效率略差，鉴权中心的压力较大。</p>
+<h3 id="1-5-2-结合RSA的鉴权"><a href="#1-5-2-结合RSA的鉴权" class="headerlink" title="1.5.2.结合RSA的鉴权"></a>1.5.2.结合RSA的鉴权</h3><p>直接看图：</p>
+<p><img src="1527313765010.png" alt="1527313765010"></p>
+<ul>
+<li>我们首先利用RSA生成公钥和私钥。私钥保存在授权中心，公钥保存在Zuul和各个信任的微服务</li>
+<li>用户请求登录</li>
+<li>授权中心校验，通过后用私钥对JWT进行签名加密</li>
+<li>返回jwt给用户</li>
+<li>用户携带JWT访问</li>
+<li>Zuul直接通过公钥解密JWT，进行验证，验证通过则放行</li>
+<li>请求到达微服务，微服务直接用公钥解析JWT，获取用户信息，无需访问授权中心</li>
+</ul>
+<h1 id="2-授权中心"><a href="#2-授权中心" class="headerlink" title="2.授权中心"></a>2.授权中心</h1><h2 id="2-1-创建授权中心"><a href="#2-1-创建授权中心" class="headerlink" title="2.1.创建授权中心"></a>2.1.创建授权中心</h2><p>授权中心的主要职责：</p>
+<ul>
+<li>用户鉴权：<ul>
+<li>接收用户的登录请求，通过用户中心的接口进行校验，通过后生成JWT</li>
+<li>使用私钥生成JWT并返回</li>
+</ul>
+</li>
+<li>服务鉴权：微服务间的调用不经过Zuul，会有风险，需要鉴权中心进行认证<ul>
+<li>原理与用户鉴权类似，但逻辑稍微复杂一些（此处我们不做实现）</li>
+</ul>
+</li>
+</ul>
+<p>因为生成jwt，解析jwt这样的行为以后在其它微服务中也会用到，因此我们会抽取成工具。我们把鉴权中心进行聚合，一个工具module，一个提供服务的module</p>
+<h3 id="2-1-1-创建父module"><a href="#2-1-1-创建父module" class="headerlink" title="2.1.1.创建父module"></a>2.1.1.创建父module</h3><p>我们先创建父module，名称为：leyou-auth</p>
+<p><img src="1533263572529.png" alt="1533263572529"></p>
+<p><img src="1533263656410.png" alt="1533263656410"></p>
+<p>将pom打包方式改为pom：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;parent&gt;
+        &lt;artifactId&gt;leyou&lt;/artifactId&gt;
+        &lt;groupId&gt;com.leyou.parent&lt;/groupId&gt;
+        &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+    &lt;/parent&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;com.leyou.auth&lt;/groupId&gt;
+    &lt;artifactId&gt;leyou-auth&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+
+&lt;/project&gt;
+</code></pre>
+<h3 id="2-1-2-通用module"><a href="#2-1-2-通用module" class="headerlink" title="2.1.2.通用module"></a>2.1.2.通用module</h3><p>然后是授权服务的通用模块：leyou-auth-common：</p>
+<p><img src="1533264701684.png" alt="1533264701684"></p>
+<p><img src="1533264779361.png" alt="1533264779361"></p>
+<p>pom.xml：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;parent&gt;
+        &lt;artifactId&gt;leyou-auth&lt;/artifactId&gt;
+        &lt;groupId&gt;com.leyou.auth&lt;/groupId&gt;
+        &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+    &lt;/parent&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;com.leyou.auth&lt;/groupId&gt;
+    &lt;artifactId&gt;leyou-auth-common&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+    
+&lt;/project&gt;
+</code></pre>
+<p>结构：</p>
+<p> <img src="1533264903853.png" alt="1533264903853"></p>
+<h3 id="2-1-3-授权服务"><a href="#2-1-3-授权服务" class="headerlink" title="2.1.3.授权服务"></a>2.1.3.授权服务</h3><p><img src="1533265001140.png" alt="1533265001140"></p>
+<p><img src="1533265056671.png" alt="1533265056671"></p>
+<p>pom.xml：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;parent&gt;
+        &lt;artifactId&gt;leyou-auth&lt;/artifactId&gt;
+        &lt;groupId&gt;com.leyou.auth&lt;/groupId&gt;
+        &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+    &lt;/parent&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;com.leyou.auth&lt;/groupId&gt;
+    &lt;artifactId&gt;leyou-auth-service&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.leyou.auth&lt;/groupId&gt;
+            &lt;artifactId&gt;leyou-auth-common&lt;/artifactId&gt;
+            &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.leyou.common&lt;/groupId&gt;
+            &lt;artifactId&gt;leyou-common&lt;/artifactId&gt;
+            &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+&lt;/project&gt;
+</code></pre>
+<p>引导类：</p>
+<pre><code class="java">@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class LeyouAuthApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(LeyouAuthApplication.class, args);
+    &#125;
+&#125;
+</code></pre>
+<p>application.yml</p>
+<pre><code class="yaml">server:
+  port: 8087
+spring:
+  application:
+    name: auth-service
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+    registry-fetch-interval-seconds: 10
+  instance:
+    lease-renewal-interval-in-seconds: 5 # 每隔5秒发送一次心跳
+    lease-expiration-duration-in-seconds: 10 # 10秒不发送就过期
+</code></pre>
+<p> 结构：</p>
+<p> <img src="1533266035185.png" alt="1533266035185"></p>
+<p>在leyou-gateway工程的application.yml中，修改路由：</p>
+<pre><code class="yaml">zuul:
+  prefix: /api # 路由路径前缀
+  routes:
+    item-service: /item/** # 商品微服务的映射路径
+    search-service: /search/** # 搜索微服务
+    user-service: /user/** # 用户微服务
+    auth-service: /auth/** # 授权中心微服务
+</code></pre>
+<h2 id="2-2-JWT工具类"><a href="#2-2-JWT工具类" class="headerlink" title="2.2.JWT工具类"></a>2.2.JWT工具类</h2><p>我们在<code>leyou-auth-common</code>中导入课前资料中的工具类：</p>
+<p> <img src="1533268835892.png" alt="1533268835892"></p>
+<p>需要在<code>leyou-auth-common</code>中引入JWT依赖：</p>
+<pre><code class="xml">&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.apache.commons&lt;/groupId&gt;
+        &lt;artifactId&gt;commons-lang3&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+        &lt;artifactId&gt;jjwt&lt;/artifactId&gt;
+        &lt;version&gt;0.9.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;joda-time&lt;/groupId&gt;
+        &lt;artifactId&gt;joda-time&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+<h2 id="2-3-测试工具类"><a href="#2-3-测试工具类" class="headerlink" title="2.3.测试工具类"></a>2.3.测试工具类</h2><p>我们在<code>leyou-auth-common</code>中编写测试类：</p>
+<p> <img src="1533282579972.png" alt="1533282579972"></p>
+<pre><code class="java">public class JwtTest &#123;
+
+    private static final String pubKeyPath = &quot;C:\\tmp\\rsa\\rsa.pub&quot;;
+
+    private static final String priKeyPath = &quot;C:\\tmp\\rsa\\rsa.pri&quot;;
+
+    private PublicKey publicKey;
+
+    private PrivateKey privateKey;
+
+    @Test
+    public void testRsa() throws Exception &#123;
+        RsaUtils.generateKey(pubKeyPath, priKeyPath, &quot;234&quot;);
+    &#125;
+
+    @Before
+    public void testGetRsa() throws Exception &#123;
+        this.publicKey = RsaUtils.getPublicKey(pubKeyPath);
+        this.privateKey = RsaUtils.getPrivateKey(priKeyPath);
+    &#125;
+
+    @Test
+    public void testGenerateToken() throws Exception &#123;
+        // 生成token
+        String token = JwtUtils.generateToken(new UserInfo(20L, &quot;jack&quot;), privateKey, 5);
+        System.out.println(&quot;token = &quot; + token);
+    &#125;
+
+    @Test
+    public void testParseToken() throws Exception &#123;
+        String token = &quot;eyJhbGciOiJSUzI1NiJ9.eyJpZCI6MjAsInVzZXJuYW1lIjoiamFjayIsImV4cCI6MTUzMzI4MjQ3N30.EPo35Vyg1IwZAtXvAx2TCWuOPnRwPclRNAM4ody5CHk8RF55wdfKKJxjeGh4H3zgruRed9mEOQzWy79iF1nGAnvbkraGlD6iM-9zDW8M1G9if4MX579Mv1x57lFewzEo-zKnPdFJgGlAPtNWDPv4iKvbKOk1-U7NUtRmMsF1Wcg&quot;;
+
+        // 解析token
+        UserInfo user = JwtUtils.getInfoFromToken(token, publicKey);
+        System.out.println(&quot;id: &quot; + user.getId());
+        System.out.println(&quot;userName: &quot; + user.getUsername());
+    &#125;
+&#125;
+</code></pre>
+<p>测试生成公钥和私钥，我们运行这段代码：<strong>注意需要把@Before方法注释掉</strong></p>
+<p><img src="1533282630089.png" alt="1533282630089"></p>
+<p>运行之后，查看目标目录：</p>
+<p><img src="1533282665940.png" alt="1533282665940"></p>
+<p>公钥和私钥已经生成了！</p>
+<p>测试生成token，把@Before的注释去掉的：</p>
+<p><img src="1533282760203.png" alt="1533282760203"></p>
+<p><img src="1533282875434.png" alt="1533282875434"></p>
+<p>测试解析token：</p>
+<p><img src="1533282931796.png" alt="1533282931796"></p>
+<p>正常情况：</p>
+<p><img src="1533282968301.png" alt="1533282968301"></p>
+<p>任意改动token，发现报错了：</p>
+<p><img src="1533283024844.png" alt="1533283024844"></p>
+<h2 id="2-3-编写登录授权接口"><a href="#2-3-编写登录授权接口" class="headerlink" title="2.3.编写登录授权接口"></a>2.3.编写登录授权接口</h2><p>接下来，我们需要在<code>leyou-auth-servcice</code>编写一个接口，对外提供登录授权服务。基本流程如下：</p>
+<ul>
+<li>客户端携带用户名和密码请求登录</li>
+<li>授权中心调用用户中心接口，根据用户名和密码查询用户信息</li>
+<li>如果用户名密码正确，能获取用户，否则为空，则登录失败</li>
+<li>如果校验成功，则生成JWT并返回</li>
+</ul>
+<h3 id="2-3-1-生成公钥和私钥"><a href="#2-3-1-生成公钥和私钥" class="headerlink" title="2.3.1.生成公钥和私钥"></a>2.3.1.生成公钥和私钥</h3><p>我们需要在授权中心生成真正的公钥和私钥。我们必须有一个生成公钥和私钥的secret，这个可以配置到<code>application.yml</code>中：</p>
+<pre><code class="yaml">leyou:
+  jwt:
+    secret: leyou@Login(Auth&#125;*^31)&amp;heiMa% # 登录校验的密钥
+    pubKeyPath: C:\\tmp\\rsa\\rsa.pub # 公钥地址
+    priKeyPath: C:\\tmp\\rsa\\rsa.pri # 私钥地址
+    expire: 30 # 过期时间,单位分钟
+</code></pre>
+<p>然后编写属性类，加载这些数据：</p>
+<pre><code class="java">@ConfigurationProperties(prefix = &quot;leyou.jwt&quot;)
+public class JwtProperties &#123;
+
+    private String secret; // 密钥
+
+    private String pubKeyPath;// 公钥
+
+    private String priKeyPath;// 私钥
+
+    private int expire;// token过期时间
+
+    private PublicKey publicKey; // 公钥
+
+    private PrivateKey privateKey; // 私钥
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtProperties.class);
+
+    /**
+     * @PostContruct：在构造方法执行之后执行该方法
+     */
+    @PostConstruct
+    public void init()&#123;
+        try &#123;
+            File pubKey = new File(pubKeyPath);
+            File priKey = new File(priKeyPath);
+            if (!pubKey.exists() || !priKey.exists()) &#123;
+                // 生成公钥和私钥
+                RsaUtils.generateKey(pubKeyPath, priKeyPath, secret);
+            &#125;
+            // 获取公钥和私钥
+            this.publicKey = RsaUtils.getPublicKey(pubKeyPath);
+            this.privateKey = RsaUtils.getPrivateKey(priKeyPath);
+        &#125; catch (Exception e) &#123;
+            logger.error(&quot;初始化公钥和私钥失败！&quot;, e);
+            throw new RuntimeException();
+        &#125;
+    &#125;
+    
+    // getter setter ...
+&#125;
+</code></pre>
+<h3 id="2-3-2-Controller"><a href="#2-3-2-Controller" class="headerlink" title="2.3.2.Controller"></a>2.3.2.Controller</h3><p>编写授权接口，我们接收用户名和密码，校验成功后，写入cookie中。</p>
+<ul>
+<li>请求方式：post</li>
+<li>请求路径：/accredit</li>
+<li>请求参数：username和password</li>
+<li>返回结果：无</li>
+</ul>
+<p>代码：</p>
+<pre><code class="java">@RestController
+@EnableConfigurationProperties(JwtProperties.class)
+public class AuthController &#123;
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private JwtProperties prop;
+
+    /**
+     * 登录授权
+     *
+     * @param username
+     * @param password
+     * @return
+     */
+    @PostMapping(&quot;accredit&quot;)
+    public ResponseEntity&lt;Void&gt; authentication(
+            @RequestParam(&quot;username&quot;) String username,
+            @RequestParam(&quot;password&quot;) String password,
+            HttpServletRequest request,
+            HttpServletResponse response) &#123;
+        // 登录校验
+        String token = this.authService.authentication(username, password);
+        if (StringUtils.isBlank(token)) &#123;
+            return new ResponseEntity&lt;&gt;(HttpStatus.UNAUTHORIZED);
+        &#125;
+        // 将token写入cookie,并指定httpOnly为true，防止通过JS获取和修改
+        CookieUtils.setCookie(request, response, prop.getCookieName(),
+                token, prop.getCookieMaxAge(), null, true);
+        return ResponseEntity.ok().build();
+    &#125;
+&#125;
+</code></pre>
+<p>这里的cookie的name和生存时间，我们配置到属性文件：application.yml：</p>
+<p><img src="1533295409903.png" alt="1533295409903"></p>
+<p>然后在<code>JwtProperties</code>中添加属性：</p>
+<p><img src="1533295465634.png" alt="1533295465634"></p>
+<h3 id="2-3-3-CookieUtils"><a href="#2-3-3-CookieUtils" class="headerlink" title="2.3.3.CookieUtils"></a>2.3.3.CookieUtils</h3><p>要注意，这里我们使用了一个工具类，CookieUtils，可以在课前资料中找到，我们把它添加到<code>leyou-common</code>中，然后引入servlet相关依赖即可：</p>
+<pre><code class="xml">&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.tomcat.embed&lt;/groupId&gt;
+    &lt;artifactId&gt;tomcat-embed-core&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>代码：略</p>
+<p> <img src="1533295716082.png" alt="1533295716082"></p>
+<h3 id="2-3-3-UserClient"><a href="#2-3-3-UserClient" class="headerlink" title="2.3.3.UserClient"></a>2.3.3.UserClient</h3><p>接下来我们肯定要对用户密码进行校验，所以我们需要通过FeignClient去访问 user-service微服务：</p>
+<p>在leyou-auth中引入user-service-interface依赖：</p>
+<pre><code class="xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.leyou.user&lt;/groupId&gt;
+    &lt;artifactId&gt;leyou-user-interface&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>参照leyou-search或者leyou-goods-web，在leyou-auth-service中编写FeignClient：</p>
+<pre><code class="java">@FeignClient(value = &quot;user-service&quot;)
+public interface UserClient extends UserApi &#123;
+&#125;
+</code></pre>
+<p>在leyou-user-interface工程中添加api接口：</p>
+<p> <img src="1533296452053.png" alt="1533296452053"></p>
+<p>内容：</p>
+<pre><code class="java">@RequestMapping(&quot;user&quot;)
+public interface UserApi &#123;
+
+    @GetMapping(&quot;query&quot;)
+    public User queryUser(
+            @RequestParam(&quot;username&quot;) String username,
+            @RequestParam(&quot;password&quot;) String password);
+&#125;
+</code></pre>
+<h3 id="2-3-4-AuthService"><a href="#2-3-4-AuthService" class="headerlink" title="2.3.4.AuthService"></a>2.3.4.AuthService</h3><p>在leyou-auth-service：</p>
+<pre><code class="java">@Service
+public class AuthService &#123;
+
+    @Autowired
+    private UserClient userClient;
+
+    @Autowired
+    private JwtProperties properties;
+
+    public String authentication(String username, String password) &#123;
+
+        try &#123;
+            // 调用微服务，执行查询
+            User user = this.userClient.queryUser(username, password);
+
+            // 如果查询结果为null，则直接返回null
+            if (user == null) &#123;
+                return null;
+            &#125;
+
+            // 如果有查询结果，则生成token
+            String token = JwtUtils.generateToken(new UserInfo(user.getId(), user.getUsername()),
+                    properties.getPrivateKey(), properties.getExpire());
+            return token;
+        &#125; catch (Exception e) &#123;
+            e.printStackTrace();
+        &#125;
+        return null;
+    &#125;
+&#125;
+</code></pre>
+<h3 id="2-3-5-项目完整结构"><a href="#2-3-5-项目完整结构" class="headerlink" title="2.3.5.项目完整结构"></a>2.3.5.项目完整结构</h3><p> <img src="1533301291420.png" alt="1533301291420"></p>
+<h3 id="2-3-6-测试"><a href="#2-3-6-测试" class="headerlink" title="2.3.6.测试"></a>2.3.6.测试</h3><p><img src="1533301145953.png" alt="1533301145953"></p>
+<h2 id="2-4-登录页面"><a href="#2-4-登录页面" class="headerlink" title="2.4.登录页面"></a>2.4.登录页面</h2><p>接下来，我们看看登录页面，是否能够正确的发出请求。</p>
+<p>我们在页面输入登录信息，然后点击登录：</p>
+<p> <img src="1533301466739.png" alt="1533301466739"></p>
+<p>查看控制台：</p>
+<p><img src="1533301495759.png" alt="1533301495759"></p>
+<p>发现请求的路径不对，我们的认证接口是：</p>
+<pre><code>/api/auth/accredit
+</code></pre>
+<p>我们打开login.html，修改路径信息：</p>
+<p> <img src="1527517811770.png" alt="1527517811770"></p>
+<p>页面ajax请求：</p>
+<p> <img src="1527517866435.png" alt="1527517866435"></p>
+<p>然后再次测试，成功跳转到了首页：</p>
+<p><img src="1527518012727.png" alt="1527518012727"></p>
+<h2 id="2-5-解决cookie写入问题"><a href="#2-5-解决cookie写入问题" class="headerlink" title="2.5.解决cookie写入问题"></a>2.5.解决cookie写入问题</h2><p>接下来我们查看首页cookie：</p>
+<p><img src="1533302034190.png" alt="1533302034190"></p>
+<p>什么都没有，为什么？</p>
+<h3 id="2-5-1-问题分析"><a href="#2-5-1-问题分析" class="headerlink" title="2.5.1.问题分析"></a>2.5.1.问题分析</h3><p>我们在之前测试时，清晰的看到了响应头中，有Set-Cookie属性，为什么在这里却什么都没有？</p>
+<p>我们之前在讲cors跨域时，讲到过跨域请求cookie生效的条件：</p>
+<ul>
+<li>服务的响应头中需要携带Access-Control-Allow-Credentials并且为true。</li>
+<li>响应头中的Access-Control-Allow-Origin一定不能为*，必须是指定的域名</li>
+<li>浏览器发起ajax需要指定withCredentials 为true</li>
+</ul>
+<p>看看我们的服务端cors配置：</p>
+<p> <img src="1527518456220.png" alt="1527518456220"></p>
+<p>没有任何问题。</p>
+<p>再看客户端浏览器的ajax配置，我们在<code>js/common.js</code>中对axios进行了统一配置：</p>
+<p> <img src="1527518532739.png" alt="1527518532739"></p>
+<p>一切OK。</p>
+<p>那说明，问题一定出在响应的set-cookie头中。我们再次仔细看看刚才的响应头：</p>
+<p><img src="1527518649379.png" alt="1527518649379"></p>
+<p>我们发现cookie的 <code>domain</code>属性似乎不太对。</p>
+<p>cookie也是有<code>域</code> 的限制，<strong>一个网页，只能操作当前域名下的cookie</strong>，但是现在我们看到的地址是0.0.1，而页面是<a target="_blank" rel="noopener" href="http://www.leyou.com,域名不匹配,cookie设置肯定失败了!/">www.leyou.com,域名不匹配，cookie设置肯定失败了！</a></p>
+<h3 id="2-5-2-跟踪CookieUtils"><a href="#2-5-2-跟踪CookieUtils" class="headerlink" title="2.5.2.跟踪CookieUtils"></a>2.5.2.跟踪CookieUtils</h3><p>我们去Debug跟踪CookieUtils，看看到底是怎么回事：</p>
+<p>我们发现内部有一个方法，用来获取Domain：</p>
+<p><img src="1533303181817.png" alt="1533303181817"></p>
+<p>它获取domain是通过服务器的host来计算的，然而我们的地址竟然是：127.0.0.1:8087，因此后续的运算，最终得到的domain就变成了：</p>
+<p><img src="1533303213902.png" alt="1533303213902"></p>
+<p>问题找到了：我们请求时的serverName明明是：api.leyou.com，现在却被变成了：127.0.0.1，因此计算domain是错误的，从而导致cookie设置失败！</p>
+<h3 id="2-5-3-解决host地址的变化"><a href="#2-5-3-解决host地址的变化" class="headerlink" title="2.5.3.解决host地址的变化"></a>2.5.3.解决host地址的变化</h3><p>那么问题来了：为什么我们这里的请求serverName变成了：127.0.0.1:8087呢？</p>
+<p>这里的server name其实就是请求的时的主机名：Host，之所以改变，有两个原因：</p>
+<ul>
+<li>我们使用了nginx反向代理，当监听到api.leyou.com的时候，会自动将请求转发至127.0.0.1:10010，即Zuul。</li>
+<li>而后请求到达我们的网关Zuul，Zuul就会根据路径匹配，我们的请求是/api/auth，根据规则被转发到了 127.0.0.1:8087 ，即我们的授权中心。</li>
+</ul>
+<p>我们首先去更改nginx配置，让它不要修改我们的host：<code>proxy_set_header Host $host;</code></p>
+<p><img src="1533303544219.png" alt="1533303544219"></p>
+<p>把nginx进行reload：</p>
+<pre><code>nginx -s reload
+</code></pre>
+<p>这样就解决了nginx这里的问题。但是Zuul还会有一次转发，所以要去修改网关的配置（leyou-gateway工程）：</p>
+<p><img src="1533303659673.png" alt="1533303659673"></p>
+<p>重启后，我们再次测试。</p>
+<p><img src="1533716093162.png" alt="1533716093162"></p>
+<p>最后计算得到的domain：</p>
+<p><img src="1533716136698.png" alt="1533716136698"></p>
+<p>完美！</p>
+<h3 id="2-5-4-再次测试"><a href="#2-5-4-再次测试" class="headerlink" title="2.5.4.再次测试"></a>2.5.4.再次测试</h3><p>我们再次登录，发现依然没有cookie！！</p>
+<p><img src="01348FC2.gif" alt="img"> </p>
+<p>怎么回事呢？</p>
+<p>我们通过RestClient访问下看看：</p>
+<p><img src="1534225751381.png" alt="1534225751381"></p>
+<p>发现，响应头中还是没有<code>set-cookie</code>。</p>
+<p>这是怎么回事？？</p>
+<h3 id="2-5-5-Zuul的敏感头过滤"><a href="#2-5-5-Zuul的敏感头过滤" class="headerlink" title="2.5.5.Zuul的敏感头过滤"></a>2.5.5.Zuul的敏感头过滤</h3><p>Zuul内部有默认的过滤器，会对请求和响应头信息进行重组，过滤掉敏感的头信息：</p>
+<p><img src="1533732985089.png" alt="1533732985089"></p>
+<p>会发现，这里会通过一个属性为<code>SensitiveHeaders</code>的属性，来获取敏感头列表，然后添加到<code>IgnoredHeaders</code>中，这些头信息就会被忽略。</p>
+<p>而这个<code>SensitiveHeaders</code>的默认值就包含了<code>set-cookie</code>：</p>
+<p><img src="1533733081367.png" alt="1533733081367"></p>
+<p>解决方案有两种：</p>
+<p>全局设置：</p>
+<ul>
+<li><code>zuul.sensitive-headers=</code> </li>
+</ul>
+<p>指定路由设置：</p>
+<ul>
+<li><code>zuul.routes.&lt;routeName&gt;.sensitive-headers=</code></li>
+<li><code>zuul.routes.&lt;routeName&gt;.custom-sensitive-headers=true</code></li>
+</ul>
+<p>思路都是把敏感头设置为null</p>
+<p><img src="1533733356133.png" alt="1533733356133"></p>
+<h3 id="2-5-6-最后的测试"><a href="#2-5-6-最后的测试" class="headerlink" title="2.5.6.最后的测试"></a>2.5.6.最后的测试</h3><p>再次重启后测试：</p>
+<p><img src="1533733550548.png" alt="1533733550548"></p>
+<h1 id="3-首页判断登录状态"><a href="#3-首页判断登录状态" class="headerlink" title="3.首页判断登录状态"></a>3.首页判断登录状态</h1><p>虽然cookie已经成功写入，但是我们首页的顶部，登录状态依然没能判断出用户信息：</p>
+<p><img src="1533733618901.png" alt="1533733618901"></p>
+<p>这里需要向后台发起请求，获取根据cookie获取当前用户的信息。</p>
+<p>我们先看页面实现</p>
+<h2 id="3-1-页面JS代码"><a href="#3-1-页面JS代码" class="headerlink" title="3.1.页面JS代码"></a>3.1.页面JS代码</h2><p>页面的顶部已经被我们封装为一个独立的Vue组件，在<code>/js/pages/shortcut.js</code>中</p>
+<p> <img src="1533733732779.png" alt="1533733732779"></p>
+<p>打开js，发现里面已经定义好了Vue组件，并且在created函数中，查询用户信息：</p>
+<p><img src="1533733810408.png" alt="1533733810408"></p>
+<p>查看网络控制台，发现发起了请求：</p>
+<p><img src="1533733946470.png" alt="1533733946470"></p>
+<p>因为token在cookie中，因此本次请求肯定会携带token信息在头中。</p>
+<h2 id="3-2-后台实现校验用户接口"><a href="#3-2-后台实现校验用户接口" class="headerlink" title="3.2.后台实现校验用户接口"></a>3.2.后台实现校验用户接口</h2><p>我们在<code>leyou-auth-service</code>中定义用户的校验接口，通过cookie获取token，然后校验通过返回用户信息。</p>
+<ul>
+<li>请求方式：GET</li>
+<li>请求路径：/verify</li>
+<li>请求参数：无，不过我们需要从cookie中获取token信息</li>
+<li>返回结果：UserInfo，校验成功返回用户信息；校验失败，则返回401</li>
+</ul>
+<p>代码：</p>
+<pre><code class="java">/**
+  * 验证用户信息
+  * @param token
+  * @return
+  */
+@GetMapping(&quot;verify&quot;)
+public ResponseEntity&lt;UserInfo&gt; verifyUser(@CookieValue(&quot;LY_TOKEN&quot;)String token)&#123;
+    try &#123;
+        // 从token中解析token信息
+        UserInfo userInfo = JwtUtils.getInfoFromToken(token, this.properties.getPublicKey());
+        // 解析成功返回用户信息
+        return ResponseEntity.ok(userInfo);
+    &#125; catch (Exception e) &#123;
+        e.printStackTrace();
+    &#125;
+    // 出现异常则，响应500
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+&#125;
+</code></pre>
+<h2 id="3-3-测试"><a href="#3-3-测试" class="headerlink" title="3.3.测试"></a>3.3.测试</h2><p><img src="1533734761745.png" alt="1533734761745"></p>
+<p><img src="1533734803538.png" alt="1533734803538"></p>
+<p>页面效果：</p>
+<p><img src="1533734834479.png" alt="1533734834479"></p>
+<h2 id="3-4-刷新token"><a href="#3-4-刷新token" class="headerlink" title="3.4.刷新token"></a>3.4.刷新token</h2><p>每当用户在页面进行新的操作，都应该刷新token的过期时间，否则30分钟后用户的登录信息就无效了。而刷新其实就是重新生成一份token，然后写入cookie即可。</p>
+<p>那么问题来了：我们怎么知道用户有操作呢？</p>
+<p>事实上，每当用户来查询其个人信息，就证明他正在浏览网页，此时刷新cookie是比较合适的时机。因此我们可以对刚刚的校验用户登录状态的接口进行改进，加入刷新token的逻辑。</p>
+<pre><code class="java">/**
+  * 验证用户信息
+  * @param token
+  * @return
+  */
+@GetMapping(&quot;verify&quot;)
+public ResponseEntity&lt;UserInfo&gt; verifyUser(@CookieValue(&quot;LY_TOKEN&quot;)String token, HttpServletRequest request, HttpServletResponse response)&#123;
+    try &#123;
+        // 从token中解析token信息
+        UserInfo userInfo = JwtUtils.getInfoFromToken(token, this.properties.getPublicKey());
+        // 解析成功要重新刷新token
+        token = JwtUtils.generateToken(userInfo, this.properties.getPrivateKey(), this.properties.getExpire());
+        // 更新cookie中的token
+        CookieUtils.setCookie(request, response, this.properties.getCookieName(), token, this.properties.getCookieMaxAge());
+
+        // 解析成功返回用户信息
+        return ResponseEntity.ok(userInfo);
+    &#125; catch (Exception e) &#123;
+        e.printStackTrace();
+    &#125;
+    // 出现异常则，响应500
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+&#125;
+</code></pre>
+<h1 id="4-网关的登录拦截器"><a href="#4-网关的登录拦截器" class="headerlink" title="4.网关的登录拦截器"></a>4.网关的登录拦截器</h1><p>接下来，我们在Zuul编写拦截器，对用户的token进行校验，如果发现未登录，则进行拦截。</p>
+<h2 id="4-1-引入jwt相关配置"><a href="#4-1-引入jwt相关配置" class="headerlink" title="4.1.引入jwt相关配置"></a>4.1.引入jwt相关配置</h2><p>既然是登录拦截，一定是前置拦截器，我们在<code>leyou-gateway</code>中定义。</p>
+<p>首先在pom.xml中，引入所需要的依赖：</p>
+<pre><code class="xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.leyou.common&lt;/groupId&gt;
+    &lt;artifactId&gt;leyou-common&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.leyou.auth&lt;/groupId&gt;
+    &lt;artifactId&gt;leyou-auth-common&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>然后编写application.yml属性文件，添加如下内容：</p>
+<pre><code class="yaml">leyou:
+  jwt:
+    pubKeyPath:  C:\\tmp\\rsa\\rsa.pub # 公钥地址
+    cookieName: LY_TOKEN # cookie的名称
+</code></pre>
+<p>编写属性类，读取公钥：</p>
+<p> <img src="1533736124053.png" alt="1533736124053"></p>
+<pre><code class="java">@ConfigurationProperties(prefix = &quot;leyou.jwt&quot;)
+public class JwtProperties &#123;
+
+    private String pubKeyPath;// 公钥
+
+    private PublicKey publicKey; // 公钥
+
+    private String cookieName;
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtProperties.class);
+
+    @PostConstruct
+    public void init()&#123;
+        try &#123;
+            // 获取公钥和私钥
+            this.publicKey = RsaUtils.getPublicKey(pubKeyPath);
+        &#125; catch (Exception e) &#123;
+            logger.error(&quot;初始化公钥失败！&quot;, e);
+            throw new RuntimeException();
+        &#125;
+    &#125;
+
+    public String getPubKeyPath() &#123;
+        return pubKeyPath;
+    &#125;
+
+    public void setPubKeyPath(String pubKeyPath) &#123;
+        this.pubKeyPath = pubKeyPath;
+    &#125;
+
+    public PublicKey getPublicKey() &#123;
+        return publicKey;
+    &#125;
+
+    public void setPublicKey(PublicKey publicKey) &#123;
+        this.publicKey = publicKey;
+    &#125;
+
+    public String getCookieName() &#123;
+        return cookieName;
+    &#125;
+
+    public void setCookieName(String cookieName) &#123;
+        this.cookieName = cookieName;
+    &#125;
+&#125;
+</code></pre>
+<h2 id="4-2-编写过滤器逻辑"><a href="#4-2-编写过滤器逻辑" class="headerlink" title="4.2.编写过滤器逻辑"></a>4.2.编写过滤器逻辑</h2><p>基本逻辑：</p>
+<ul>
+<li>获取cookie中的token</li>
+<li>通过JWT对token进行校验</li>
+<li>通过：则放行；不通过：则重定向到登录页</li>
+</ul>
+<p> <img src="1534200523009.png" alt="1534200523009"></p>
+<pre><code class="java">@Component
+@EnableConfigurationProperties(JwtProperties.class)
+public class LoginFilter extends ZuulFilter &#123;
+
+    @Autowired
+    private JwtProperties properties;
+
+    @Override
+    public String filterType() &#123;
+        return &quot;pre&quot;;
+    &#125;
+
+    @Override
+    public int filterOrder() &#123;
+        return 5;
+    &#125;
+
+    @Override
+    public boolean shouldFilter() &#123;
+        return true;
+    &#125;
+
+    @Override
+    public Object run() throws ZuulException &#123;
+        // 获取上下文
+        RequestContext context = RequestContext.getCurrentContext();
+        // 获取request
+        HttpServletRequest request = context.getRequest();
+        // 获取token
+        String token = CookieUtils.getCookieValue(request, this.properties.getCookieName());
+        // 校验
+        try &#123;
+            // 校验通过什么都不做，即放行
+            JwtUtils.getInfoFromToken(token, this.properties.getPublicKey());
+        &#125; catch (Exception e) &#123;
+            // 校验出现异常，返回403
+            context.setSendZuulResponse(false);
+            context.setResponseStatusCode(HttpStatus.FORBIDDEN.value());
+        &#125;
+        return null;
+    &#125;
+&#125;
+</code></pre>
+<p>重启，刷新页面，发现请求校验的接口也被拦截了：</p>
+<p><img src="1533737074966.png" alt="1533737074966"></p>
+<p>证明我们的拦截器生效了，但是，似乎有什么不对的。这个路径似乎不应该被拦截啊！</p>
+<h2 id="4-3-白名单"><a href="#4-3-白名单" class="headerlink" title="4.3.白名单"></a>4.3.白名单</h2><p>要注意，并不是所有的路径我们都需要拦截，例如：</p>
+<ul>
+<li>登录校验接口：<code>/auth/**</code></li>
+<li>注册接口：<code>/user/register</code></li>
+<li>数据校验接口：<code>/user/check/**</code></li>
+<li>发送验证码接口：<code>/user/code</code></li>
+<li>搜索接口：<code>/search/**</code></li>
+</ul>
+<p>另外，跟后台管理相关的接口，因为我们没有做登录和权限，因此暂时都放行，但是生产环境中要做登录校验：</p>
+<ul>
+<li>后台商品服务：<code>/item/**</code></li>
+</ul>
+<p>所以，我们需要在拦截时，配置一个白名单，如果在名单内，则不进行拦截。</p>
+<p>在<code>application.yaml</code>中添加规则：</p>
+<pre><code class="yaml">leyou:
+  filter:
+    allowPaths:
+      - /api/auth
+      - /api/search
+      - /api/user/register
+      - /api/user/check
+      - /api/user/code
+      - /api/item
+</code></pre>
+<p>然后读取这些属性：</p>
+<p> <img src="1533737234087.png" alt="1533737234087"></p>
+<p>内容：</p>
+<pre><code class="java">@ConfigurationProperties(prefix = &quot;leyou.filter&quot;)
+public class FilterProperties &#123;
+
+    private List&lt;String&gt; allowPaths;
+
+    public List&lt;String&gt; getAllowPaths() &#123;
+        return allowPaths;
+    &#125;
+
+    public void setAllowPaths(List&lt;String&gt; allowPaths) &#123;
+        this.allowPaths = allowPaths;
+    &#125;
+&#125;
+</code></pre>
+<p>在过滤器中的<code>shouldFilter</code>方法中添加判断逻辑</p>
+<p>代码：</p>
+<pre><code class="java">@Component
+@EnableConfigurationProperties(&#123;JwtProperties.class, FilterProperties.class&#125;)
+public class LoginFilter extends ZuulFilter &#123;
+
+    @Autowired
+    private JwtProperties jwtProp;
+
+    @Autowired
+    private FilterProperties filterProp;
+
+    private static final Logger logger = LoggerFactory.getLogger(LoginFilter.class);
+
+    @Override
+    public String filterType() &#123;
+        return &quot;pre&quot;;
+    &#125;
+
+    @Override
+    public int filterOrder() &#123;
+        return 5;
+    &#125;
+
+    @Override
+    public boolean shouldFilter() &#123;
+        // 获取上下文
+        RequestContext ctx = RequestContext.getCurrentContext();
+        // 获取request
+        HttpServletRequest req = ctx.getRequest();
+        // 获取路径
+        String requestURI = req.getRequestURI();
+        // 判断白名单
+        // 遍历允许访问的路径
+        for (String path : this.filterProp.getAllowPaths()) &#123;
+            // 然后判断是否是符合
+            if(requestURI.startsWith(path))&#123;
+                return false;
+            &#125;
+        &#125;
+        return true;
+    &#125;
+
+    @Override
+    public Object run() throws ZuulException &#123;
+        // 获取上下文
+        RequestContext ctx = RequestContext.getCurrentContext();
+        // 获取request
+        HttpServletRequest request = ctx.getRequest();
+        // 获取token
+        String token = CookieUtils.getCookieValue(request, jwtProp.getCookieName());
+        // 校验
+        try &#123;
+            // 校验通过什么都不做，即放行
+            JwtUtils.getInfoFromToken(token, jwtProp.getPublicKey());
+        &#125; catch (Exception e) &#123;
+            // 校验出现异常，返回403
+            ctx.setSendZuulResponse(false);
+            ctx.setResponseStatusCode(403);
+            logger.error(&quot;非法访问，未登录，地址：&#123;&#125;&quot;, request.getRemoteHost(), e );
+        &#125;
+        return null;
+    &#125;
+&#125;
+</code></pre>
+<p>再次测试：</p>
+<p><img src="1533737743491.png" alt="1533737743491"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JWT/" rel="tag"># JWT</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/03/leyou%E9%97%A8%E6%88%B7-5-%E7%94%A8%E6%88%B7%E6%B3%A8%E5%86%8C%EF%BC%88%E9%98%BF%E9%87%8C%E5%A4%A7%E4%BA%8E%EF%BC%89/" rel="prev" title="leyou门户#5-用户注册（阿里大于）">
+      <i class="fa fa-chevron-left"></i> leyou门户#5-用户注册（阿里大于）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/05/leyou%E9%97%A8%E6%88%B7-7-%E8%B4%AD%E7%89%A9%E8%BD%A6/" rel="next" title="leyou门户#7-购物车">
+      leyou门户#7-购物车 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%97%A0%E7%8A%B6%E6%80%81%E7%99%BB%E5%BD%95%E5%8E%9F%E7%90%86"><span class="nav-text">1.无状态登录原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF%E6%9C%89%E7%8A%B6%E6%80%81%EF%BC%9F"><span class="nav-text">1.1.什么是有状态？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-%E4%BB%80%E4%B9%88%E6%98%AF%E6%97%A0%E7%8A%B6%E6%80%81"><span class="nav-text">1.2.什么是无状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%97%A0%E7%8A%B6%E6%80%81"><span class="nav-text">1.3.如何实现无状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-4-JWT"><span class="nav-text">1.4.JWT</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-1-%E7%AE%80%E4%BB%8B"><span class="nav-text">1.4.1.简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-2-%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F"><span class="nav-text">1.4.2.数据格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-3-JWT%E4%BA%A4%E4%BA%92%E6%B5%81%E7%A8%8B"><span class="nav-text">1.4.3.JWT交互流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-4-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-text">1.4.4.非对称加密</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-5-%E7%BB%93%E5%90%88Zuul%E7%9A%84%E9%89%B4%E6%9D%83%E6%B5%81%E7%A8%8B"><span class="nav-text">1.5.结合Zuul的鉴权流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-1-%E6%B2%A1%E6%9C%89RSA%E5%8A%A0%E5%AF%86%E6%97%B6"><span class="nav-text">1.5.1.没有RSA加密时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-2-%E7%BB%93%E5%90%88RSA%E7%9A%84%E9%89%B4%E6%9D%83"><span class="nav-text">1.5.2.结合RSA的鉴权</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83"><span class="nav-text">2.授权中心</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E5%88%9B%E5%BB%BA%E6%8E%88%E6%9D%83%E4%B8%AD%E5%BF%83"><span class="nav-text">2.1.创建授权中心</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-1-%E5%88%9B%E5%BB%BA%E7%88%B6module"><span class="nav-text">2.1.1.创建父module</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-2-%E9%80%9A%E7%94%A8module"><span class="nav-text">2.1.2.通用module</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-3-%E6%8E%88%E6%9D%83%E6%9C%8D%E5%8A%A1"><span class="nav-text">2.1.3.授权服务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-JWT%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-text">2.2.JWT工具类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-text">2.3.测试工具类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E7%BC%96%E5%86%99%E7%99%BB%E5%BD%95%E6%8E%88%E6%9D%83%E6%8E%A5%E5%8F%A3"><span class="nav-text">2.3.编写登录授权接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-1-%E7%94%9F%E6%88%90%E5%85%AC%E9%92%A5%E5%92%8C%E7%A7%81%E9%92%A5"><span class="nav-text">2.3.1.生成公钥和私钥</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-2-Controller"><span class="nav-text">2.3.2.Controller</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-3-CookieUtils"><span class="nav-text">2.3.3.CookieUtils</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-3-UserClient"><span class="nav-text">2.3.3.UserClient</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-4-AuthService"><span class="nav-text">2.3.4.AuthService</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-5-%E9%A1%B9%E7%9B%AE%E5%AE%8C%E6%95%B4%E7%BB%93%E6%9E%84"><span class="nav-text">2.3.5.项目完整结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-6-%E6%B5%8B%E8%AF%95"><span class="nav-text">2.3.6.测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-%E7%99%BB%E5%BD%95%E9%A1%B5%E9%9D%A2"><span class="nav-text">2.4.登录页面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-%E8%A7%A3%E5%86%B3cookie%E5%86%99%E5%85%A5%E9%97%AE%E9%A2%98"><span class="nav-text">2.5.解决cookie写入问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-1-%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="nav-text">2.5.1.问题分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-2-%E8%B7%9F%E8%B8%AACookieUtils"><span class="nav-text">2.5.2.跟踪CookieUtils</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-3-%E8%A7%A3%E5%86%B3host%E5%9C%B0%E5%9D%80%E7%9A%84%E5%8F%98%E5%8C%96"><span class="nav-text">2.5.3.解决host地址的变化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-4-%E5%86%8D%E6%AC%A1%E6%B5%8B%E8%AF%95"><span class="nav-text">2.5.4.再次测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-5-Zuul%E7%9A%84%E6%95%8F%E6%84%9F%E5%A4%B4%E8%BF%87%E6%BB%A4"><span class="nav-text">2.5.5.Zuul的敏感头过滤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-6-%E6%9C%80%E5%90%8E%E7%9A%84%E6%B5%8B%E8%AF%95"><span class="nav-text">2.5.6.最后的测试</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E9%A6%96%E9%A1%B5%E5%88%A4%E6%96%AD%E7%99%BB%E5%BD%95%E7%8A%B6%E6%80%81"><span class="nav-text">3.首页判断登录状态</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E9%A1%B5%E9%9D%A2JS%E4%BB%A3%E7%A0%81"><span class="nav-text">3.1.页面JS代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-%E5%90%8E%E5%8F%B0%E5%AE%9E%E7%8E%B0%E6%A0%A1%E9%AA%8C%E7%94%A8%E6%88%B7%E6%8E%A5%E5%8F%A3"><span class="nav-text">3.2.后台实现校验用户接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-%E6%B5%8B%E8%AF%95"><span class="nav-text">3.3.测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-4-%E5%88%B7%E6%96%B0token"><span class="nav-text">3.4.刷新token</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E7%BD%91%E5%85%B3%E7%9A%84%E7%99%BB%E5%BD%95%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="nav-text">4.网关的登录拦截器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E5%BC%95%E5%85%A5jwt%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="nav-text">4.1.引入jwt相关配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E7%BC%96%E5%86%99%E8%BF%87%E6%BB%A4%E5%99%A8%E9%80%BB%E8%BE%91"><span class="nav-text">4.2.编写过滤器逻辑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E7%99%BD%E5%90%8D%E5%8D%95"><span class="nav-text">4.3.白名单</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>
