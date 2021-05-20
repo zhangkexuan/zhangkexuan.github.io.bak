@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="规范分为了几个大部分：PCIe寄存器，控制器寄存器，存储结构，Admin命令集，NVM命令集，控制器架构，还有一些NVMe特征的说明以及错误报告与恢复机制的阐述。  PCIe 寄存器部分主要描述了要支持NVMe 功能，PCIe 的各个寄存器（PCI 头寄存器、PCI 功能寄存器、PCI 扩展功能寄存器）该如何配置是由厂商设置好的，在进行NVMe 驱动编写时不需要初始化。在硬件形态上，和传统SCSI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="三、NVMe规范和概要">
+<meta property="og:url" content="http://yoursite.com/2020/10/10/store/NVMe/%E4%B8%89%E3%80%81NVMe%E8%A7%84%E8%8C%83%E5%92%8C%E6%A6%82%E8%A6%81/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="规范分为了几个大部分：PCIe寄存器，控制器寄存器，存储结构，Admin命令集，NVM命令集，控制器架构，还有一些NVMe特征的说明以及错误报告与恢复机制的阐述。  PCIe 寄存器部分主要描述了要支持NVMe 功能，PCIe 的各个寄存器（PCI 头寄存器、PCI 功能寄存器、PCI 扩展功能寄存器）该如何配置是由厂商设置好的，在进行NVMe 驱动编写时不需要初始化。在硬件形态上，和传统SCSI">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210417224639067.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210417224751396.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210417224848883.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210417231931338.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210417235337829.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418000438514.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418000537545.png">
+<meta property="article:published_time" content="2020-10-10T15:58:13.000Z">
+<meta property="article:modified_time" content="2020-10-10T15:58:13.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="Store">
+<meta property="article:tag" content="NVMe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/pics/image-20210417224639067.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/10/10/store/NVMe/%E4%B8%89%E3%80%81NVMe%E8%A7%84%E8%8C%83%E5%92%8C%E6%A6%82%E8%A6%81/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>三、NVMe规范和概要 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/10/store/NVMe/%E4%B8%89%E3%80%81NVMe%E8%A7%84%E8%8C%83%E5%92%8C%E6%A6%82%E8%A6%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          三、NVMe规范和概要
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-10 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-10T23:58:13+08:00">2020-10-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>规范分为了几个大部分：PCIe寄存器，控制器寄存器，存储结构，Admin命令集，NVM命令集，控制器架构，还有一些NVMe特征的说明以及错误报告与恢复机制的阐述。 </p>
+<p>PCIe 寄存器部分主要描述了要支持NVMe 功能，PCIe 的各个寄存器（PCI 头寄存器、PCI 功能寄存器、PCI 扩展功能寄存器）该如何配置是由厂商设置好的，在进行NVMe 驱动编写时不需要初始化。在硬件形态上，和传统SCSI 盘比较，NVMe 子系统直接通过PCIe 总线和主机连接，路径中不再需要HBA 卡，降低了系统开销。 </p>
+<h1 id="NVMe子系统内部组成"><a href="#NVMe子系统内部组成" class="headerlink" title="NVMe子系统内部组成"></a>NVMe子系统内部组成</h1><ul>
+<li>至少一个PCIe port, 用于外部连接</li>
+<li>至少一个NVMe controller，该controller 是实现了NVMe 逻辑的PCI function</li>
+<li>名字空间标识（NSID）即LUN 号</li>
+<li>名字空间（NS）即LBA</li>
+<li>NAND Flash 介质 （下图未标出） </li>
+</ul>
+<p><img src="/pics/image-20210417224639067.png" alt="image-20210417224639067"></p>
+<p>和传统SCSI 体系比较，在主机侧，NVMe 子系统减少了IO 调度层，单独的命令层，IO 路径更短，为低延迟提供了保障。 </p>
+<p><img src="/pics/image-20210417224751396.png" alt="image-20210417224751396"></p>
+<p>如图，NVMe存储设备涉及的主机侧软件栈包括：NVMe驱动，虚拟块管理层，文件系统层。 </p>
+<p>NVMe规范重新设计定义了I/O队列机制及相应的仲裁机制，较传统的SCSI体系软件栈减少了实现排队功能的通用IO的调度层 </p>
+<p>NVMe驱动同时实现了底层传输和设备操作命令，较传统SCSI体系减少了单独的命令层 </p>
+<p><img src="/pics/image-20210417224848883.png" alt="image-20210417224848883"></p>
+<p>NVMe规范主要包含优化的控制器寄存器接口、命令集、IO队列管理. </p>
+<h1 id="NVMe工作原理"><a href="#NVMe工作原理" class="headerlink" title="NVMe工作原理"></a>NVMe工作原理</h1><ul>
+<li>通过配置设备BAR寄存器地址将NVMe设备的控制器状态寄存器映射到内存空间，这样对映射空间的所有操作将直接体现到NVMe设备内部寄存器的操作，通过寄存器达到对设备控制和状态读取</li>
+<li>在主机内存空间分配I/O请求队列，I/O请求放入请求队列</li>
+<li>在主机内存空间分配数据缓冲区，I/O请求需要传输数据时， 通过DMA和设备进行数据传输 </li>
+</ul>
+<h1 id="NVMe支持的关键特性"><a href="#NVMe支持的关键特性" class="headerlink" title="NVMe支持的关键特性"></a>NVMe支持的关键特性</h1><ul>
+<li><p>支持多达64K个IO队列，每个队列深度可达64K个命令 </p>
+</li>
+<li><p>每个IO队列可以定义优先级，支持相应的仲裁策略 </p>
+</li>
+<li><p>每个NVMe命令长度为64B，可以完全包含4KB读命令的所有信息，保证了随机小IO操作的有效性 </p>
+</li>
+<li><p>支持有效的和不断改进的命令集 </p>
+</li>
+<li><p>支持MSI/MSI-X及中断聚合 </p>
+</li>
+<li><p>支持多个namespace(LUN) </p>
+</li>
+<li><p>有效的支持IO虚拟化架构(SR-IOV) </p>
+</li>
+<li><p>完善的异常处理和设备管理机制 </p>
+</li>
+<li><p>支持端到端的数据保护(兼容T10的DIF和DIX标准) </p>
+</li>
+<li><p>支持多路径和命名空间共享 </p>
+</li>
+</ul>
+<h1 id="NVMe寄存器"><a href="#NVMe寄存器" class="headerlink" title="NVMe寄存器"></a>NVMe寄存器</h1><p><img src="/pics/image-20210417231931338.png" alt="image-20210417231931338"></p>
+<ul>
+<li><p>NVMe Controller是一种PCIe设备，其具备很多PCIe的设备公共的PCI 总线寄存器，NVMe规范定义了当一个PCIe设备为NVMe时这些总线寄存器的属性（可读，可读可写，代表的含义）和重置取值。 </p>
+</li>
+<li><p>NVMe规范还定义了一类NVMe特有的寄存器，这部分寄存器称为控制器寄存器，NVMe设备运行期间需要将这部分寄存器一一映射到主机内存空间，以便主机驱动对NVMe controller进行操作 </p>
+</li>
+<li><p>通过对公共PCI总线寄存器的访问，可以完成为NVMe内存映射的控制寄存器的空间分配，寄存器基址指定，内存中数据缓冲区指针地址等重要操作。 </p>
+</li>
+<li><p>映射到内存空间的控制器寄存器定义了NVMe Controller支持的最大最小page size、I/O仲裁策略、最大队列深度等重要参数 </p>
+</li>
+</ul>
+<h1 id="NVMe队列机制"><a href="#NVMe队列机制" class="headerlink" title="NVMe队列机制"></a>NVMe队列机制</h1><p>独特的队列机制大幅提升了NVMe子系统的并行处理能力，提高了系统性能 </p>
+<p><img src="/pics/image-20210417235337829.png" alt="image-20210417235337829"></p>
+<p>高效的尤其适用多核CPU场景的队列机制 </p>
+<ul>
+<li><p>队列在主机Host内存空间分配 </p>
+</li>
+<li><p>每个CPU核支持一个或多个命令提交队列，命令完成队列，MSI-X中断机制，相互之间隔离（传统SCSI体系未针对多核CPU进行优化，所有I/O请求都放入同一个队列中） </p>
+</li>
+<li><p>使用中断聚合进行性能优化 </p>
+</li>
+<li><p>最多支持64K个I/O队列，每个队列最多支持64K个命令（SCSI只有一个队列，队列中最多支持32个命令） </p>
+</li>
+<li><p>核之间没有互锁机制 </p>
+</li>
+<li><p>队列到达NVMe Controller后，Controller根据选定的仲裁机制选择队列（传统SCSI体系因为只有一个队列，因此不需要队列仲裁机制） </p>
+</li>
+</ul>
+<h1 id="NVMe典型业务命令处理流程"><a href="#NVMe典型业务命令处理流程" class="headerlink" title="NVMe典型业务命令处理流程"></a>NVMe典型业务命令处理流程</h1><ol>
+<li><p>主机在内存空间中的特定命令提交队列中创建一个待执行命令。 </p>
+</li>
+<li><p>主机更新该命令提交队列的队尾门铃寄存器，寄存器中存放新的指向队尾入口entry 的指针。 通过该操作指示NVMe控制器一个新的待执行的命令被提交。 </p>
+</li>
+<li><p>NVMe 控制器从位于主机内存中的命令提交队列中取出该命令待后续执行。 </p>
+</li>
+<li><p>NVMe控制器进行命令仲裁，从已经获取的多个命令中根据根据仲裁机制选择下次要执行的命令。 </p>
+</li>
+<li><p>当命令执行完成后，NVMe控制器向相关的命令完成队列中写入一个命令完成入口entry。该完成entry中包含相关的命令提交队列和命令的标识信息。 </p>
+</li>
+<li><p>NVMe控制器向主机发送中断请求，指示主机有一个命令完成入口entry需要处理。注：是否每条命令完成后都向主机发送中断请求还取决于NVMe控制器是否采用了中断聚合机制。 </p>
+</li>
+<li><p>主机处理命令完成队列中的命令完成入口entry。该处理中包括根据错误提示需要的错误处理。 </p>
+</li>
+<li><p>主机更新命令完成队列的队首门铃寄存器，指示上述命令完成入口entry已经得到处理。 </p>
+</li>
+</ol>
+<h1 id="NVMe设备也可应用于SCSI体系中"><a href="#NVMe设备也可应用于SCSI体系中" class="headerlink" title="NVMe设备也可应用于SCSI体系中"></a>NVMe设备也可应用于SCSI体系中</h1><ul>
+<li><p>由于现有的大量应用程序和软件基础设施基于T10定义的SCSI体系构建，为了使现有SCSI体系无缝过渡到NVMe，保护既有投资， NVMe工作组还定义了SCSI协议到NVMe协议的转换规范 </p>
+</li>
+<li><p>如下图，遵从该规范，通过在主机驱动中增加SCSI-NVMe转换层，就可以使NVMe设备应用于SCSI体系结构中 </p>
+</li>
+</ul>
+<p><img src="/pics/image-20210418000438514.png" alt="image-20210418000438514"></p>
+<p>NVMe规范主要定义了两部分内容，包括： </p>
+<ul>
+<li><p>SCSI命令到NVMe命令的转换匹配（SCSI定义了针对各种类型设备的命令集，如流式设备，这部分命令并不适用NVMe设备，因此不提供这部分命令的转换匹配） </p>
+</li>
+<li><p>NVMe状态到SCSI状态的匹配转换 </p>
+</li>
+</ul>
+<p><img src="/pics/image-20210418000537545.png" alt="image-20210418000537545"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Store/" rel="tag"># Store</a>
+              <a href="/tags/NVMe/" rel="tag"># NVMe</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/09/store/NVMe/%E4%BA%8C%E3%80%81NVMe%E7%9A%84%E5%87%A0%E4%B8%AA%E9%87%8D%E8%A6%81%E6%A6%82%E5%BF%B5/" rel="prev" title="二、NVMe的几个重要概念">
+      <i class="fa fa-chevron-left"></i> 二、NVMe的几个重要概念
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/11/store/NVMe/%E5%9B%9B%E3%80%81NVMe%20SSD%E5%AD%98%E5%82%A8%E6%80%A7%E8%83%BD%E5%BD%B1%E5%93%8D%E5%9B%A0%E7%B4%A0/" rel="next" title="四、NVMe SSD存储性能影响因素">
+      四、NVMe SSD存储性能影响因素 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe子系统内部组成"><span class="nav-text">NVMe子系统内部组成</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe工作原理"><span class="nav-text">NVMe工作原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe支持的关键特性"><span class="nav-text">NVMe支持的关键特性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe寄存器"><span class="nav-text">NVMe寄存器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe队列机制"><span class="nav-text">NVMe队列机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe典型业务命令处理流程"><span class="nav-text">NVMe典型业务命令处理流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe设备也可应用于SCSI体系中"><span class="nav-text">NVMe设备也可应用于SCSI体系中</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

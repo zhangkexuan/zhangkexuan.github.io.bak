@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="SATA接口-通用之选SATA接口目前仍然是电脑上最常见的接口。因此，不管是新组装电脑，还是升级电脑，SATA接口的SSD的兼容性和通用性都是最高的，极少会遇上不兼容或者不能安装的情况。通常来说，除了一些只支持M.2 SSD的超级本以外，其它所有的电脑都是支持SATA接口SSD的。  另外， SATA接口SSD的速度普遍为500MB&#x2F;S左右，写入速度和随机读写速度对于大部分用户来说，都是绝对足够的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="十、初识SSD常见接口">
+<meta property="og:url" content="http://yoursite.com/2020/10/16/store/NVMe/%E5%8D%81%E3%80%81%E5%88%9D%E8%AF%86SSD%E5%B8%B8%E8%A7%81%E6%8E%A5%E5%8F%A3/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="SATA接口-通用之选SATA接口目前仍然是电脑上最常见的接口。因此，不管是新组装电脑，还是升级电脑，SATA接口的SSD的兼容性和通用性都是最高的，极少会遇上不兼容或者不能安装的情况。通常来说，除了一些只支持M.2 SSD的超级本以外，其它所有的电脑都是支持SATA接口SSD的。  另外， SATA接口SSD的速度普遍为500MB&#x2F;S左右，写入速度和随机读写速度对于大部分用户来说，都是绝对足够的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418140745515.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418140807041.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418141030728.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418141116323.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418141147572.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418141306861.png">
+<meta property="article:published_time" content="2020-10-16T15:58:13.000Z">
+<meta property="article:modified_time" content="2020-10-16T15:58:13.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="Store">
+<meta property="article:tag" content="NVMe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/pics/image-20210418140745515.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/10/16/store/NVMe/%E5%8D%81%E3%80%81%E5%88%9D%E8%AF%86SSD%E5%B8%B8%E8%A7%81%E6%8E%A5%E5%8F%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>十、初识SSD常见接口 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/16/store/NVMe/%E5%8D%81%E3%80%81%E5%88%9D%E8%AF%86SSD%E5%B8%B8%E8%A7%81%E6%8E%A5%E5%8F%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          十、初识SSD常见接口
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-16 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-16T23:58:13+08:00">2020-10-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="SATA接口-通用之选"><a href="#SATA接口-通用之选" class="headerlink" title="SATA接口-通用之选"></a>SATA接口-通用之选</h1><p>SATA接口目前仍然是电脑上最常见的接口。因此，不管是新组装电脑，还是升级电脑，SATA接口的SSD的兼容性和通用性都是最高的，极少会遇上不兼容或者不能安装的情况。通常来说，除了一些只支持M.2 SSD的超级本以外，其它所有的电脑都是支持SATA接口SSD的。 </p>
+<p><img src="/pics/image-20210418140745515.png" alt="image-20210418140745515">另外， SATA接口SSD的速度普遍为500MB/S左右，写入速度和随机读写速度对于大部分用户来说，都是绝对足够的。相比于传统的机械硬盘，足以极大地提升使用的体验。当然，如果你是对速度极端追求的极端发烧友，则可以选择M.2接口产品。 </p>
+<h1 id="mSATA接口：小型化的产物"><a href="#mSATA接口：小型化的产物" class="headerlink" title="mSATA接口：小型化的产物"></a>mSATA接口：小型化的产物</h1><p>mSATA是一种SSD在SATA协议时代小型化的产物。相比于常见的常规SATA接口SSD，mSATA接口SSD会小很多，也比较方便安装在笔记本等对空间要求比较苛刻的产品中。 </p>
+<p><img src="/pics/image-20210418140807041.png" alt="image-20210418140807041"></p>
+<p>和常规版SATA产品一样，mSATA仍然还是SATA接口，它走得仍然是SATA通道，性能自然也差不多，读写速度在500MB/S左右。这里需要注意的是，mSATA和M.2接口会有点像，在选择之前，一定要仔细认清楚自己电脑插槽是否是mSATA接口，还是M.2接口。 </p>
+<h1 id="M-2接口：购买务必谨慎"><a href="#M-2接口：购买务必谨慎" class="headerlink" title="M.2接口：购买务必谨慎"></a>M.2接口：购买务必谨慎</h1><p>M.2接口是SSD在小型化的过程中诞生的新一代接口，也是最为主打的一种接口。目前，一般的电脑主板和笔记本上都会预留有M.2接口。只是，在经过了多年的发展以后，M.2接口也拥有了多种规格，所以，在购买M.2接口SSD之前，请务必谨慎小心，避免出错。 </p>
+<p><img src="/pics/image-20210418141030728.png" alt="image-20210418141030728"></p>
+<p>当下，M.2接口主要可以从接口规格上和支持的通道上进行区分。从接口上来说，M.2主要有2242、2260、2280三种规格。一般而言，2242的SSD可以通过延长板在2260和2280的插槽上使用，2242和2260的SSD可以在2280的插槽上使用，至于2280的SSD就只能够在2280的插槽上使用了。 </p>
+<p>从通道上来说，M.2接口SSD主要有SATA通道版本以及PCI-E通道版本。SSD所走通道的不同，直接决定了SSD的最快速度。走SATA通道版本的SSD的读写速度为500MB/S左右，走PCI-E通道，特别是PCI-E 3.0X4通道的SSD的速度则能够达到上千MB/S，特别是支持NVMe的版本，甚至可以达到几千MB/S。 </p>
+<p><img src="/pics/image-20210418141116323.png" alt="image-20210418141116323"></p>
+<p>目前，市场上M.2接口版本SSD占比最大的2280接口产品。2280接口产品主要有两种类型，一种走SATA通道，不支持NVMe，主要为一些价格比较低廉的笔记本在采用，速度500MB/S左右；一种走PCI-E通道，支持NVMe，速度极快，基本都能够达到1000MB/S以上。两种接口插槽并不互相兼容，购买之前要注意认清插槽按需选择。 </p>
+<h1 id="PCI-E接口：速度快但非主流"><a href="#PCI-E接口：速度快但非主流" class="headerlink" title="PCI-E接口：速度快但非主流"></a>PCI-E接口：速度快但非主流</h1><p>目前，市面上还有一种PCI-E接口的SSD，它占用电脑主板上的PCI-E接口，走PCI-E通道，所以，这种产品的速度也非常快。 </p>
+<p><img src="/pics/image-20210418141147572.png" alt="image-20210418141147572"></p>
+<p>不过，由于它需要占用PCI-E接口（也就是显卡常用的接口），影响了显卡等其它PCI-E产品的拓展，所以，它的普及度自然不高。当然，如果你的电脑PCI-E接口富余的话，选择PCI-E接口SSD还是非常值得的，毕竟它的性能是非常好的。 </p>
+<p><img src="/pics/image-20210418141306861.png" alt="image-20210418141306861"></p>
+<p>常见SSD接口目前只有以上几种，不同接口的SSD支持的传输协议不同，决定了他们的性能表现。当然除了产品的接口以及支持的传输协议外，SSD的主控算法、颗粒品质、产品优化等也对SSD性能起到至关重要的影响。 </p>
+<p>三星作为目前唯一坚持所有部件都自主生产的SSD大厂，不仅在产品性能上独具优势，而且产品布局也充分考虑消费者的实际需求，SATA、mSATA、M.2 SATA、M.2 NVMe等各种接口的SSD几乎都是明星产品，在选择的过程中，搞清楚自己的使用需求，以及电脑支持的接口类型，三星SSD总有一款适合你。 </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Store/" rel="tag"># Store</a>
+              <a href="/tags/NVMe/" rel="tag"># NVMe</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/15/store/NVMe/%E4%B9%9D%E3%80%81%E5%85%B3%E4%BA%8E%E8%8B%B1%E7%89%B9%E5%B0%94Optane%20SSD/" rel="prev" title="九、关于英特尔Optane SSD">
+      <i class="fa fa-chevron-left"></i> 九、关于英特尔Optane SSD
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/17/store/NVMe/%E5%8D%81%E4%B8%80%E3%80%81U.2%20SSD%EF%BC%88%E5%8E%9FSFF-8639%EF%BC%89/" rel="next" title="十一、U.2 SSD（原SFF-8639）">
+      十一、U.2 SSD（原SFF-8639） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SATA接口-通用之选"><span class="nav-text">SATA接口-通用之选</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mSATA接口：小型化的产物"><span class="nav-text">mSATA接口：小型化的产物</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#M-2接口：购买务必谨慎"><span class="nav-text">M.2接口：购买务必谨慎</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PCI-E接口：速度快但非主流"><span class="nav-text">PCI-E接口：速度快但非主流</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

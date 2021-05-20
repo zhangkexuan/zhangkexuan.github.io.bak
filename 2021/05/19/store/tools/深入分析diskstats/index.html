@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="内核很多重要子系统均通过proc文件的方式，将自身的一些统计信息输出，方便最终用户查看各子系统的运行状态，这些统计信息被称为metrics,本文带你深入分析diskstats">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入分析diskstats">
+<meta property="og:url" content="http://yoursite.com/2021/05/19/store/tools/%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90diskstats/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="内核很多重要子系统均通过proc文件的方式，将自身的一些统计信息输出，方便最终用户查看各子系统的运行状态，这些统计信息被称为metrics,本文带你深入分析diskstats">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210520173000228.png">
+<meta property="article:published_time" content="2021-05-19T15:58:13.000Z">
+<meta property="article:modified_time" content="2021-05-19T15:58:13.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/pics/image-20210520173000228.png">
+
+<link rel="canonical" href="http://yoursite.com/2021/05/19/store/tools/%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90diskstats/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>深入分析diskstats | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/05/19/store/tools/%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90diskstats/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          深入分析diskstats
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-19 23:58:13" itemprop="dateCreated datePublished" datetime="2021-05-19T23:58:13+08:00">2021-05-19</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>内核很多重要子系统均通过proc文件的方式，将自身的一些统计信息输出，方便最终用户查看各子系统的运行状态，这些统计信息被称为metrics,本文带你深入分析diskstats</p>
+<a id="more"></a>
+
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>内核很多重要子系统均通过proc文件的方式，将自身的一些统计信息输出，方便最终用户查看各子系统的运行状态，这些统计信息被称为metrics。 直接查看metrics并不能获取到有用的信息，一般都是由特定的应用程序(htop/sar/iostat等)每隔一段时间读取相关metrics，并进行相应计算，给出更具用户可读性的输出。 常见的metrics文件有：</p>
+<ul>
+<li>cpu调度统计信息的/proc/stat</li>
+<li>cpu负载统计信息的/proc/loadavg</li>
+</ul>
+<p>通用块设备层也有一个重要的统计信息</p>
+<ul>
+<li>/proc/diskstats 内核通过diskstats文件，将通用块设备层的一些重要指标以文件的形式呈现给用户。</li>
+</ul>
+<p>因为本文档牵涉到通用块设备层很多细节，建议先了解IO调度器的相关知识。</p>
+<h2 id="初探diskstats"><a href="#初探diskstats" class="headerlink" title="初探diskstats"></a>初探diskstats</h2><p>首先来看下diskstats里面都有些什么，下面截取的是一个diskstats文件内容：</p>
+<pre><code># cat /proc/diskstats 
+   8       0 sda 8567 1560 140762 3460 0 0 0 0 0 2090 3440
+   8       1 sda1 8565 1557 140722 3210 0 0 0 0 0 1840 3190
+   8      16 sdb 8157 1970 140762 2940 0 0 0 0 0 1710 2890
+   8      17 sdb1 8155 1967 140722 2900 0 0 0 0 0 1670 2850
+   8      32 sdc 8920 1574 206410 7870 430 0 461 250 0 6820 8120
+   8      33 sdc1 8918 1571 206370 7840 430 0 461 250 0 6790 8090
+   8      48 sdd 209703 1628 341966 1318450 3109063 331428 943042901 9728000 0 8943570 11015280
+   8      49 sdd1 209701 1625 341926 1318200 3109063 331428 943042901 9728000 0 8943320 11015030
+</code></pre><p>虽然如上面提到的，这些数字看上去完全没有规律。不过若想研究内核通用块设备层的统计实现方式，还是得一个一个字段的分析。</p>
+<p>简单的说，每一行对应一个块设备，分别有ram0-ram15、loop0-loop7、mtdblock0-mtdblock5，剩下的sdxx就是硬盘和分区了。 这里以sda设备的数据为例，分别列举各字段的意义：</p>
+<pre><code>8       0 sda 8567 1560 140762 3460 0 0 0 0 0 2090 3440</code></pre><p>根据内核文档<a href="https://www.kernel.org/doc/Documentation/iostats.txt" target="_blank" rel="noopener">iostats.txt</a>中描述，各字段意义如下：</p>
+<table>
+<thead>
+<tr>
+<th align="left">域</th>
+<th align="left">Value</th>
+<th align="left">Quoted</th>
+<th align="left">解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">F1</td>
+<td align="left">8</td>
+<td align="left">major number</td>
+<td align="left">此块设备的主设备号</td>
+</tr>
+<tr>
+<td align="left">F2</td>
+<td align="left">0</td>
+<td align="left">minor mumber</td>
+<td align="left">此块设备的次设备号</td>
+</tr>
+<tr>
+<td align="left">F3</td>
+<td align="left">sda</td>
+<td align="left">device name</td>
+<td align="left">此块设备名字</td>
+</tr>
+<tr>
+<td align="left">F4</td>
+<td align="left">8567</td>
+<td align="left">reads completed successfully</td>
+<td align="left">成功完成的读请求次数</td>
+</tr>
+<tr>
+<td align="left">F5</td>
+<td align="left">1560</td>
+<td align="left">reads merged</td>
+<td align="left">读请求的次数</td>
+</tr>
+<tr>
+<td align="left">F6</td>
+<td align="left">140762</td>
+<td align="left">sectors read</td>
+<td align="left">读请求的扇区数总和</td>
+</tr>
+<tr>
+<td align="left">F7</td>
+<td align="left">3460</td>
+<td align="left">time spent reading (ms)</td>
+<td align="left">读请求花费的时间总和</td>
+</tr>
+<tr>
+<td align="left">F8</td>
+<td align="left">0</td>
+<td align="left">writes completed</td>
+<td align="left">成功完成的写请求次数</td>
+</tr>
+<tr>
+<td align="left">F9</td>
+<td align="left">0</td>
+<td align="left">writes merged</td>
+<td align="left">写请求合并的次数</td>
+</tr>
+<tr>
+<td align="left">F10</td>
+<td align="left">0</td>
+<td align="left">sectors written</td>
+<td align="left">写请求的扇区数总和</td>
+</tr>
+<tr>
+<td align="left">F11</td>
+<td align="left">0</td>
+<td align="left">time spent writing (ms)</td>
+<td align="left">写请求花费的时间总和</td>
+</tr>
+<tr>
+<td align="left">F12</td>
+<td align="left">0</td>
+<td align="left">I/Os currently in progress</td>
+<td align="left">次块设备队列中的IO请求数</td>
+</tr>
+<tr>
+<td align="left">F13</td>
+<td align="left">2090</td>
+<td align="left">time spent doing I/Os (ms)</td>
+<td align="left">块设备队列非空时间总和</td>
+</tr>
+<tr>
+<td align="left">F14</td>
+<td align="left">3440</td>
+<td align="left">weighted time spent doing I/Os (ms)</td>
+<td align="left">块设备队列非空时间加权总和</td>
+</tr>
+</tbody></table>
+<p>基本上都是数量、时间的累加值，按照读、写分开统计。</p>
+<h2 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h2><p>下图是Linux内核通用块设备层IO请求处理的完整流程，如图例所示，所有的统计相关处理均有用不同颜色标注。 在进行深入分析前，请大致浏览图片，对整个流程有一个大致印象。</p>
+<p><img src="/pics/image-20210520173000228.png" alt="image-20210520173000228"></p>
+<h2 id="实现分析"><a href="#实现分析" class="headerlink" title="实现分析"></a>实现分析</h2><h3 id="proc入口"><a href="#proc入口" class="headerlink" title="proc入口"></a>proc入口</h3><p>在内核代码中grep “diskstats”即可找到定义在block/genhd.c中的<code>diskstats_show</code>函数。</p>
+<pre class="line-numbers language-c"><code class="language-c"><span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>hd <span class="token operator">=</span> <span class="token function">disk_part_iter_next</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>piter<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  cpu <span class="token operator">=</span> <span class="token function">part_stat_lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">part_round_stats</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> hd<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">part_stat_unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">seq_printf</span><span class="token punctuation">(</span>seqf<span class="token punctuation">,</span> <span class="token string">"%4d %7d %s %lu %lu %llu "</span>
+         <span class="token string">"%u %lu %lu %llu %u %u %u %u\n"</span><span class="token punctuation">,</span>
+         <span class="token function">MAJOR</span><span class="token punctuation">(</span><span class="token function">part_devt</span><span class="token punctuation">(</span>hd<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">MINOR</span><span class="token punctuation">(</span><span class="token function">part_devt</span><span class="token punctuation">(</span>hd<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">disk_name</span><span class="token punctuation">(</span>gp<span class="token punctuation">,</span> hd<span class="token operator">-></span>partno<span class="token punctuation">,</span> buf<span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> ios<span class="token punctuation">[</span>READ<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> merges<span class="token punctuation">[</span>READ<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">long</span> <span class="token keyword">long</span><span class="token punctuation">)</span><span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> sectors<span class="token punctuation">[</span>READ<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">jiffies_to_msecs</span><span class="token punctuation">(</span><span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> ticks<span class="token punctuation">[</span>READ<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> ios<span class="token punctuation">[</span>WRITE<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> merges<span class="token punctuation">[</span>WRITE<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">long</span> <span class="token keyword">long</span><span class="token punctuation">)</span><span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> sectors<span class="token punctuation">[</span>WRITE<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">jiffies_to_msecs</span><span class="token punctuation">(</span><span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> ticks<span class="token punctuation">[</span>WRITE<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">part_in_flight</span><span class="token punctuation">(</span>hd<span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">jiffies_to_msecs</span><span class="token punctuation">(</span><span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> io_ticks<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         <span class="token function">jiffies_to_msecs</span><span class="token punctuation">(</span><span class="token function">part_stat_read</span><span class="token punctuation">(</span>hd<span class="token punctuation">,</span> time_in_queue<span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>此段代码用seq_printf函数将保存在hd_struct结构体内的统计信息组成了diskstats文件。</p>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p>用到的数据结构都定义在&lt;linux/genhd.h&gt;中，主要有disk_stats和hd_struct两个结构体，意义见注释：</p>
+<pre class="line-numbers language-c"><code class="language-c"><span class="token keyword">struct</span> disk_stats <span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">/*
+     *sectors[0] &lt;--> F6 
+     *sectors[1] &lt;--> F10
+     */</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">long</span> sectors<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>    <span class="token comment" spellcheck="true">/* READs and WRITEs */</span>
+
+    <span class="token comment" spellcheck="true">/*
+     *ios[0] &lt;--> F4 
+     *ios[1] &lt;--> F8
+     */</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">long</span> ios<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">/*
+     *merges[0] &lt;--> F5 
+     *merges[1] &lt;--> F9
+     */</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">long</span> merges<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">/*
+     *ticks[0] &lt;--> F7 
+     *ticks[1] &lt;--> F11
+     */</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">long</span> ticks<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">/*F13, time spent doing IOs*/</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">long</span> io_ticks<span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">/*F14, weighted time spent doing I/Os (ms)  */</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">long</span> time_in_queue<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">struct</span> hd_struct <span class="token punctuation">{</span>
+  <span class="token keyword">unsigned</span> <span class="token keyword">long</span> stamp<span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">/*F12 I/Os currently in progress*/</span>
+  atomic_t in_flight<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">/*如果支持SMP则需要使用“每CPU”变量，否则需要加锁*/</span>
+<span class="token macro property">#<span class="token directive keyword">ifdef</span>   CONFIG_SMP</span>
+  <span class="token keyword">struct</span> disk_stats __percpu <span class="token operator">*</span>dkstats<span class="token punctuation">;</span>
+<span class="token macro property">#<span class="token directive keyword">else</span></span>
+  <span class="token keyword">struct</span> disk_stats dkstats<span class="token punctuation">;</span>
+<span class="token macro property">#<span class="token directive keyword">endif</span></span>
+  atomic_t ref<span class="token punctuation">;</span>
+  <span class="token keyword">struct</span> rcu_head rcu_head<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="F7-F11-ticks"><a href="#F7-F11-ticks" class="headerlink" title="F7/F11 ticks"></a>F7/F11 ticks</h3><p>见下一节</p>
+<h3 id="F4-F8-ios"><a href="#F4-F8-ios" class="headerlink" title="F4/F8 ios"></a>F4/F8 ios</h3><p>如流程图所示，在每个IO结束后，都会调用blk_account_io_done函数，来对完成的IO进行统计。 blk_account_io_done统计了 <code>ios(F4/F8)</code>和<code>ticks(F7/F11)</code>，还处理了<code>in_flight</code>（后续节有分析）。</p>
+<pre class="line-numbers language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">blk_account_io_done</span><span class="token punctuation">(</span><span class="token keyword">struct</span> request <span class="token operator">*</span>req<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+  <span class="token comment" spellcheck="true">/*
+     * 不统计Flush请求，见 http://en.wikipedia.org/wiki/Disk_buffer#Cache_flushing
+  */</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">blk_do_io_stat</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token punctuation">(</span>req<span class="token operator">-></span>cmd_flags <span class="token operator">&amp;</span> REQ_FLUSH_SEQ<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">/*
+         * duration是当前时间（IO完成时间）减去此IO的入队时间（见流程图）
+         */</span>
+      <span class="token keyword">unsigned</span> <span class="token keyword">long</span> duration <span class="token operator">=</span> jiffies <span class="token operator">-</span> req<span class="token operator">-></span>start_time<span class="token punctuation">;</span>
+
+        <span class="token comment" spellcheck="true">/*从req获取请求类型：R / W*/</span>
+      <span class="token keyword">const</span> <span class="token keyword">int</span> rw <span class="token operator">=</span> <span class="token function">rq_data_dir</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">struct</span> hd_struct <span class="token operator">*</span>part<span class="token punctuation">;</span>
+      <span class="token keyword">int</span> cpu<span class="token punctuation">;</span>
+
+      cpu <span class="token operator">=</span> <span class="token function">part_stat_lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">/*获取请求对应的partition(part)*/</span>
+      part <span class="token operator">=</span> req<span class="token operator">-></span>part<span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">/*
+         * 该partition的ios[rw]加1
+         * part_stat_inc定义在&lt;linux/genhd.h>中
+         * part_stat_inc这个宏用来处理SMP和非SMP的细节，见上面的结构体定义
+         */</span>
+      <span class="token function">part_stat_inc</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> part<span class="token punctuation">,</span> ios<span class="token punctuation">[</span>rw<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment" spellcheck="true">/*
+         * 将此IO的存活时间加进ticks
+         */</span>
+      <span class="token function">part_stat_add</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> part<span class="token punctuation">,</span> ticks<span class="token punctuation">[</span>rw<span class="token punctuation">]</span><span class="token punctuation">,</span> duration<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      <span class="token function">part_round_stats</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> part<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment" spellcheck="true">/*
+         *完成了一个IO，也就是in_flight（正在进行）的IO少了一个
+         */</span>
+      <span class="token function">part_dec_in_flight</span><span class="token punctuation">(</span>part<span class="token punctuation">,</span> rw<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      <span class="token function">hd_struct_put</span><span class="token punctuation">(</span>part<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token function">part_stat_unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="F5-F9-merges"><a href="#F5-F9-merges" class="headerlink" title="F5/F9 merges"></a>F5/F9 merges</h3><p>内核每执行一次Back Merge或Front Merge，都会调用drive_stat_acct。 其实in_flight也是在这个函数中统计的，<code>new_io</code>参数用来区分是新的IO，如果不是新IO则是在merge的时候调用的：</p>
+<pre class="line-numbers language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">drive_stat_acct</span><span class="token punctuation">(</span><span class="token keyword">struct</span> request <span class="token operator">*</span>rq<span class="token punctuation">,</span> <span class="token keyword">int</span> new_io<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+  <span class="token keyword">struct</span> hd_struct <span class="token operator">*</span>part<span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">/*从req获取请求类型：R / W*/</span>
+  <span class="token keyword">int</span> rw <span class="token operator">=</span> <span class="token function">rq_data_dir</span><span class="token punctuation">(</span>rq<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">int</span> cpu<span class="token punctuation">;</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">blk_do_io_stat</span><span class="token punctuation">(</span>rq<span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token keyword">return</span><span class="token punctuation">;</span>
+
+  cpu <span class="token operator">=</span> <span class="token function">part_stat_lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>new_io<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      part <span class="token operator">=</span> rq<span class="token operator">-></span>part<span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">/*
+         * 非新IO，merges[rw]加1
+         */</span>
+      <span class="token function">part_stat_inc</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> part<span class="token punctuation">,</span> merges<span class="token punctuation">[</span>rw<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+      <span class="token function">part_round_stats</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> part<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">/*
+         * 新提交了一个IO，也就是in_flight（正在进行）的IO多了一个
+         */</span>
+      <span class="token function">part_inc_in_flight</span><span class="token punctuation">(</span>part<span class="token punctuation">,</span> rw<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">part_stat_unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="F6-F10-sectors"><a href="#F6-F10-sectors" class="headerlink" title="F6/F10 sectors"></a>F6/F10 sectors</h3><p>读写扇区总数是在blk_account_io_completion函数中统计的，如流程图中所示，这个函数在每次IO结束后调用：</p>
+<pre class="line-numbers language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">blk_account_io_completion</span><span class="token punctuation">(</span><span class="token keyword">struct</span> request <span class="token operator">*</span>req<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span> bytes<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">blk_do_io_stat</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">const</span> <span class="token keyword">int</span> rw <span class="token operator">=</span> <span class="token function">rq_data_dir</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">struct</span> hd_struct <span class="token operator">*</span>part<span class="token punctuation">;</span>
+        <span class="token keyword">int</span> cpu<span class="token punctuation">;</span>
+
+        cpu <span class="token operator">=</span> <span class="token function">part_stat_lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        part <span class="token operator">=</span> req<span class="token operator">-></span>part<span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">/*
+         *bytes是此IO请求的数据长度，右移9位等同于除以512，即转换成扇区数
+         *然后加到sectors[rw]中
+         */</span>
+        <span class="token function">part_stat_add</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> part<span class="token punctuation">,</span> sectors<span class="token punctuation">[</span>rw<span class="token punctuation">]</span><span class="token punctuation">,</span> bytes <span class="token operator">>></span> <span class="token number">9</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">part_stat_unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="F12-in-flight"><a href="#F12-in-flight" class="headerlink" title="F12 in_flight"></a>F12 in_flight</h3><p>in_flight这个统计比较特别，因为其他统计都是计算累加值，而它是记录当前队列中IO请求的个数。统计方法则是：</p>
+<ul>
+<li>新IO请求插入队列（被merge的不算）后加1</li>
+<li>完成一个IO后减1 实现见上面章节中的blk_account_io_done和drive_stat_acct函数内的注释。</li>
+</ul>
+<h3 id="F14-time-in-queue"><a href="#F14-time-in-queue" class="headerlink" title="F14 time_in_queue"></a>F14 time_in_queue</h3><p>见下一节。</p>
+<h3 id="F13-io-ticks"><a href="#F13-io-ticks" class="headerlink" title="F13 io_ticks"></a>F13 io_ticks</h3><p>io_ticks统计块设备请求队列非空的总时间，统计时间点与in_flight相同，统计代码实现在part_round_stats_single函数中：</p>
+<pre class="line-numbers language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">part_round_stats_single</span><span class="token punctuation">(</span><span class="token keyword">int</span> cpu<span class="token punctuation">,</span> <span class="token keyword">struct</span> hd_struct <span class="token operator">*</span>part<span class="token punctuation">,</span>
+                  <span class="token keyword">unsigned</span> <span class="token keyword">long</span> now<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>now <span class="token operator">==</span> part<span class="token operator">-></span>stamp<span class="token punctuation">)</span>
+      <span class="token keyword">return</span><span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">/*
+     *块设备队列非空
+     */</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">part_in_flight</span><span class="token punctuation">(</span>part<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">/*
+         *统计加权时间 队列中IO请求个数 * 耗费时间
+         */</span>
+      <span class="token function">__part_stat_add</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> part<span class="token punctuation">,</span> time_in_queue<span class="token punctuation">,</span>
+              <span class="token function">part_in_flight</span><span class="token punctuation">(</span>part<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token punctuation">(</span>now <span class="token operator">-</span> part<span class="token operator">-></span>stamp<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment" spellcheck="true">/*
+         *统计队列非空时间
+         */</span>
+      <span class="token function">__part_stat_add</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> part<span class="token punctuation">,</span> io_ticks<span class="token punctuation">,</span> <span class="token punctuation">(</span>now <span class="token operator">-</span> part<span class="token operator">-></span>stamp<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  part<span class="token operator">-></span>stamp <span class="token operator">=</span> now<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>整个代码实现的逻辑比较简单，在新IO请求插入队列（被merge不算），或完成一个IO请求的时候均执行如下操作：</p>
+<ul>
+<li>队列为空<ol>
+<li>记下时间stamp = t1</li>
+</ol>
+</li>
+<li>队列不为空<ol>
+<li>io_ticks[rw] += t2-t1</li>
+<li>time_in_queue += in_flight * (t2-t1)</li>
+<li>记下时间stamp = t2</li>
+</ol>
+</li>
+</ul>
+<p>下面是一个实际的例子，示例io_ticks和time_in_queue的计算过程：</p>
+<table>
+<thead>
+<tr>
+<th align="left">ID</th>
+<th align="left">Time</th>
+<th align="left">Ops</th>
+<th align="left">in_flight</th>
+<th align="left">stamp</th>
+<th align="left">gap</th>
+<th align="left">io_ticks</th>
+<th align="left">time_in_queue</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">0</td>
+<td align="left">100.00</td>
+<td align="left">新IO请求入队</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">—–</td>
+<td align="left">0</td>
+<td align="left">0</td>
+</tr>
+<tr>
+<td align="left">1</td>
+<td align="left">100.10</td>
+<td align="left">新IO请求入队</td>
+<td align="left">1</td>
+<td align="left">100.00</td>
+<td align="left">0.10</td>
+<td align="left">0.10</td>
+<td align="left">0.10</td>
+</tr>
+<tr>
+<td align="left">3</td>
+<td align="left">101.20</td>
+<td align="left">完成一个IO请求</td>
+<td align="left">2</td>
+<td align="left">100.10</td>
+<td align="left">0.80</td>
+<td align="left">1.20</td>
+<td align="left">1.70</td>
+</tr>
+<tr>
+<td align="left">4</td>
+<td align="left">103.50</td>
+<td align="left">完成一个IO请求</td>
+<td align="left">1</td>
+<td align="left">100.20</td>
+<td align="left">1.30</td>
+<td align="left">2.50</td>
+<td align="left">3.00</td>
+</tr>
+<tr>
+<td align="left">5</td>
+<td align="left">153.50</td>
+<td align="left">新IO请求入队</td>
+<td align="left">0</td>
+<td align="left">103.50</td>
+<td align="left">—–</td>
+<td align="left">2.50</td>
+<td align="left">3.00</td>
+</tr>
+<tr>
+<td align="left">6</td>
+<td align="left">154.50</td>
+<td align="left">完成一个IO请求</td>
+<td align="left">1</td>
+<td align="left">153.50</td>
+<td align="left">1.00</td>
+<td align="left">3.50</td>
+<td align="left">4.00</td>
+</tr>
+</tbody></table>
+<p>总共时间 54.50s， IO队列非空时间3.50s</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/18/store/tools/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3iostat/" rel="prev" title="深入理解iostat">
+      <i class="fa fa-chevron-left"></i> 深入理解iostat
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/05/20/store/tools/%E5%AE%B9%E6%98%93%E8%A2%AB%E8%AF%AF%E8%AF%BB%E7%9A%84IOSTAT/" rel="next" title="容易被误读的IOSTAT">
+      容易被误读的IOSTAT <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#初探diskstats"><span class="nav-text">初探diskstats</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图"><span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现分析"><span class="nav-text">实现分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#proc入口"><span class="nav-text">proc入口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据结构"><span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F7-F11-ticks"><span class="nav-text">F7&#x2F;F11 ticks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F4-F8-ios"><span class="nav-text">F4&#x2F;F8 ios</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F5-F9-merges"><span class="nav-text">F5&#x2F;F9 merges</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F6-F10-sectors"><span class="nav-text">F6&#x2F;F10 sectors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F12-in-flight"><span class="nav-text">F12 in_flight</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F14-time-in-queue"><span class="nav-text">F14 time_in_queue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#F13-io-ticks"><span class="nav-text">F13 io_ticks</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

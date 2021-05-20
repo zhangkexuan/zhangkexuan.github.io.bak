@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="NoSQL入门NoSQL概述Redis概述Mongo概述">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python#18-NoSQL入门">
+<meta property="og:url" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="NoSQL入门NoSQL概述Redis概述Mongo概述">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-bind-and-port.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-databases.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-rdb-1.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-rdb-3.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-aof.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-security.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-replication.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-slow-logs.png">
+<meta property="og:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-data-types.png">
+<meta property="article:published_time" content="2020-02-20T09:00:51.000Z">
+<meta property="article:modified_time" content="2020-02-20T09:00:51.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/res/redis-bind-and-port.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>python#18-NoSQL入门 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/20/old/python-18-NoSQL%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          python#18-NoSQL入门
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-20 17:00:51" itemprop="dateCreated datePublished" datetime="2020-02-20T17:00:51+08:00">2020-02-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>NoSQL入门<br>NoSQL概述<br>Redis概述<br>Mongo概述</p>
+<a id="more"></a>
+<h2 id="NoSQL入门"><a href="#NoSQL入门" class="headerlink" title="NoSQL入门"></a>NoSQL入门</h2><h3 id="NoSQL概述"><a href="#NoSQL概述" class="headerlink" title="NoSQL概述"></a>NoSQL概述</h3><p>如今，大多数的计算机系统（包括服务器、PC、移动设备等）都会产生庞大的数据量。其实，早在2012年的时候，全世界每天产生的数据量就达到了2.5EB（艾字节，$$1EB\approx10^{18}B$$）。这些数据有很大一部分是由关系型数据库来存储和管理的。 早在1970年，E.F.Codd发表了论述关系型数据库的著名论文“<em>A relational model of data for large shared data banks</em>”，这篇文章奠定了关系型数据库的基础并在接下来的数十年时间内产生了深远的影响。实践证明，关系型数据库是实现数据持久化最为重要的方式，它也是大多数应用在选择持久化方案时的首选技术。</p>
+<p>NoSQL是一项全新的数据库革命性运动，虽然它的历史可以追溯到1998年，但是NoSQL真正深入人心并得到广泛的应用是在进入大数据时候以后，业界普遍认为NoSQL是更适合大数据存储的技术方案，这才使得NoSQL的发展达到了前所未有的高度。2012年《纽约时报》的一篇专栏中写到，大数据时代已经降临，在商业、经济及其他领域中，决策将不再基于经验和直觉而是基于数据和分析而作出。事实上，在天文学、气象学、基因组学、生物学、社会学、互联网搜索引擎、金融、医疗、社交网络、电子商务等诸多领域，由于数据过于密集和庞大，在数据的分析和处理上也遇到了前所未有的限制和阻碍，这一切都使得对大数据处理技术的研究被提升到了新的高度，也使得各种NoSQL的技术方案进入到了公众的视野。</p>
+<p>NoSQL数据库按照其存储类型可以大致分为以下几类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>部分代表</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>列族数据库</td>
+<td>HBase<br>Cassandra<br>Hypertable</td>
+<td>顾名思义是按列存储数据的。最大的特点是方便存储结构化和半结构化数据，方便做数据压缩，对针对某一列或者某几列的查询有非常大的I/O优势，适合于批量数据处理和即时查询。</td>
+</tr>
+<tr>
+<td>文档数据库</td>
+<td>MongoDB<br>CouchDB<br>ElasticSearch</td>
+<td>文档数据库一般用类JSON格式存储数据，存储的内容是文档型的。这样也就有机会对某些字段建立索引，实现关系数据库的某些功能，但不提供对参照完整性和分布事务的支持。</td>
+</tr>
+<tr>
+<td>KV数据库</td>
+<td>DynamoDB<br>Redis<br>LevelDB</td>
+<td>可以通过key快速查询到其value，有基于内存和基于磁盘两种实现方案。</td>
+</tr>
+<tr>
+<td>图数据库</td>
+<td>Neo4J<br>FlockDB<br>JanusGraph</td>
+<td>使用图结构进行语义查询的数据库，它使用节点、边和属性来表示和存储数据。图数据库从设计上，就可以简单快速的检索难以在关系系统中建模的复杂层次结构。</td>
+</tr>
+<tr>
+<td>对象数据库</td>
+<td>db4o<br>Versant</td>
+<td>通过类似面向对象语言的语法操作数据库，通过对象的方式存取数据。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>说明：想了解更多的NoSQL数据库，可以访问<a href="http://nosql-database.org/" target="_blank" rel="noopener">http://nosql-database.org/</a>。</p>
+</blockquote>
+<h3 id="Redis概述"><a href="#Redis概述" class="headerlink" title="Redis概述"></a>Redis概述</h3><p>Redis是一种基于键值对的NoSQL数据库，它提供了对多种数据类型（字符串、哈希、列表、集合、有序集合、位图等）的支持，能够满足很多应用场景的需求。Redis将数据放在内存中，因此读写性能是非常惊人的。与此同时，Redis也提供了持久化机制，能够将内存中的数据保存到硬盘上，在发生意外状况时数据也不会丢掉。此外，Redis还支持键过期、地理信息运算、发布订阅、事务、管道、Lua脚本扩展等功能，总而言之，Redis的功能和性能都非常强大，如果项目中要实现高速缓存和消息队列这样的服务，直接交给Redis就可以了。目前，国内外很多著名的企业和商业项目都使用了Redis，包括：Twitter、Github、StackOverflow、新浪微博、百度、优酷土豆、美团、小米、唯品会等。</p>
+<h4 id="Redis简介"><a href="#Redis简介" class="headerlink" title="Redis简介"></a>Redis简介</h4><p>2008年，一个名为Salvatore Sanfilippo的程序员为他开发的LLOOGG项目定制了专属的数据库（因为之前他无论怎样优化MySQL，系统性能已经无法再提升了），这项工作的成果就是Redis的初始版本。后来他将Redis的代码放到了全球最大的代码托管平台<a href="https://github.com/antirez/redis" target="_blank" rel="noopener">Github</a>，从那以后，Redis引发了大量开发者的好评和关注，继而有数百人参与了Redis的开发和维护，这使得Redis的功能越来越强大和性能越来越好。</p>
+<p>Redis是REmote DIctionary Server的缩写，它是一个用ANSI C编写的高性能的key-value存储系统，与其他的key-value存储系统相比，Redis有以下一些特点（也是优点）：</p>
+<ul>
+<li>Redis的读写性能极高，并且有丰富的特性（发布/订阅、事务、通知等）。</li>
+<li>Redis支持数据的持久化（RDB和AOF两种方式），可以将内存中的数据保存在磁盘中，重启的时候可以再次加载进行使用。</li>
+<li>Redis支持多种数据类型，包括：string、hash、list、set，zset、bitmap、hyperloglog等。</li>
+<li>Redis支持主从复制（实现读写分析）以及哨兵模式（监控master是否宕机并自动调整配置）。</li>
+<li>Redis支持分布式集群，可以很容易的通过水平扩展来提升系统的整体性能。</li>
+<li>Redis基于TCP提供的可靠传输服务进行通信，很多编程语言都提供了Redis客户端支持。</li>
+</ul>
+<h4 id="Redis的应用场景"><a href="#Redis的应用场景" class="headerlink" title="Redis的应用场景"></a>Redis的应用场景</h4><ol>
+<li>高速缓存  - 将不常变化但又经常被访问的热点数据放到Redis数据库中，可以大大降低关系型数据库的压力，从而提升系统的响应性能。</li>
+<li>排行榜 - 很多网站都有排行榜功能，利用Redis中的列表和有序集合可以非常方便的构造各种排行榜系统。</li>
+<li>商品秒杀/投票点赞 - Redis提供了对计数操作的支持，网站上常见的秒杀、点赞等功能都可以利用Redis的计数器通过+1或-1的操作来实现，从而避免了使用关系型数据的<code>update</code>操作。</li>
+<li>分布式锁 - 利用Redis可以跨多台服务器实现分布式锁（类似于线程锁，但是能够被多台机器上的多个线程或进程共享）的功能，用于实现一个阻塞式操作。</li>
+<li>消息队列 - 消息队列和高速缓存一样，是一个大型网站不可缺少的基础服务，可以实现业务解耦和非实时业务削峰等特性，这些我们都会在后面的项目中为大家展示。</li>
+</ol>
+<h4 id="Redis的安装和配置"><a href="#Redis的安装和配置" class="headerlink" title="Redis的安装和配置"></a>Redis的安装和配置</h4><p>可以使用Linux系统的包管理工具（如yum）来安装Redis，也可以通过在Redis的<a href="https://redis.io/" target="_blank" rel="noopener">官方网站</a>下载Redis的源代码，解压缩解归档之后通过make工具对源代码进行构建并安装，在更新这篇文档时，Redis官方提供的最新稳定版本是<a href="http://download.redis.io/releases/redis-5.0.4.tar.gz" target="_blank" rel="noopener">Redis 5.0.4</a>。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">wget http://download.redis.io/releases/redis-5.0.4.tar.gz
+gunzip redis-5.0.4.tar.gz
+tar -xvf redis-5.0.4.tar
+cd redis-5.0.4
+make && make install<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在redis源代码目录下有一个名为redis.conf的配置文件，我们可以先查看一下该文件。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">vim redis.conf<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>配置将Redis服务绑定到指定的IP地址和端口。</p>
+<p><img src="./res/redis-bind-and-port.png" alt=""></p>
+<p>配置底层有多少个数据库。</p>
+<p><img src="./res/redis-databases.png" alt=""></p>
+<p>配置Redis的持久化机制 - RDB。</p>
+<p><img src="./res/redis-rdb-1.png" alt=""></p>
+<p><img src="./res/redis-rdb-3.png" alt=""></p>
+<p>配置Redis的持久化机制 - AOF。</p>
+<p><img src="./res/redis-aof.png" alt=""></p>
+<p>配置访问Redis服务器的验证口令。</p>
+<p><img src="./res/redis-security.png" alt=""></p>
+<p>配置Redis的主从复制，通过主从复制可以实现读写分离。</p>
+<p><img src="./res/redis-replication.png" alt=""></p>
+<p>配置慢查询。</p>
+<p><img src="./res/redis-slow-logs.png" alt=""></p>
+<p>上面这些内容就是Redis的基本配置，如果你对上面的内容感到困惑也没有关系，先把Redis用起来再回头去推敲这些内容就行了。如果想找一些参考书，<a href="https://item.jd.com/12121730.html" target="_blank" rel="noopener">《Redis开发与运维》</a>是一本不错的入门读物，而<a href="https://item.jd.com/11791607.html" target="_blank" rel="noopener">《Redis实战》</a>是不错的进阶读物。</p>
+<h4 id="Redis的服务器和客户端"><a href="#Redis的服务器和客户端" class="headerlink" title="Redis的服务器和客户端"></a>Redis的服务器和客户端</h4><p>接下来启动Redis服务器，下面的方式将以默认的配置启动Redis服务。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">redis-server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>如果希望修改Redis的配置（如端口、认证口令、持久化方式等），可以通过下面两种方式。</p>
+<p>方式一：通过参数指定认证口令和AOF持久化方式。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">redis-server --requirepass 1qaz2wsx --appendonly yes<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>方式二：通过指定的配置文件来修改Redis的配置。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">redis-server /root/redis-5.0.4/redis.conf<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>下面我们使用第一种方式来启动Redis并将其置于后台运行，将Redis产生的输出重定向到名为redis.log的文件中。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">redis-server --requirepass 1qaz2wsx > redis.log &<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>可以通过ps或者netstat来检查Redis服务器是否启动成功。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">ps -ef | grep redis-server
+netstat -nap | grep redis-server<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>接下来，我们尝试用Redis客户端去连接服务器。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">redis-cli
+127.0.0.1:6379> auth 1qaz2wsx
+OK
+127.0.0.1:6379> ping
+PONG
+127.0.0.1:6379><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>Redis有着非常丰富的数据类型，也有很多的命令来操作这些数据，具体的内容可以查看<a href="http://redisdoc.com/" target="_blank" rel="noopener">Redis命令参考</a>，在这个网站上，除了Redis的命令参考，还有Redis的详细文档，其中包括了通知、事务、主从复制、持久化、哨兵、集群等内容。</p>
+<p><img src="./res/redis-data-types.png" alt=""></p>
+<blockquote>
+<p>说明：上面的插图来自付磊和张益军先生编著的《Redis开发与运维》一书。</p>
+</blockquote>
+<pre class="line-numbers language-Shell"><code class="language-Shell">127.0.0.1:6379> set username admin
+OK
+127.0.0.1:6379> get username
+"admin"
+127.0.0.1:6379> set password "123456" ex 300
+OK
+127.0.0.1:6379> get password
+"123456"
+127.0.0.1:6379> ttl username
+(integer) -1
+127.0.0.1:6379> ttl password
+(integer) 286
+127.0.0.1:6379> hset stu1 name hao
+(integer) 0
+127.0.0.1:6379> hset stu1 age 38
+(integer) 1
+127.0.0.1:6379> hset stu1 gender male
+(integer) 1
+127.0.0.1:6379> hgetall stu1
+1) "name"
+2) "hao"
+3) "age"
+4) "38"
+5) "gender"
+6) "male"
+127.0.0.1:6379> hvals stu1
+1) "hao"
+2) "38"
+3) "male"
+127.0.0.1:6379> hmset stu2 name wang age 18 gender female tel 13566778899
+OK
+127.0.0.1:6379> hgetall stu2
+1) "name"
+2) "wang"
+3) "age"
+4) "18"
+5) "gender"
+6) "female"
+7) "tel"
+8) "13566778899"
+127.0.0.1:6379> lpush nums 1 2 3 4 5
+(integer) 5
+127.0.0.1:6379> lrange nums 0 -1
+1) "5"
+2) "4"
+3) "3"
+4) "2"
+5) "1"
+127.0.0.1:6379> lpop nums
+"5"
+127.0.0.1:6379> lpop nums
+"4"
+127.0.0.1:6379> rpop nums
+"1"
+127.0.0.1:6379> rpop nums
+"2"
+127.0.0.1:6379> sadd fruits apple banana orange apple grape grape
+(integer) 4
+127.0.0.1:6379> scard fruits
+(integer) 4
+127.0.0.1:6379> smembers fruits
+1) "grape"
+2) "orange"
+3) "banana"
+4) "apple"
+127.0.0.1:6379> sismember fruits apple
+(integer) 1
+127.0.0.1:6379> sismember fruits durian
+(integer) 0
+127.0.0.1:6379> sadd nums1 1 2 3 4 5
+(integer) 5
+127.0.0.1:6379> sadd nums2 2 4 6 8
+(integer) 4
+127.0.0.1:6379> sinter nums1 nums2
+1) "2"
+2) "4"
+127.0.0.1:6379> sunion nums1 nums2
+1) "1"
+2) "2"
+3) "3"
+4) "4"
+5) "5"
+6) "6"
+7) "8"
+127.0.0.1:6379> sdiff nums1 nums2
+1) "1"
+2) "3"
+3) "5"
+127.0.0.1:6379> zadd topsinger 5234 zhangxy 1978 chenyx 2235 zhoujl 3520 xuezq
+(integer) 4
+127.0.0.1:6379> zrange topsinger 0 -1 withscores
+1) "chenyx"
+2) "1978"
+3) "zhoujl"
+4) "2235"
+5) "xuezq"
+6) "3520"
+7) "zhangxy"
+8) "5234"
+127.0.0.1:6379> zrevrange topsinger 0 -1
+1) "zhangxy"
+2) "xuezq"
+3) "zhoujl"
+4) "chenyx"
+127.0.0.1:6379> geoadd pois 116.39738549206541 39.90862689286386 tiananmen 116.27172936413572 39.99
+135172904494 yiheyuan 117.27766503308104 40.65332064313784 gubeishuizhen
+(integer) 3
+127.0.0.1:6379> geodist pois tiananmen gubeishuizhen km
+"111.5333"
+127.0.0.1:6379> geodist pois tiananmen yiheyuan km
+"14.1230"
+127.0.0.1:6379> georadius pois 116.86499108288572 40.40149669363615 50 km withdist
+1) 1) "gubeishuizhen"
+   2) "44.7408"<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="在Python程序中使用Redis"><a href="#在Python程序中使用Redis" class="headerlink" title="在Python程序中使用Redis"></a>在Python程序中使用Redis</h4><p>可以使用pip安装redis模块。redis模块的核心是名为Redis的类，该类的对象代表一个Redis客户端，通过该客户端可以向Redis服务器发送命令并获取执行的结果。上面我们在Redis客户端中使用的命令基本上就是Redis对象可以接收的消息，所以如果了解了Redis的命令就可以在Python中玩转Redis。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">pip3 install redis
+python3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-Python"><code class="language-Python">>>> import redis
+>>> client = redis.Redis(host='1.2.3.4', port=6379, password='1qaz2wsx')
+>>> client.set('username', 'admin')
+True
+>>> client.hset('student', 'name', 'hao')
+1
+>>> client.hset('student', 'age', 38)
+1
+>>> client.keys('*')
+[b'username', b'student']
+>>> client.get('username')
+b'admin'
+>>> client.hgetall('student')
+{b'name': b'hao', b'age': b'38'}<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="MongoDB概述"><a href="#MongoDB概述" class="headerlink" title="MongoDB概述"></a>MongoDB概述</h3><h4 id="MongoDB简介"><a href="#MongoDB简介" class="headerlink" title="MongoDB简介"></a>MongoDB简介</h4><p>MongoDB是2009年问世的一个面向文档的数据库管理系统，由C++语言编写，旨在为Web应用提供可扩展的高性能数据存储解决方案。虽然在划分类别的时候后，MongoDB被认为是NoSQL的产品，但是它更像一个介于关系数据库和非关系数据库之间的产品，在非关系数据库中它功能最丰富，最像关系数据库。</p>
+<p>MongoDB将数据存储为一个文档，一个文档由一系列的“键值对”组成，其文档类似于JSON对象，但是MongoDB对JSON进行了二进制处理（能够更快的定位key和value），因此其文档的存储格式称为BSON。关于JSON和BSON的差别大家可以看看MongoDB官方网站的文章<a href="https://www.mongodb.com/json-and-bson" target="_blank" rel="noopener">《JSON and BSON》</a>。</p>
+<p>目前，MongoDB已经提供了对Windows、MacOS、Linux、Solaris等多个平台的支持，而且也提供了多种开发语言的驱动程序，Python当然是其中之一。</p>
+<h4 id="MongoDB的安装和配置"><a href="#MongoDB的安装和配置" class="headerlink" title="MongoDB的安装和配置"></a>MongoDB的安装和配置</h4><p>可以从MongoDB的<a href="https://www.mongodb.com/download-center#community" target="_blank" rel="noopener">官方下载链接</a>下载MongoDB，官方为Windows系统提供了一个Installer程序，而Linux和MacOS则提供了压缩文件。下面简单说一下Linux系统如何安装和配置MongoDB。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-amazon-3.6.5.tgz
+gunzip mongodb-linux-x86_64-amazon-3.6.5.tgz
+mkdir mongodb-3.6.5
+tar -xvf mongodb-linux-x86_64-amazon-3.6.5.tar --strip-components 1 -C mongodb-3.6.5/
+export PATH=$PATH:~/mongodb-3.6.5/bin
+mkdir -p /data/db
+mongod --bind_ip 172.18.61.250
+
+2018-06-03T18:03:28.232+0800 I CONTROL  [initandlisten] MongoDB starting : pid=1163 port=27017 dbpath=/data/db 64-bit host=iZwz97tbgo9lkabnat2lo8Z
+2018-06-03T18:03:28.232+0800 I CONTROL  [initandlisten] db version v3.6.5
+2018-06-03T18:03:28.232+0800 I CONTROL  [initandlisten] git version: a20ecd3e3a174162052ff99913bc2ca9a839d618
+2018-06-03T18:03:28.232+0800 I CONTROL  [initandlisten] OpenSSL version: OpenSSL 1.0.0-fips29 Mar 2010
+...
+2018-06-03T18:03:28.945+0800 I NETWORK  [initandlisten] waiting for connections on port 27017<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<blockquote>
+<p>说明：上面的操作中，export命令是设置PATH环境变量，这样可以在任意路径下执行mongod来启动MongoDB服务器。MongoDB默认保存数据的路径是/data/db目录，为此要提前创建该目录。此外，在使用mongod启动MongoDB服务器时，–bind_ip参数用来将服务绑定到指定的IP地址，也可以用–port参数来指定端口，默认端口为27017。</p>
+</blockquote>
+<h4 id="MongoDB基本概念"><a href="#MongoDB基本概念" class="headerlink" title="MongoDB基本概念"></a>MongoDB基本概念</h4><p>我们通过与关系型数据库进行对照的方式来说明MongoDB中的一些概念。</p>
+<table>
+<thead>
+<tr>
+<th>SQL</th>
+<th>MongoDB</th>
+<th>解释（SQL/MongoDB）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>database</td>
+<td>database</td>
+<td>数据库/数据库</td>
+</tr>
+<tr>
+<td>table</td>
+<td>collection</td>
+<td>二维表/集合</td>
+</tr>
+<tr>
+<td>row</td>
+<td>document</td>
+<td>记录（行）/文档</td>
+</tr>
+<tr>
+<td>column</td>
+<td>field</td>
+<td>字段（列）/域</td>
+</tr>
+<tr>
+<td>index</td>
+<td>index</td>
+<td>索引/索引</td>
+</tr>
+<tr>
+<td>table joins</td>
+<td>—</td>
+<td>表连接/嵌套文档</td>
+</tr>
+<tr>
+<td>primary key</td>
+<td>primary key</td>
+<td>主键/主键（<code>_id</code>字段）</td>
+</tr>
+</tbody></table>
+<h4 id="通过Shell操作MongoDB"><a href="#通过Shell操作MongoDB" class="headerlink" title="通过Shell操作MongoDB"></a>通过Shell操作MongoDB</h4><p>启动服务器后可以使用交互式环境跟服务器通信，如下所示。</p>
+<pre class="line-numbers language-shell"><code class="language-shell">mongo --host 172.18.61.250
+
+MongoDB shell version v3.6.5
+connecting to: mongodb://172.18.61.250:27017/<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<ol>
+<li><p>查看、创建和删除数据库。</p>
+<pre class="line-numbers language-JavaScript"><code class="language-JavaScript">> // 显示所有数据库
+> show dbs
+admin   0.000GB
+config  0.000GB
+local   0.000GB
+> // 创建并切换到school数据库
+> use school
+switched to db school
+> // 删除当前数据库
+> db.dropDatabase()
+{ "ok" : 1 }
+><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+</li>
+<li><p>创建、删除和查看集合。</p>
+<pre class="line-numbers language-JavaScript"><code class="language-JavaScript">> // 创建并切换到school数据库
+> use school
+switched to db school
+> // 创建colleges集合
+> db.createCollection('colleges')
+{ "ok" : 1 }
+> // 创建students集合
+> db.createCollection('students')
+{ "ok" : 1 }
+> // 查看所有集合
+> show collections
+colleges
+students
+> // 删除colleges集合
+> db.colleges.drop()
+true
+> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<blockquote>
+<p>说明：在MongoDB中插入文档时如果集合不存在会自动创建集合，所以也可以按照下面的方式通过创建文档来创建集合。</p>
+</blockquote>
+</li>
+<li><p>文档的CRUD操作。</p>
+<pre class="line-numbers language-JavaScript"><code class="language-JavaScript">> // 向students集合插入文档
+> db.students.insert({stuid: 1001, name: '张kx', age: 38})
+WriteResult({ "nInserted" : 1 })
+> // 向students集合插入文档
+> db.students.save({stuid: 1002, name: '王大锤', tel: '13012345678', gender: '男'})
+WriteResult({ "nInserted" : 1 })
+> // 查看所有文档
+> db.students.find()
+{ "_id" : ObjectId("5b13c72e006ad854460ee70b"), "stuid" : 1001, "name" : "张kx", "age" : 38 }
+{ "_id" : ObjectId("5b13c790006ad854460ee70c"), "stuid" : 1002, "name" : "王大锤", "tel" : "13012345678", "gender" : "男" }
+> // 更新stuid为1001的文档
+> db.students.update({stuid: 1001}, {'$set': {tel: '13566778899', gender: '男'}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> // 插入或更新stuid为1003的文档
+> db.students.update({stuid: 1003}, {'$set': {name: '白元芳', tel: '13022223333', gender: '男'}},  upsert=true)
+WriteResult({
+        "nMatched" : 0,
+        "nUpserted" : 1,
+        "nModified" : 0,
+        "_id" : ObjectId("5b13c92dd185894d7283efab")
+})
+> // 查询所有文档
+> db.students.find().pretty()
+{
+        "_id" : ObjectId("5b13c72e006ad854460ee70b"),
+        "stuid" : 1001,
+        "name" : "张kx",
+        "age" : 38,
+        "gender" : "男",
+        "tel" : "13566778899"
+}
+{
+        "_id" : ObjectId("5b13c790006ad854460ee70c"),
+        "stuid" : 1002,
+        "name" : "王大锤",
+        "tel" : "13012345678",
+        "gender" : "男"
+}
+{
+        "_id" : ObjectId("5b13c92dd185894d7283efab"),
+        "stuid" : 1003,
+        "gender" : "男",
+        "name" : "白元芳",
+        "tel" : "13022223333"
+}
+> // 查询stuid大于1001的文档
+> db.students.find({stuid: {'$gt': 1001}}).pretty()
+{
+        "_id" : ObjectId("5b13c790006ad854460ee70c"),
+        "stuid" : 1002,
+        "name" : "王大锤",
+        "tel" : "13012345678",
+        "gender" : "男"
+}
+{
+        "_id" : ObjectId("5b13c92dd185894d7283efab"),
+        "stuid" : 1003,
+        "gender" : "男",
+        "name" : "白元芳",
+        "tel" : "13022223333"
+}
+> // 查询stuid大于1001的文档只显示name和tel字段
+> db.students.find({stuid: {'$gt': 1001}}, {_id: 0, name: 1, tel: 1}).pretty()
+{ "name" : "王大锤", "tel" : "13012345678" }
+{ "name" : "白元芳", "tel" : "13022223333" }
+> // 查询name为“张kx”或者tel为“13022223333”的文档
+> db.students.find({'$or': [{name: '张kx'}, {tel: '13022223333'}]}, {_id: 0, name: 1, tel: 1}).pretty()
+{ "name" : "张kx", "tel" : "13566778899" }
+{ "name" : "白元芳", "tel" : "13022223333" }
+> // 查询学生文档跳过第1条文档只查1条文档
+> db.students.find().skip(1).limit(1).pretty()
+{
+        "_id" : ObjectId("5b13c790006ad854460ee70c"),
+        "stuid" : 1002,
+        "name" : "王大锤",
+        "tel" : "13012345678",
+        "gender" : "男"
+}
+> // 对查询结果进行排序(1表示升序，-1表示降序)
+> db.students.find({}, {_id: 0, stuid: 1, name: 1}).sort({stuid: -1})
+{ "stuid" : 1003, "name" : "白元芳" }
+{ "stuid" : 1002, "name" : "王大锤" }
+{ "stuid" : 1001, "name" : "张kx" }
+> // 在指定的一个或多个字段上创建索引
+> db.students.ensureIndex({name: 1})
+{
+        "createdCollectionAutomatically" : false,
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "ok" : 1
+}
+> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+</li>
+</ol>
+<p>使用MongoDB可以非常方便的配置数据复制，通过冗余数据来实现数据的高可用以及灾难恢复，也可以通过数据分片来应对数据量迅速增长的需求。关于MongoDB更多的操作可以查阅<a href="https://mongodb-documentation.readthedocs.io/en/latest/" target="_blank" rel="noopener">官方文档</a> ，同时推荐大家阅读Kristina Chodorow写的<a href="http://www.ituring.com.cn/book/1172" target="_blank" rel="noopener">《MongoDB权威指南》</a>。</p>
+<h4 id="在Python程序中操作MongoDB"><a href="#在Python程序中操作MongoDB" class="headerlink" title="在Python程序中操作MongoDB"></a>在Python程序中操作MongoDB</h4><p>可以通过pip安装pymongo来实现对MongoDB的操作。</p>
+<pre class="line-numbers language-Shell"><code class="language-Shell">pip3 install pymongo
+python3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-Python"><code class="language-Python">>>> from pymongo import MongoClient
+>>> client = MongoClient('mongodb://127.0.0.1:27017') 
+>>> db = client.school
+>>> for student in db.students.find():
+...     print('学号:', student['stuid'])
+...     print('姓名:', student['name'])
+...     print('电话:', student['tel'])
+... 
+学号: 1001.0
+姓名: 张kx
+电话: 13566778899
+学号: 1002.0
+姓名: 王大锤
+电话: 13012345678
+学号: 1003.0
+姓名: 白元芳
+电话: 13022223333
+>>> db.students.find().count()
+3
+>>> db.students.remove()
+{'n': 3, 'ok': 1.0}
+>>> db.students.find().count()
+0
+>>> coll = db.students
+>>> from pymongo import ASCENDING
+>>> coll.create_index([('name', ASCENDING)], unique=True)
+'name_1'
+>>> coll.insert_one({'stuid': int(1001), 'name': '张kx', 'gender': True})
+<pymongo.results.InsertOneResult object at 0x1050cc6c8>
+>>> coll.insert_many([{'stuid': int(1002), 'name': '王大锤', 'gender': False}, {'stuid': int(1003), 'name': '白元芳', 'gender': True}])
+<pymongo.results.InsertManyResult object at 0x1050cc8c8>
+>>> for student in coll.find({'gender': True}):
+...     print('学号:', student['stuid'])
+...     print('姓名:', student['name'])
+...     print('性别:', '男' if student['gender'] else '女')
+... 
+学号: 1001
+姓名: 张kx
+性别: 男
+学号: 1003
+姓名: 白元芳
+性别: 男
+>>> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>关于PyMongo更多的知识可以通过它的<a href="https://api.mongodb.com/python/current/tutorial.html" target="_blank" rel="noopener">官方文档</a>进行了解，也可以使用<a href="https://pypi.org/project/mongoengine/" target="_blank" rel="noopener">MongoEngine</a>这样的库来简化Python程序对MongoDB的操作，除此之外，还有以异步I/O方式访问MongoDB的三方库<a href="https://pypi.org/project/motor/" target="_blank" rel="noopener">motor</a>都是不错的选择。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/20/old/python-17-MySql%E5%85%A5%E9%97%A8/" rel="prev" title="python#17-MySQL入门">
+      <i class="fa fa-chevron-left"></i> python#17-MySQL入门
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/03/old/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%A6%82%E8%BF%B0/" rel="next" title="操作系统概述">
+      操作系统概述 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#NoSQL入门"><span class="nav-text">NoSQL入门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NoSQL概述"><span class="nav-text">NoSQL概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis概述"><span class="nav-text">Redis概述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis简介"><span class="nav-text">Redis简介</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis的应用场景"><span class="nav-text">Redis的应用场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis的安装和配置"><span class="nav-text">Redis的安装和配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis的服务器和客户端"><span class="nav-text">Redis的服务器和客户端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#在Python程序中使用Redis"><span class="nav-text">在Python程序中使用Redis</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MongoDB概述"><span class="nav-text">MongoDB概述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MongoDB简介"><span class="nav-text">MongoDB简介</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MongoDB的安装和配置"><span class="nav-text">MongoDB的安装和配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MongoDB基本概念"><span class="nav-text">MongoDB基本概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#通过Shell操作MongoDB"><span class="nav-text">通过Shell操作MongoDB</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#在Python程序中操作MongoDB"><span class="nav-text">在Python程序中操作MongoDB</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

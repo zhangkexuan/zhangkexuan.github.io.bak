@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="今天我们来学习一种可以快速查找、插入、删除的数据结构，据说可以代替红黑树。就是本文的标题——跳表(SkipList)。跳表还有一个优点是实现起来简单。 redis中的有序集合，其实就是基于跳表实现的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="跳表的介绍与使用">
+<meta property="og:url" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="今天我们来学习一种可以快速查找、插入、删除的数据结构，据说可以代替红黑树。就是本文的标题——跳表(SkipList)。跳表还有一个优点是实现起来简单。 redis中的有序集合，其实就是基于跳表实现的。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711104107346.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711104724926.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711104929676.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711105104803.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711105838467.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711152251358.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711104929676.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711160516462.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711162337749.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711162337749.png">
+<meta property="article:published_time" content="2020-03-29T01:34:33.000Z">
+<meta property="article:modified_time" content="2020-03-29T01:34:33.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/20190711104107346.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>跳表的介绍与使用 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/29/old/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          跳表的介绍与使用
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-29 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-29T09:34:33+08:00">2020-03-29</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>今天我们来学习一种可以快速查找、插入、删除的数据结构，据说可以代替红黑树。就是本文的标题——跳表(SkipList)。跳表还有一个优点是实现起来简单。</p>
+<p>redis中的有序集合，其实就是基于跳表实现的。</p>
+<a id="more"></a>
+<h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>今天我们来学习一种可以快速查找、插入、删除的数据结构，据说可以代替红黑树。就是本文的标题——跳表(SkipList)。跳表还有一个优点是实现起来简单。</p>
+<p>redis中的有序集合，其实就是基于跳表实现的。</p>
+<p>为啥叫做跳表，听到这个名字我第一反应是感觉它很跳。</p>
+<p>其实</p>
+<ul>
+<li>跳表结合了链表和二分查找的思想</li>
+<li>由原始链表和一些通过“跳跃”生成的链表组成</li>
+<li>第0层是原始链表，越上层“跳跃”的越高，元素越少</li>
+<li>上层链表是下层链表的子序列</li>
+<li>查找时从顶层向下，不断缩小搜索范围</li>
+</ul>
+<h1 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h1><p>跳表有很多层，如果只看0层的话，就是一个有序链表。那么其他层是什么呢？</p>
+<p>我们知道，链表的查询复杂度为O(n)O(n)O(n)</p>
+<p><img src="20190711104107346.png" alt="在这里插入图片描述"></p>
+<p>如果在这个基础之上，增加一层“索引”，查找就会快一点点。<br>之前直接查找单链表，比如查询节点7：</p>
+<p><img src="20190711104724926.png" alt="在这里插入图片描述"><br>会经过6个节点，那通过索引呢？</p>
+<p><img src="20190711104929676.png" alt="在这里插入图片描述"><br>经过4个节点就能找到了。是不是快了一点。<br>要注意到，每一层上的索引是可以向下层走的。上面的图只是一个简化结构，更严谨的一个结构应该如下：</p>
+<p><img src="20190711105104803.png" alt="在这里插入图片描述"></p>
+<p>最左边的是header节点，不存值，上图的31，出现在了0,1,2,3层，其实就是一个节点。不是四个节点(这个要看具体的实现，这里是通过数组实现，可以通过下标访问，也可以通过链式实现)。这些层次信息是通过<code>forwards(ArrayList)</code>保存的。因此可以很快的访问到下一层。</p>
+<p>如果元素个数很多的话，通常层数也会相应的增加。比如我们再增加一层。</p>
+<p><img src="20190711105838467.png" alt="在这里插入图片描述"></p>
+<p>现在访问节点7经过的节点为：1-&gt;6-&gt;7。</p>
+<p>这里有必要提出的是，每隔两个节点往上提升一层建立索引只是理想情况，实际上是通过随机层数来实现的。这点后面会分析。</p>
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p>我们将每个节点值以及每层上的索引信息封装到一个类中：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">private</span> <span class="token keyword">class</span> <span class="token class-name">Node</span> <span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">//保存值</span>
+    E data<span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">//保存了每一层上的节点信息，可能为null</span>
+    List<span class="token operator">&lt;</span>Node<span class="token operator">></span> forwards<span class="token punctuation">;</span>
+
+    <span class="token function">Node</span><span class="token punctuation">(</span>E data<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>data <span class="token operator">=</span> data<span class="token punctuation">;</span>
+        forwards <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">//事先把每一层都置为null，虽然空间利用率没那么高，但是简化了实现</span>
+        <span class="token comment" spellcheck="true">//也可以通过自定义列表(比如B树实现中用到的Vector)来实现，就可以不用下面的操作</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;=</span> maxLevel<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            forwards<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>null<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> String <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> data <span class="token operator">==</span> null <span class="token operator">?</span> <span class="token string">" "</span> <span class="token operator">:</span> <span class="token string">""</span> <span class="token operator">+</span> data<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">/**
+     * 得到当前节点level层上的下一个(右边一个)节点
+     *
+     * @param level
+     * @return
+     */</span>
+    Node <span class="token function">next</span><span class="token punctuation">(</span><span class="token keyword">int</span> level<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span>forwards<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>同样地，这个<code>Node</code>也是通过内部类来实现的,<code>forwards</code>保存了每一层上的索引信息。</p>
+<p><img src="20190711152251358.png" alt="在这里插入图片描述"></p>
+<p><code>forwards</code>描述了上图中标红的部分,16是通过<code>data</code>属性保存的。<br>节点的结构还是挺简单的，这里我增加了一个<code>next()</code>方法用来访问同层的右边节点。</p>
+<p>有了这个之后，我们来看一下查找的实现是怎样的。</p>
+<h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><p><img src="20190711104929676.png" alt="在这里插入图片描述"></p>
+<p>查找时从顶层向下，不断缩小搜索范围。</p>
+<p>以前面的图片为例，假设有这样一个跳表。查询节点值为7的过程如上所示。<br>首先从头结点<code>header</code>开始，并起始于顶层(这里是1)。<br>第1层：经由1,4,6。 由于6的下一个节点(这里说的下一个节点都是指右边一个，不是下一层)是8，我们要查找的是7，因此小于7的最大节点就是6，我们从此处往下到达下一层。<br>第0层：经由6,7。 从6往右就到了7了。找到了！！<br>整个查询的复杂度为O(logn)O(\log n)O(logn)</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> Node <span class="token function">find</span><span class="token punctuation">(</span>E e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> null<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> <span class="token function">find</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> head<span class="token punctuation">,</span> curLevel<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">private</span> Node <span class="token function">find</span><span class="token punctuation">(</span>E e<span class="token punctuation">,</span> Node current<span class="token punctuation">,</span> <span class="token keyword">int</span> level<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span>level <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        current <span class="token operator">=</span> <span class="token function">findNext</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> current<span class="token punctuation">,</span> level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        level<span class="token operator">--</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> current<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment" spellcheck="true">//返回给定层数中小于e的最大者</span>
+<span class="token keyword">private</span> Node <span class="token function">findNext</span><span class="token punctuation">(</span>E e<span class="token punctuation">,</span> Node current<span class="token punctuation">,</span> <span class="token keyword">int</span> level<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    Node next <span class="token operator">=</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span>next <span class="token operator">!=</span> null<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">compareTo</span><span class="token punctuation">(</span>next<span class="token punctuation">.</span>data<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token comment" spellcheck="true">//到这说明e >= next.data</span>
+        current <span class="token operator">=</span> next<span class="token punctuation">;</span>
+        next <span class="token operator">=</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> current<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h2><p><img src="20190711160516462.png" alt="在这里插入图片描述"><br>给定如上跳表，假设要插入节点2。<br>首先需要判断节点2是否已经存在，若存在则返回<code>false</code>。</p>
+<p>否则，随机生成待插入节点的层数。</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token comment" spellcheck="true">/**
+ * 生成随机层数[0,maxLevel)
+ * 生成的值越大，概率越小
+ *
+ * @return
+ */</span>
+<span class="token keyword">private</span> <span class="token keyword">int</span> <span class="token function">randomLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">int</span> level <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span>Math<span class="token punctuation">.</span><span class="token function">random</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> PROBABILITY <span class="token operator">&amp;&amp;</span> level <span class="token operator">&lt;</span> maxLevel <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token operator">++</span>level<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> level<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里的<code>PROBABILITY =0.5</code>。上面算法的意思是返回1的概率是12\frac{1}{2}21；返回2的概率是14\frac{1}{4}41；返回3的概率是18\frac{1}{8}81，依次类推。看成一个分布的话，第0层包含所有节点，第1层含有12\frac{1}{2}21个节点，第2层含有14\frac{1}{4}41个节点…</p>
+<p>注意这里有一个最大层数<code>maxLevel</code>，也可以不设置最大层数。</p>
+<p>通过这种随机生成层数的方式使得实现起来简单。</p>
+<p>假设我们生成的层数是3。</p>
+<p><img src="20190711162337749.png" alt="在这里插入图片描述"><br>在1和3之间插入节点2，层数是3，也就是节点2跳跃到了第3层。</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">add</span><span class="token punctuation">(</span>E e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">contains</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">int</span> level <span class="token operator">=</span> <span class="token function">randomLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>level <span class="token operator">></span> curLevel<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        curLevel <span class="token operator">=</span> level<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    Node newNode <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Node</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    Node current <span class="token operator">=</span> head<span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">//插入方向由上到下</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span>level <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">//找到比e小的最大节点</span>
+        current <span class="token operator">=</span> <span class="token function">findNext</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> current<span class="token punctuation">,</span> level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">//将newNode插入到current后面</span>
+        <span class="token comment" spellcheck="true">//newNode的next指针指向该节点的后继</span>
+        newNode<span class="token punctuation">.</span>forwards<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">//该节点的next指向newNode</span>
+        current<span class="token punctuation">.</span>forwards<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>level<span class="token punctuation">,</span> newNode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        level<span class="token operator">--</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//每层都要插入</span>
+    <span class="token punctuation">}</span>
+    size<span class="token operator">++</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>我们通过一个例子来模拟，<strong>由于实现了直观的打印算法，因此就不画图了</strong>。<br>假设我们要插入<code>1, 6, 9, 3, 5, 7, 4, 8</code></p>
+<p>过程如下：</p>
+<pre><code>add: 1
+Level 0:  1
+
+add: 6
+Level 0:  1 6
+
+add: 9
+Level 2:      9
+Level 1:      9
+Level 0:  1 6 9
+
+add: 3
+Level 2:    3   9
+Level 1:    3   9
+Level 0:  1 3 6 9
+
+add: 5
+Level 2:    3     9
+Level 1:    3 5   9
+Level 0:  1 3 5 6 9
+
+add: 7
+Level 2:    3       9
+Level 1:    3 5     9
+Level 0:  1 3 5 6 7 9
+
+add: 4
+Level 2:    3         9
+Level 1:    3   5     9
+Level 0:  1 3 4 5 6 7 9
+
+add: 8
+Level 2:    3           9
+Level 1:    3   5       9
+Level 0:  1 3 4 5 6 7 8 9
+</code></pre><h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><p>之前在研究二叉树的时候，发现所有的平衡的二叉树(也包括多叉树，如B树）删除算法都是最难的。<br>上文说了跳表的一个优点是实现简单，删除也不例外，也是异常的简单。</p>
+<blockquote>
+<p>该删除算法是根据查找算法实现的，并通过大量的测试(随机插入2000个数据，并根据插入顺序删除，没有抛出异常，因此应该是没问题的，如果发现删除实现有问题，请一定要告诉我)。<br>我看了网上其他O(logn)O(\log n)O(logn)的删除算法实现基本都是基于双向链表的，但是双向链表需要多维护一个<code>pre</code>指针，或者额外需要一个<code>updates</code>列表来记录前驱节点，增加了复杂度。根据查找算法，理论上是可以在一次查找过程中找到它的前驱节点，并进行删除的。</p>
+</blockquote>
+<p>测试代码如下：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span>String<span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    Random random <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Random</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> values <span class="token operator">=</span> random<span class="token punctuation">.</span><span class="token function">ints</span><span class="token punctuation">(</span><span class="token number">2000</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">10000</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toArray</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token comment" spellcheck="true">// int[] values = {1, 6, 9, 3, 5, 7, 4, 8};</span>
+    SkipList<span class="token operator">&lt;</span>Integer<span class="token operator">></span> list <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">SkipList</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> value <span class="token operator">:</span> values<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">//System.out.println("add: " + value);</span>
+        list<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">//list.print();</span>
+        <span class="token comment" spellcheck="true">//System.out.println();</span>
+    <span class="token punctuation">}</span>
+
+
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> value <span class="token operator">:</span> values<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        list<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"remove: "</span> <span class="token operator">+</span> value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        list<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>删除可以说是插入的逆过程<br><img src="20190711162337749.png" alt="在这里插入图片描述"><br>上文中我们插入了节点2，如果想要删除它的话，就是将它的前驱节点指向它的后继节点(跳表需要对链表的操作比较熟悉，如果不太了解的话，建议先去搜一下)。</p>
+<p>把握住这个思路，实现删除就不难了。</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token comment" spellcheck="true">/**
+ * O(logN)的删除算法
+ *
+ * @param e
+ * @return
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">remove</span><span class="token punctuation">(</span>E e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">boolean</span> removed <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//记录是否删除</span>
+    <span class="token keyword">int</span> level <span class="token operator">=</span> curLevel<span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">//current用于遍历,pre指向待删除节点前一个节点</span>
+    Node current <span class="token operator">=</span> head<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">,</span> pre <span class="token operator">=</span> head<span class="token punctuation">;</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span>level <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>current <span class="token operator">!=</span> null<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment" spellcheck="true">//e &lt; current.data</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">compareTo</span><span class="token punctuation">(</span>current<span class="token punctuation">.</span>data<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token comment" spellcheck="true">//只有e >= current.data才需要继续</span>
+            <span class="token comment" spellcheck="true">//如果e == current.data</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">compareTo</span><span class="token punctuation">(</span>current<span class="token punctuation">.</span>data<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token comment" spellcheck="true">//pre指向它的后继</span>
+                pre<span class="token punctuation">.</span>forwards<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>level<span class="token punctuation">,</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment" spellcheck="true">//设置删除标记</span>
+                removed <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+                <span class="token comment" spellcheck="true">//跳出循环内层循环</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            pre <span class="token operator">=</span> current<span class="token punctuation">;</span>
+            current <span class="token operator">=</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token comment" spellcheck="true">//继续搜索下一层</span>
+        level<span class="token operator">--</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>level <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment" spellcheck="true">//防止next(-1)</span>
+            <span class="token keyword">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token comment" spellcheck="true">//往下一层,从pre开始往下即可，不需要从头(header)开始</span>
+        current <span class="token operator">=</span> pre<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>removed<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        size<span class="token operator">--</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//不要忘记size--</span>
+        <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>整个代码实现完成后，发现真的很简单，也很简短。</p>
+<p>还是插入<code>1, 6, 9, 3, 5, 7, 4, 8</code>，然后依次删除它：</p>
+<pre><code>before remove:
+Level 4:            7
+Level 3:            7 8
+Level 2:      4     7 8
+Level 1:      4 5   7 8
+Level 0:  1 3 4 5 6 7 8 9
+
+remove: 1
+Level 4:          7
+Level 3:          7 8
+Level 2:    4     7 8
+Level 1:    4 5   7 8
+Level 0:  3 4 5 6 7 8 9
+
+remove: 6
+Level 4:        7
+Level 3:        7 8
+Level 2:    4   7 8
+Level 1:    4 5 7 8
+Level 0:  3 4 5 7 8 9
+
+remove: 9
+Level 4:        7
+Level 3:        7 8
+Level 2:    4   7 8
+Level 1:    4 5 7 8
+Level 0:  3 4 5 7 8
+
+remove: 3
+Level 4:      7
+Level 3:      7 8
+Level 2:  4   7 8
+Level 1:  4 5 7 8
+Level 0:  4 5 7 8
+
+remove: 5
+Level 4:    7
+Level 3:    7 8
+Level 2:  4 7 8
+Level 1:  4 7 8
+Level 0:  4 7 8
+
+remove: 7
+Level 4: 
+Level 3:    8
+Level 2:  4 8
+Level 1:  4 8
+Level 0:  4 8
+
+remove: 4
+Level 4: 
+Level 3:  8
+Level 2:  8
+Level 1:  8
+Level 0:  8
+
+remove: 8
+Level 4: 
+Level 3: 
+Level 2: 
+Level 1: 
+Level 0: 
+</code></pre><h2 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h2><pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">package</span> com<span class="token punctuation">.</span>algorithms<span class="token punctuation">.</span>list<span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>*<span class="token punctuation">;</span>
+
+<span class="token comment" spellcheck="true">/**
+ * 跳表
+ *
+ * @Author: Yinjingwei
+ * @Date: 2019/7/9/009 21:36
+ * @Description:
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">SkipList</span><span class="token operator">&lt;</span>E <span class="token keyword">extends</span> <span class="token class-name">Comparable</span><span class="token operator">&lt;</span><span class="token operator">?</span> <span class="token keyword">super</span> E<span class="token operator">>></span> <span class="token keyword">implements</span> <span class="token class-name">Iterable</span><span class="token operator">&lt;</span>E<span class="token operator">></span> <span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">//当前层数</span>
+    <span class="token keyword">private</span> <span class="token keyword">int</span> curLevel<span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">//头结点，不保存值</span>
+    <span class="token keyword">private</span> Node head<span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">//跳表中元素个数</span>
+    <span class="token keyword">private</span> <span class="token keyword">int</span> size<span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">//用于生成随机层数</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">double</span> PROBABILITY <span class="token operator">=</span> <span class="token number">0.5</span><span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">//最大层数,也可以写成通过构造函数注入的方式动态设置</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> maxLevel <span class="token operator">=</span> <span class="token number">8</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token function">SkipList</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        size <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        curLevel <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        head <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Node</span><span class="token punctuation">(</span>null<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">int</span> <span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> size<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">add</span><span class="token punctuation">(</span>E e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">contains</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">int</span> level <span class="token operator">=</span> <span class="token function">randomLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>level <span class="token operator">></span> curLevel<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            curLevel <span class="token operator">=</span> level<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        Node newNode <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Node</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Node current <span class="token operator">=</span> head<span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">//插入方向由上到下</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>level <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment" spellcheck="true">//找到比e小的最大节点</span>
+            current <span class="token operator">=</span> <span class="token function">findNext</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> current<span class="token punctuation">,</span> level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment" spellcheck="true">//将newNode插入到current后面</span>
+            <span class="token comment" spellcheck="true">//newNode的next指针指向该节点的后继</span>
+            newNode<span class="token punctuation">.</span>forwards<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment" spellcheck="true">//该节点的next指向newNode</span>
+            current<span class="token punctuation">.</span>forwards<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>level<span class="token punctuation">,</span> newNode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            level<span class="token operator">--</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//每层都要插入</span>
+        <span class="token punctuation">}</span>
+        size<span class="token operator">++</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">//返回给定层数中小于e的最大者</span>
+    <span class="token keyword">private</span> Node <span class="token function">findNext</span><span class="token punctuation">(</span>E e<span class="token punctuation">,</span> Node current<span class="token punctuation">,</span> <span class="token keyword">int</span> level<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        Node next <span class="token operator">=</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>next <span class="token operator">!=</span> null<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">compareTo</span><span class="token punctuation">(</span>next<span class="token punctuation">.</span>data<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token comment" spellcheck="true">//到这说明e >= next.data</span>
+            current <span class="token operator">=</span> next<span class="token punctuation">;</span>
+            next <span class="token operator">=</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> current<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> Node <span class="token function">find</span><span class="token punctuation">(</span>E e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> null<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> <span class="token function">find</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> head<span class="token punctuation">,</span> curLevel<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">private</span> Node <span class="token function">find</span><span class="token punctuation">(</span>E e<span class="token punctuation">,</span> Node current<span class="token punctuation">,</span> <span class="token keyword">int</span> level<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>level <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            current <span class="token operator">=</span> <span class="token function">findNext</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> current<span class="token punctuation">,</span> level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            level<span class="token operator">--</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> current<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> size <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">/**
+     * O(logN)的删除算法
+     *
+     * @param e
+     * @return
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">remove</span><span class="token punctuation">(</span>E e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">boolean</span> removed <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//记录是否删除</span>
+        <span class="token keyword">int</span> level <span class="token operator">=</span> curLevel<span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">//current用于遍历,pre指向待删除节点前一个节点</span>
+        Node current <span class="token operator">=</span> head<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">,</span> pre <span class="token operator">=</span> head<span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>level <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">while</span> <span class="token punctuation">(</span>current <span class="token operator">!=</span> null<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token comment" spellcheck="true">//e &lt; current.data</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">compareTo</span><span class="token punctuation">(</span>current<span class="token punctuation">.</span>data<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    <span class="token keyword">break</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+                <span class="token comment" spellcheck="true">//只有e >= current.data才需要继续</span>
+                <span class="token comment" spellcheck="true">//如果e == current.data</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">compareTo</span><span class="token punctuation">(</span>current<span class="token punctuation">.</span>data<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    <span class="token comment" spellcheck="true">//pre指向它的后继</span>
+                    pre<span class="token punctuation">.</span>forwards<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>level<span class="token punctuation">,</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment" spellcheck="true">//设置删除标记</span>
+                    removed <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+                    <span class="token comment" spellcheck="true">//跳出循环内层循环</span>
+                    <span class="token keyword">break</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+                pre <span class="token operator">=</span> current<span class="token punctuation">;</span>
+                current <span class="token operator">=</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token comment" spellcheck="true">//继续搜索下一层</span>
+            level<span class="token operator">--</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>level <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token comment" spellcheck="true">//防止next(-1)</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token comment" spellcheck="true">//往下一层,从pre开始往下即可，不需要从头(header)开始</span>
+            current <span class="token operator">=</span> pre<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>removed<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            size<span class="token operator">--</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//不要忘记size--</span>
+            <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">/**
+     * 生成随机层数[0,maxLevel)
+     * 生成的值越大，概率越小
+     *
+     * @return
+     */</span>
+    <span class="token keyword">private</span> <span class="token keyword">int</span> <span class="token function">randomLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">int</span> level <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>Math<span class="token punctuation">.</span><span class="token function">random</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> PROBABILITY <span class="token operator">&amp;&amp;</span> level <span class="token operator">&lt;</span> maxLevel <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token operator">++</span>level<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> level<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">contains</span><span class="token punctuation">(</span>E e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        Node node <span class="token operator">=</span> <span class="token function">find</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> node <span class="token operator">!=</span> null <span class="token operator">&amp;&amp;</span> node<span class="token punctuation">.</span>data <span class="token operator">!=</span> null <span class="token operator">&amp;&amp;</span> node<span class="token punctuation">.</span>data<span class="token punctuation">.</span><span class="token function">compareTo</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> Iterator<span class="token operator">&lt;</span>E<span class="token operator">></span> <span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">SkipListIterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">class</span> <span class="token class-name">SkipListIterator</span> <span class="token keyword">implements</span> <span class="token class-name">Iterator</span><span class="token operator">&lt;</span>E<span class="token operator">></span> <span class="token punctuation">{</span>
+        Node current <span class="token operator">=</span> head<span class="token punctuation">;</span>
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">!=</span> null<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> E <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            current <span class="token operator">=</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> current<span class="token punctuation">.</span>data<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">class</span> <span class="token class-name">Node</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">//保存值</span>
+        E data<span class="token punctuation">;</span>
+        <span class="token comment" spellcheck="true">//保存了每一层上的节点信息，可能为null</span>
+        List<span class="token operator">&lt;</span>Node<span class="token operator">></span> forwards<span class="token punctuation">;</span>
+
+        <span class="token function">Node</span><span class="token punctuation">(</span>E data<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">this</span><span class="token punctuation">.</span>data <span class="token operator">=</span> data<span class="token punctuation">;</span>
+            forwards <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment" spellcheck="true">//事先把每一层都置为null，虽然空间利用率没那么高，但是简化了实现</span>
+            <span class="token comment" spellcheck="true">//也可以通过自定义列表(比如B树实现中用到的Vector)来实现，就可以不用下面的操作</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;=</span> maxLevel<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                forwards<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>null<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> String <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> data <span class="token operator">==</span> null <span class="token operator">?</span> <span class="token string">" "</span> <span class="token operator">:</span> <span class="token string">""</span> <span class="token operator">+</span> data<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token comment" spellcheck="true">/**
+         * 得到当前节点level层上的下一个(右边一个)节点
+         *
+         * @param level
+         * @return
+         */</span>
+        Node <span class="token function">next</span><span class="token punctuation">(</span><span class="token keyword">int</span> level<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span>forwards<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">//记录了第0层值对应的索引，从1开始</span>
+        Map<span class="token operator">&lt;</span>E<span class="token punctuation">,</span> Integer<span class="token operator">></span> indexMap <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashMap</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Node current <span class="token operator">=</span> head<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> index <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> maxWidth <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//值的最大宽度，为了格式化好看一点</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>current <span class="token operator">!=</span> null<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">int</span> curWidth <span class="token operator">=</span> current<span class="token punctuation">.</span>data<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">length</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>curWidth <span class="token operator">></span> maxWidth<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                maxWidth <span class="token operator">=</span> curWidth<span class="token punctuation">;</span><span class="token comment" spellcheck="true">//得到最大宽度</span>
+            <span class="token punctuation">}</span>
+            indexMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>current<span class="token punctuation">.</span>data<span class="token punctuation">,</span> index<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            current <span class="token operator">=</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token function">print</span><span class="token punctuation">(</span>indexMap<span class="token punctuation">,</span> maxWidth<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">print</span><span class="token punctuation">(</span><span class="token keyword">int</span> level<span class="token punctuation">,</span> Node current<span class="token punctuation">,</span> Map<span class="token operator">&lt;</span>E<span class="token punctuation">,</span> Integer<span class="token operator">></span> indexMap<span class="token punctuation">,</span> <span class="token keyword">int</span> width<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token string">"Level "</span> <span class="token operator">+</span> level <span class="token operator">+</span> <span class="token string">": "</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> preIndex <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//该层前一个元素的索引</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>current <span class="token operator">!=</span> null<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment" spellcheck="true">//当前元素的索引</span>
+            <span class="token keyword">int</span> curIndex <span class="token operator">=</span> indexMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>current<span class="token punctuation">.</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>level <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token comment" spellcheck="true">//第0层直接打印即可</span>
+                <span class="token function">printSpace</span><span class="token punctuation">(</span>curIndex <span class="token operator">-</span> preIndex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+                <span class="token comment" spellcheck="true">//其他层稍微复杂一点</span>
+                <span class="token comment" spellcheck="true">//计算空格数</span>
+                <span class="token comment" spellcheck="true">//相差的元素个数 + 相差的元素个数乘以宽度</span>
+                <span class="token keyword">int</span> num <span class="token operator">=</span> <span class="token punctuation">(</span>curIndex <span class="token operator">-</span> preIndex<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span>curIndex <span class="token operator">-</span> preIndex <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">*</span> width<span class="token punctuation">;</span>
+                <span class="token function">printSpace</span><span class="token punctuation">(</span>num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"%"</span> <span class="token operator">+</span> width <span class="token operator">+</span> <span class="token string">"s"</span><span class="token punctuation">,</span> current<span class="token punctuation">.</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            preIndex <span class="token operator">=</span> curIndex<span class="token punctuation">;</span>
+            current <span class="token operator">=</span> current<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">/**
+     * 打印num个空格
+     *
+     * @param num
+     */</span>
+    <span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">printSpace</span><span class="token punctuation">(</span><span class="token keyword">int</span> num<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> num<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token string">' '</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">print</span><span class="token punctuation">(</span>Map<span class="token operator">&lt;</span>E<span class="token punctuation">,</span> Integer<span class="token operator">></span> map<span class="token punctuation">,</span> <span class="token keyword">int</span> width<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">//从顶层开始打印</span>
+        <span class="token keyword">int</span> level <span class="token operator">=</span> curLevel<span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>level <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">print</span><span class="token punctuation">(</span>level<span class="token punctuation">,</span> head<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">,</span> map<span class="token punctuation">,</span> width<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            level<span class="token operator">--</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span>String<span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">//Random random = new Random();</span>
+        <span class="token comment" spellcheck="true">//int[] values = random.ints(2000, 1, 10000).toArray();</span>
+        <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> values <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">9</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+        SkipList<span class="token operator">&lt;</span>Integer<span class="token operator">></span> list <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">SkipList</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> value <span class="token operator">:</span> values<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment" spellcheck="true">//System.out.println("add: " + value);</span>
+            list<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment" spellcheck="true">//list.print();</span>
+            <span class="token comment" spellcheck="true">//System.out.println();</span>
+        <span class="token punctuation">}</span>
+
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"before remove:"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        list<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> value <span class="token operator">:</span> values<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            list<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"remove: "</span> <span class="token operator">+</span> value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            list<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="复杂度"><a href="#复杂度" class="headerlink" title="复杂度"></a>复杂度</h1><h2 id="空间复杂度"><a href="#空间复杂度" class="headerlink" title="空间复杂度"></a>空间复杂度</h2><p>跳表会不会很浪费内存？建立的索引必然会占用内存，但是会占用多少呢？我们来分析一下。</p>
+<p>假设原始链表大小为nnn,那么第1层索引大约有n2\frac{n}{2}2n个节点，第2层有n4\frac{n}{4}4n个节点，依次类推，直到最后剩下2个节点，总数为：n2+n4+n8+…+8+4+2=n−2\frac{n}{2} + \frac{n}{4} + \frac{n}{8} + … + 8 + 4 + 2 = n - 22n+4n+8n+…+8+4+2=n−2，因此空间复杂度是O(n)O(n)O(n)</p>
+<h2 id="时间复杂度"><a href="#时间复杂度" class="headerlink" title="时间复杂度"></a>时间复杂度</h2><p>上文说了，查找的时间复杂度为O(logn)O(\log n)O(logn)，根据上面的图解，也不难理解，其实插入和删除都是在一次查找过程中实现的。<br>插入和删除的复杂度也是O(logn)O(\log n)O(logn)</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%AE%97%E6%B3%95/" rel="tag"># 算法</a>
+              <a href="/tags/redis/" rel="tag"># redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/28/old/mybatis-3-parameter%E5%92%8Cresult%E8%AE%BE%E7%BD%AE/" rel="prev" title="mybatis#3-parameter和result设置">
+      <i class="fa fa-chevron-left"></i> mybatis#3-parameter和result设置
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/30/old/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/" rel="next" title="mybatis#4-连接池">
+      mybatis#4-连接池 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#引言"><span class="nav-text">引言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#特性"><span class="nav-text">特性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实现"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#结构"><span class="nav-text">结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查找"><span class="nav-text">查找</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插入"><span class="nav-text">插入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#删除"><span class="nav-text">删除</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整代码"><span class="nav-text">完整代码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#复杂度"><span class="nav-text">复杂度</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#空间复杂度"><span class="nav-text">空间复杂度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#时间复杂度"><span class="nav-text">时间复杂度</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

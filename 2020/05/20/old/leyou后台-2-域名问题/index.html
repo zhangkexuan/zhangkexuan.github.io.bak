@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="实际开发中,有各种各样的环境,为了保证所有环境的一致，我们会在各种环境下都使用域名来访问。主要有  域名解析问题  端口问题   之后还会出现跨域访问问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="leyou后台#2-域名问题">
+<meta property="og:url" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="实际开发中,有各种各样的环境,为了保证所有环境的一致，我们会在各种环境下都使用域名来访问。主要有  域名解析问题  端口问题   之后还会出现跨域访问问题">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530556073565.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530382550630.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530382601757.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530383586463.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530383612716.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530383927461.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1532578408206.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1526187409033.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1526016663674.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/0C36B84E.gif">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530556268445.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530384792790.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1526188831504.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1532579488518.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530385593052.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1526189945180.png">
+<meta property="article:published_time" content="2020-05-19T18:20:44.000Z">
+<meta property="article:modified_time" content="2020-05-19T18:20:44.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="vue.js">
+<meta property="article:tag" content="nginx">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/1530556073565.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>leyou后台#2-域名问题 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/20/old/leyou%E5%90%8E%E5%8F%B0-2-%E5%9F%9F%E5%90%8D%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          leyou后台#2-域名问题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-20 02:20:44" itemprop="dateCreated datePublished" datetime="2020-05-20T02:20:44+08:00">2020-05-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leyou/" itemprop="url" rel="index"><span itemprop="name">leyou</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>实际开发中,有各种各样的环境,为了保证所有环境的一致，我们会在各种环境下都使用域名来访问。主要有</p>
+<ul>
+<li><p>域名解析问题</p>
+</li>
+<li><p>端口问题</p>
+</li>
+</ul>
+<p>之后还会出现跨域访问问题</p>
+<a id="more"></a>
+
+
+
+<h1 id="1-使用域名访问本地项目"><a href="#1-使用域名访问本地项目" class="headerlink" title="1.使用域名访问本地项目"></a>1.使用域名访问本地项目</h1><h2 id="1-1-统一环境"><a href="#1-1-统一环境" class="headerlink" title="1.1.统一环境"></a>1.1.统一环境</h2><p>我们现在访问页面使用的是：<a href="http://localhost:9001" target="_blank" rel="noopener">http://localhost:9001</a></p>
+<p>有没有什么问题？</p>
+<p>实际开发中，会有不同的环境：</p>
+<ul>
+<li>开发环境：自己的电脑</li>
+<li>测试环境：提供给测试人员使用的环境</li>
+<li>预发布环境：数据是和生成环境的数据一致，运行最新的项目代码进去测试</li>
+<li>生产环境：项目最终发布上线的环境</li>
+</ul>
+<p>如果不同环境使用不同的ip去访问，可能会出现一些问题。为了保证所有环境的一致，我们会在各种环境下都使用域名来访问。</p>
+<p>我们将使用以下域名：</p>
+<ul>
+<li>主域名是：<a href="http://www.leyou.com，leyou.com" target="_blank" rel="noopener">www.leyou.com，leyou.com</a> </li>
+<li>管理系统域名：manage.leyou.com</li>
+<li>网关域名：api.leyou.com</li>
+<li>…</li>
+</ul>
+<p>但是最终，我们希望这些域名指向的还是我们本机的某个端口。</p>
+<p>那么，当我们在浏览器输入一个域名时，浏览器是如何找到对应服务的ip和端口的呢？</p>
+<h2 id="1-2-域名解析"><a href="#1-2-域名解析" class="headerlink" title="1.2.域名解析"></a>1.2.域名解析</h2><p>一个域名一定会被解析为一个或多个ip。这一般会包含两步：</p>
+<ul>
+<li><p>本地域名解析</p>
+<p>浏览器会首先在本机的hosts文件中查找域名映射的IP地址，如果查找到就返回IP ，没找到则进行域名服务器解析，一般本地解析都会失败，因为默认这个文件是空的。</p>
+<ul>
+<li>Windows下的hosts文件地址：C:/Windows/System32/drivers/etc/hosts</li>
+<li>Linux下的hosts文件所在路径： /etc/hosts </li>
+</ul>
+<p>样式：</p>
+<pre><code># My hosts
+127.0.0.1 localhost</code></pre></li>
+<li><p>域名服务器解析</p>
+<p>本地解析失败，才会进行域名服务器解析，域名服务器就是网络中的一台计算机，里面记录了所有注册备案的域名和ip映射关系，一般只要域名是正确的，并且备案通过，一定能找到。</p>
+</li>
+</ul>
+<h2 id="1-3-解决域名解析问题"><a href="#1-3-解决域名解析问题" class="headerlink" title="1.3.解决域名解析问题"></a>1.3.解决域名解析问题</h2><p>我们不可能去购买一个域名，因此我们可以伪造本地的hosts文件，实现对域名的解析。修改本地的host为：</p>
+<pre><code>127.0.0.1 api.leyou.com
+127.0.0.1 manage.leyou.com</code></pre><p>这样就实现了域名的关系映射了。</p>
+<p>每次在C盘寻找hosts文件并修改是非常麻烦的，给大家推荐一个快捷修改host的工具，在课前资料中可以找到：</p>
+<p><img src="1530556073565.png" alt="1530556073565"></p>
+<p>解压，运行exe文件，效果：</p>
+<p><img src="1530382550630.png" alt="1530382550630"></p>
+<p>我们添加了两个映射关系（中间用空格隔开）：</p>
+<ul>
+<li>127.0.0.1 api.leyou.com ：我们的网关Zuul</li>
+<li>127.0.0.1 manage.leyou.com：我们的后台系统地址</li>
+</ul>
+<p>现在，ping一下域名试试是否畅通：</p>
+<p><img src="1530382601757.png" alt="1530382601757"></p>
+<p>OK！</p>
+<p>通过域名访问：</p>
+<p><img src="1530383586463.png" alt="1530383586463"></p>
+<p>原因：我们配置了项目访问的路径，虽然manage.leyou.com映射的ip也是127.0.0.1，但是webpack会验证host是否符合配置。</p>
+<p><img src="1530383612716.png" alt="1530383612716"></p>
+<p>在webpack.dev.conf.js中取消host验证：<code>disableHostCheck: true</code></p>
+<p><img src="1530383927461.png" alt="1530383927461"></p>
+<p>重新执行<code>npm run dev</code>，刷新浏览器：</p>
+<p><img src="1532578408206.png" alt="1532578408206"></p>
+<p>OK！</p>
+<h2 id="1-4-nginx解决端口问题"><a href="#1-4-nginx解决端口问题" class="headerlink" title="1.4.nginx解决端口问题"></a>1.4.nginx解决端口问题</h2><p>域名问题解决了，但是现在要访问后台页面，还得自己加上端口：<code>http://manage.taotao.com:9001</code>。</p>
+<p>这就不够优雅了。我们希望的是直接域名访问：<code>http://manage.taotao.com</code>。这种情况下端口默认是80，如何才能把请求转移到9001端口呢？</p>
+<p>这里就要用到反向代理工具：Nginx</p>
+<h3 id="1-4-1-什么是Nginx"><a href="#1-4-1-什么是Nginx" class="headerlink" title="1.4.1.什么是Nginx"></a>1.4.1.什么是Nginx</h3><p> <img src="1526187409033.png" alt="1526187409033"></p>
+<p>nginx可以作为web服务器，但更多的时候，我们把它作为网关，因为它具备网关必备的功能：</p>
+<ul>
+<li>反向代理</li>
+<li>负载均衡</li>
+<li>动态路由</li>
+<li>请求过滤</li>
+</ul>
+<h3 id="1-4-2-nginx作为web服务器"><a href="#1-4-2-nginx作为web服务器" class="headerlink" title="1.4.2.nginx作为web服务器"></a>1.4.2.nginx作为web服务器</h3><p>Web服务器分2类：</p>
+<ul>
+<li>web应用服务器，如：<ul>
+<li>tomcat </li>
+<li>resin</li>
+<li>jetty</li>
+</ul>
+</li>
+<li>web服务器，如：<ul>
+<li>Apache 服务器 </li>
+<li>Nginx</li>
+<li>IIS  </li>
+</ul>
+</li>
+</ul>
+<p>区分：web服务器不能解析jsp等页面，只能处理js、css、html等静态资源。<br>并发：web服务器的并发能力远高于web应用服务器。</p>
+<h3 id="1-4-3-nginx作为反向代理"><a href="#1-4-3-nginx作为反向代理" class="headerlink" title="1.4.3.nginx作为反向代理"></a>1.4.3.nginx作为反向代理</h3><p>什么是反向代理？</p>
+<ul>
+<li>代理：通过客户机的配置，实现让一台服务器代理客户机，客户的所有请求都交给代理服务器处理。</li>
+<li>反向代理：用一台服务器，代理真实服务器，用户访问时，不再是访问真实服务器，而是代理服务器。</li>
+</ul>
+<p>nginx可以当做反向代理服务器来使用：</p>
+<ul>
+<li>我们需要提前在nginx中配置好反向代理的规则，不同的请求，交给不同的真实服务器处理</li>
+<li>当请求到达nginx，nginx会根据已经定义的规则进行请求的转发，从而实现路由功能</li>
+</ul>
+<p>利用反向代理，就可以解决我们前面所说的端口问题，如图</p>
+<p><img src="1526016663674.png" alt="1526016663674"></p>
+<h3 id="1-4-4-安装和使用"><a href="#1-4-4-安装和使用" class="headerlink" title="1.4.4.安装和使用"></a>1.4.4.安装和使用</h3><blockquote>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3></blockquote>
+<p>安装非常简单，把课前资料提供的nginx直接解压即可，绿色免安装，舒服！</p>
+<p><img src="0C36B84E.gif" alt="img"> </p>
+<p>我们在本地安装一台nginx：</p>
+<p><img src="1530556268445.png" alt="1530556268445"></p>
+<p>解压后，目录结构：</p>
+<p><img src="1530384792790.png" alt="1530384792790"></p>
+<ol>
+<li>conf：配置目录</li>
+<li>contrib：第三方依赖</li>
+<li>html：默认的静态资源目录，类似于tomcat的webapps</li>
+<li>logs：日志目录</li>
+<li>nginx.exe：启动程序。可双击运行，但不建议这么做。</li>
+</ol>
+<blockquote>
+<h3 id="反向代理配置"><a href="#反向代理配置" class="headerlink" title="反向代理配置"></a>反向代理配置</h3></blockquote>
+<p>示例：</p>
+<p> <img src="1526188831504.png" alt="1526188831504"></p>
+<p>nginx中的每个server就是一个反向代理配置，可以有多个server</p>
+<p>完整配置：</p>
+<pre class="line-numbers language-nginx"><code class="language-nginx"><span class="token comment" spellcheck="true">#user  nobody;</span>
+<span class="token keyword">worker_processes</span>  <span class="token number">1</span><span class="token punctuation">;</span>
+
+<span class="token keyword">events</span> <span class="token punctuation">{</span>
+    <span class="token keyword">worker_connections</span>  <span class="token number">1024</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">http</span> <span class="token punctuation">{</span>
+    <span class="token keyword">include</span>       mime<span class="token punctuation">.</span><span class="token keyword">types</span><span class="token punctuation">;</span>
+    <span class="token keyword">default_type</span>  application<span class="token operator">/</span>octet<span class="token operator">-</span>stream<span class="token punctuation">;</span>
+    <span class="token keyword">sendfile</span>        on<span class="token punctuation">;</span>
+
+    <span class="token keyword">keepalive_timeout</span>  <span class="token number">65</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">gzip</span>  on<span class="token punctuation">;</span>
+    <span class="token keyword">server</span> <span class="token punctuation">{</span>
+        <span class="token keyword">listen</span>       <span class="token number">80</span><span class="token punctuation">;</span>
+        <span class="token keyword">server_name</span>  manage<span class="token punctuation">.</span>leyou<span class="token punctuation">.</span>com<span class="token punctuation">;</span>
+
+        <span class="token keyword">proxy_set_header</span> X<span class="token operator">-</span>Forwarded<span class="token operator">-</span>Host <span class="token variable">$host</span><span class="token punctuation">;</span>
+        <span class="token keyword">proxy_set_header</span> X<span class="token operator">-</span>Forwarded<span class="token operator">-</span><span class="token keyword">Server</span> <span class="token variable">$host</span><span class="token punctuation">;</span>
+        <span class="token keyword">proxy_set_header</span> X<span class="token operator">-</span>Forwarded<span class="token operator">-</span>For <span class="token variable">$proxy_add_x_forwarded_for</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">location</span> <span class="token operator">/</span> <span class="token punctuation">{</span>
+            <span class="token keyword">proxy_pass</span> <span class="token keyword">http</span><span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span><span class="token number">127.0</span><span class="token punctuation">.</span><span class="token number">0.1</span><span class="token punctuation">:</span><span class="token number">9001</span><span class="token punctuation">;</span>
+            <span class="token keyword">proxy_connect_timeout</span> <span class="token number">600</span><span class="token punctuation">;</span>
+            <span class="token keyword">proxy_read_timeout</span> <span class="token number">600</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">server</span> <span class="token punctuation">{</span>
+        <span class="token keyword">listen</span>       <span class="token number">80</span><span class="token punctuation">;</span>
+        <span class="token keyword">server_name</span>  api<span class="token punctuation">.</span>leyou<span class="token punctuation">.</span>com<span class="token punctuation">;</span>
+
+        <span class="token keyword">proxy_set_header</span> X<span class="token operator">-</span>Forwarded<span class="token operator">-</span>Host <span class="token variable">$host</span><span class="token punctuation">;</span>
+        <span class="token keyword">proxy_set_header</span> X<span class="token operator">-</span>Forwarded<span class="token operator">-</span><span class="token keyword">Server</span> <span class="token variable">$host</span><span class="token punctuation">;</span>
+        <span class="token keyword">proxy_set_header</span> X<span class="token operator">-</span>Forwarded<span class="token operator">-</span>For <span class="token variable">$proxy_add_x_forwarded_for</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">location</span> <span class="token operator">/</span> <span class="token punctuation">{</span>
+            <span class="token keyword">proxy_pass</span> <span class="token keyword">http</span><span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span><span class="token number">127.0</span><span class="token punctuation">.</span><span class="token number">0.1</span><span class="token punctuation">:</span><span class="token number">10010</span><span class="token punctuation">;</span>
+            <span class="token keyword">proxy_connect_timeout</span> <span class="token number">600</span><span class="token punctuation">;</span>
+            <span class="token keyword">proxy_read_timeout</span> <span class="token number">600</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<blockquote>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3></blockquote>
+<p>nginx可以通过命令行来启动，操作命令：</p>
+<ul>
+<li>启动：<code>start nginx.exe</code></li>
+<li>停止：<code>nginx.exe -s stop</code></li>
+<li>重新加载：<code>nginx.exe -s reload</code></li>
+</ul>
+<p>启动过程会闪烁一下，启动成功后，任务管理器中会有两个nginx进程：</p>
+<p> <img src="1532579488518.png" alt="1532579488518"></p>
+<h2 id="1-5-测试"><a href="#1-5-测试" class="headerlink" title="1.5.测试"></a>1.5.测试</h2><p>启动nginx，然后用域名访问后台管理系统：</p>
+<p><img src="1530385593052.png" alt="1530385593052"></p>
+<p>现在实现了域名访问网站了，中间的流程是怎样的呢？</p>
+<p><img src="1526189945180.png" alt="1526189945180"></p>
+<ol>
+<li><p>浏览器准备发起请求，访问<a href="http://mamage.leyou.com，但需要进行域名解析" target="_blank" rel="noopener">http://mamage.leyou.com，但需要进行域名解析</a></p>
+</li>
+<li><p>优先进行本地域名解析，因为我们修改了hosts，所以解析成功，得到地址：127.0.0.1</p>
+</li>
+<li><p>请求被发往解析得到的ip，并且默认使用80端口：<a href="http://127.0.0.1:80" target="_blank" rel="noopener">http://127.0.0.1:80</a></p>
+<p>本机的nginx一直监听80端口，因此捕获这个请求</p>
+</li>
+<li><p>nginx中配置了反向代理规则，将manage.leyou.com代理到127.0.0.1:9001，因此请求被转发</p>
+</li>
+<li><p>后台系统的webpack server监听的端口是9001，得到请求并处理，完成后将响应返回到nginx</p>
+</li>
+<li><p>nginx将得到的结果返回到浏览器</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/vue-js/" rel="tag"># vue.js</a>
+              <a href="/tags/nginx/" rel="tag"># nginx</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/19/old/leyou%E5%90%8E%E5%8F%B0-1-Vuetify%E3%80%81%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84/" rel="prev" title="leyou后台#1-Vuetify、目录结构">
+      <i class="fa fa-chevron-left"></i> leyou后台#1-Vuetify、目录结构
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/21/old/leyou%E5%90%8E%E5%8F%B0-3-%E5%88%86%E7%B1%BB%E6%9F%A5%E8%AF%A2%E5%92%8C%E5%93%81%E7%89%8C%E6%9F%A5%E8%AF%A2/" rel="next" title="leyou后台#3-分类查询和品牌查询">
+      leyou后台#3-分类查询和品牌查询 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-使用域名访问本地项目"><span class="nav-text">1.使用域名访问本地项目</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-统一环境"><span class="nav-text">1.1.统一环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-域名解析"><span class="nav-text">1.2.域名解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-解决域名解析问题"><span class="nav-text">1.3.解决域名解析问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-4-nginx解决端口问题"><span class="nav-text">1.4.nginx解决端口问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-1-什么是Nginx"><span class="nav-text">1.4.1.什么是Nginx</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-2-nginx作为web服务器"><span class="nav-text">1.4.2.nginx作为web服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-3-nginx作为反向代理"><span class="nav-text">1.4.3.nginx作为反向代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-4-安装和使用"><span class="nav-text">1.4.4.安装和使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装"><span class="nav-text">安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#反向代理配置"><span class="nav-text">反向代理配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用"><span class="nav-text">使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-5-测试"><span class="nav-text">1.5.测试</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

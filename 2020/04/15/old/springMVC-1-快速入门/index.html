@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="介绍springMVC的概念，并且建立快速入门案例。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="springMVC#1-快速入门">
+<meta property="og:url" content="http://yoursite.com/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="介绍springMVC的概念，并且建立快速入门案例。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1587104193796.png">
+<meta property="og:image" content="http://yoursite.com/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1587104407320.png">
+<meta property="og:image" content="http://yoursite.com/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1587378201500.png">
+<meta property="og:image" content="http://yoursite.com/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1587378353897.png">
+<meta property="article:published_time" content="2020-04-15T05:19:49.000Z">
+<meta property="article:modified_time" content="2020-04-15T05:19:49.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="springMVC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1587104193796.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>springMVC#1-快速入门 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          springMVC#1-快速入门
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-15 13:19:49" itemprop="dateCreated datePublished" datetime="2020-04-15T13:19:49+08:00">2020-04-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>介绍springMVC的概念，并且建立快速入门案例。</p>
+<a id="more"></a>
+
+<h1 id="SpringMVC-的基本概念"><a href="#SpringMVC-的基本概念" class="headerlink" title="SpringMVC 的基本概念"></a>SpringMVC 的基本概念</h1><h2 id="关于三层架构和MVC"><a href="#关于三层架构和MVC" class="headerlink" title="关于三层架构和MVC"></a>关于三层架构和MVC</h2><h3 id="三层架构"><a href="#三层架构" class="headerlink" title="三层架构"></a>三层架构</h3><p>我们的开发架构一般都是基于两种形式，一种是 C/S 架构，也就是客户端/服务器，另一种是 B/S 架构，也就是浏览器服务器。在 JavaEE 开发中，几乎全都是基于 B/S 架构的开发。那么在 B/S 架构中，系统标准的三层架构包括：表现层、业务层、持久层。三层架构在我们的实际开发中使用的非常多，所以我们课程中的案例也都是基于三层架构设计的。</p>
+<p><img src="1587104193796.png" alt="1587104193796"></p>
+<p>三层架构中，每一层各司其职，接下来我们就说说每层都负责哪些方面：</p>
+<ul>
+<li><p>表现层：</p>
+<ul>
+<li><p>也就是我们常说的web层。它负责接收客户端请求，向客户端响应结果，通常客户端使用http协议请求web层，web需要接收http请求，完成http响应。</p>
+</li>
+<li><p>表现层包括展示层和控制层：控制层负责接收请求，展示层负责结果的展示。</p>
+</li>
+<li><p>表现层依赖业务层，接收到客户端请求一般会调用业务层进行业务处理，并将处理结果响应给客户端。</p>
+</li>
+<li><p>表现层的设计一般都使用MVC模型。（MVC是表现层的设计模型，和其他层没有关系）</p>
+</li>
+</ul>
+</li>
+<li><p>业务层：</p>
+<ul>
+<li><p>也就是我们常说的 service 层。它负责业务逻辑处理，和我们开发项目的需求息息相关。web 层依赖业务层，但是业务层不依赖 web 层。</p>
+</li>
+<li><p>业务层在业务处理时可能会依赖持久层，如果要对数据持久化需要保证事务一致性。（也就是我们说的，事务应该放到业务层来控制）</p>
+</li>
+</ul>
+</li>
+<li><p>持久层：</p>
+<ul>
+<li>也就是我们是常说的 dao 层。负责数据持久化，包括数据层即数据库和数据访问层，数据库是对数据进行持久化的载体，数据访问层是业务层和持久层交互的接口，业务层需要通过数据访问层将数据持久化到数据库中。通俗的讲，持久层就是和数据库交互，对数据库表进行增删改查</li>
+</ul>
+</li>
+</ul>
+<h3 id="MVC-模型"><a href="#MVC-模型" class="headerlink" title="MVC 模型"></a>MVC 模型</h3><p>MVC 全名是 <code>Model View Controller</code>，是模型(model)－视图(view)－控制器(controller)的缩写，是一种用于设计创建 Web 应用程序表现层的模式。MVC 中每个部分各司其职：</p>
+<ul>
+<li><p>Model（模型）：通常指的就是我们的数据模型。作用一般情况下用于封装数据。</p>
+</li>
+<li><p>View（视图）：通常指的就是我们的 jsp 或者 html。作用一般就是展示数据的。通常视图是依据模型数据创建</p>
+</li>
+<li><p>Controller（控制器）：是应用程序中处理用户交互的部分。作用一般就是处理程序逻辑的。</p>
+<ul>
+<li>它相对于前两个不是很好理解，这里举个例子：我们要保存一个用户的信息，该用户信息中包含了姓名，性别，年龄等等。这时候表单输入要求年龄必须是 1~100 之间的整数。姓名和性别不能为空。并且把数据填充到模型之中。此时除了 js 的校验之外，服务器端也应该有数据准确性的校验，那么校验就是控制器的该做的。当校验失败后，由控制器负责把错误页面展示给使用者。如果校验成功，也是控制器负责把数据填充到模型，并且调用业务层实现完整的业务需求。</li>
+</ul>
+</li>
+</ul>
+<h2 id="SpringMVC-概述"><a href="#SpringMVC-概述" class="headerlink" title="SpringMVC 概述"></a>SpringMVC 概述</h2><h3 id="SpringMVC-是什么"><a href="#SpringMVC-是什么" class="headerlink" title="SpringMVC 是什么"></a>SpringMVC 是什么</h3><p>SpringMVC是一种基于Java的实现MVC设计模型的请求驱动类型的轻量级Web框架，属于<code>Spring FrameWork</code>的后续产品，已经融合在<code>Spring Web Flow</code>里面。Spring框架提供了构建Web应用程序的全功能MVC模块。使用Spring可插入的MVC架构，从而在使用Spring进行WEB开发时，可以选择使用Spring的Spring MVC框架或集成其他MVC开发框架，如Struts1(现在一般不用)，Struts2等。SpringMVC已经成为目前最主流的MVC框架之一，并且随着Spring3.0的发布，全面超越 Struts2，成为最优秀的MVC框架。它通过一套注解，让一个简单的Java类成为处理请求的控制器，而无须实现任何接口。同时它还支持<code>RESTful</code>编程风格的请求。</p>
+<h3 id="SpringMVC-在三层架构的位置"><a href="#SpringMVC-在三层架构的位置" class="headerlink" title="SpringMVC 在三层架构的位置"></a>SpringMVC 在三层架构的位置</h3><p><img src="1587104407320.png" alt="1587104407320"></p>
+<h3 id="SpringMVC-的优势"><a href="#SpringMVC-的优势" class="headerlink" title="SpringMVC 的优势"></a>SpringMVC 的优势</h3><ol>
+<li><p>清晰的角色划分：</p>
+<ul>
+<li>前端控制器（DispatcherServlet）</li>
+<li>请求到处理器映射（HandlerMapping）</li>
+<li>处理器适配器（HandlerAdapter）</li>
+<li>视图解析器（ViewResolver）</li>
+<li>处理器或页面控制器（Controller）</li>
+<li>验证器（ Validator）</li>
+<li>命令对象（Command 请求参数绑定到的对象就叫命令对象）</li>
+<li>表单对象（Form Object 提供给表单展示和提交到的对象就叫表单对象）。</li>
+</ul>
+</li>
+<li><p>分工明确，而且扩展点相当灵活，可以很容易扩展，虽然几乎不需要。</p>
+</li>
+<li><p>由于命令对象就是一个 POJO，无需继承框架特定 API，可以使用命令对象直接作为业务对象。</p>
+</li>
+<li><p>和 Spring 其他框架无缝集成，是其它 Web 框架所不具备的。</p>
+</li>
+<li><p>可适配，通过<code>HandlerAdapter</code>可以支持任意的类作为处理器。</p>
+</li>
+<li><p>可定制性，<code>HandlerMapping</code>、<code>ViewResolver</code> 等能够非常简单的定制。</p>
+</li>
+<li><p>功能强大的数据验证、格式化、绑定机制。</p>
+</li>
+<li><p>利用 Spring 提供的 <code>Mock</code> 对象能够非常简单的进行 Web 层单元测试。</p>
+</li>
+<li><p>本地化、主题的解析的支持，使我们更容易进行国际化和主题的切换。</p>
+</li>
+<li><p>强大的 JSP 标签库，使 JSP 编写更容易。</p>
+</li>
+<li><p>还有比如<code>RESTful</code>风格的支持、简单的文件上传、约定大于配置的契约式编程支持、基于注解的零配置支持等</p>
+</li>
+</ol>
+<h3 id="SpringMVC-和-Struts2-的优略分析"><a href="#SpringMVC-和-Struts2-的优略分析" class="headerlink" title="SpringMVC 和 Struts2 的优略分析"></a>SpringMVC 和 Struts2 的优略分析</h3><ul>
+<li><p>共同点</p>
+<ul>
+<li>它们都是表现层框架，都是基于 MVC 模型编写的。</li>
+<li>它们的底层都离不开原始 ServletAPI。</li>
+<li>它们处理请求的机制都是一个核心控制器。</li>
+</ul>
+</li>
+<li><p>区别</p>
+<ul>
+<li><p>Spring MVC 的入口是 Servlet, 而 Struts2 是 Filter </p>
+</li>
+<li><p>Spring MVC 是基于方法设计的，而 Struts2 是基于类，Struts2 每次执行都会创建一个动作类。所以 Spring MVC 会稍微比 Struts2 快些。</p>
+</li>
+<li><p>Spring MVC 使用更加简洁,同时还支持 JSR303, 处理 ajax 的请求更方便</p>
+<blockquote>
+<p>JSR303 是一套 JavaBean 参数校验的标准，它定义了很多常用的校验注解，我们可以直接将这些注解加在我们 JavaBean 的属性上面，就可以在需要校验的时候进行校验了。</p>
+</blockquote>
+</li>
+<li><p>Struts2 的 OGNL 表达式使页面的开发效率相比 Spring MVC 更高些，但执行效率并没有比 JSTL 提升，尤其是 struts2 的表单标签，远没有 html 执行效率</p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="SpringMVC-的入门"><a href="#SpringMVC-的入门" class="headerlink" title="SpringMVC 的入门"></a>SpringMVC 的入门</h1><p>先贴入门案例，在分析：</p>
+<h2 id="入门源码："><a href="#入门源码：" class="headerlink" title="入门源码："></a>入门源码：</h2><h3 id="webapp"><a href="#webapp" class="headerlink" title="webapp"></a>webapp</h3><p>web.xml的配置文件：</p>
+<pre class="line-numbers language-xml"><code class="language-xml"><span class="token doctype">&lt;!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" ></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>web-app</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>display-name</span><span class="token punctuation">></span></span>Archetype Created Web Application<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>display-name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>servlet</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>servlet-name</span><span class="token punctuation">></span></span>SpringMVCDispatcherServlet<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>servlet-name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>servlet-class</span><span class="token punctuation">></span></span>
+            org.springframework.web.servlet.DispatcherServlet
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>servlet-class</span><span class="token punctuation">></span></span>
+        <span class="token comment" spellcheck="true">&lt;!-- 配置初始化参数,用于读取 SpringMVC 的配置文件 --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init-param</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>param-name</span><span class="token punctuation">></span></span>contextConfigLocation<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>param-name</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>param-value</span><span class="token punctuation">></span></span>classpath:springMVC.xml<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>param-value</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>init-param</span><span class="token punctuation">></span></span>
+        <span class="token comment" spellcheck="true">&lt;!-- 配置 servlet 的对象的创建时间点:应用加载时创建。
+    取值只能是非 0 正整数,表示启动顺序 --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>load-on-startup</span><span class="token punctuation">></span></span>1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>load-on-startup</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>servlet</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>servlet-mapping</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>servlet-name</span><span class="token punctuation">></span></span>SpringMVCDispatcherServlet<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>servlet-name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url-pattern</span><span class="token punctuation">></span></span>/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url-pattern</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>servlet-mapping</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>web-app</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>index.jsp</p>
+<pre class="line-numbers language-jsp"><code class="language-jsp"><%--
+    Created by IntelliJ IDEA.
+    User: zhangkx
+  Date: 2020/4/20
+      Time: 下午6:10
+          To change this template use File | Settings | File Templates.
+          --%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+    <head>
+        <title>入门</title>
+    <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+    <body>
+        <a href="hello">进入controller</a>
+    </body>
+</html><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>pages中 的跳转success.jsp</p>
+<pre class="line-numbers language-jsp"><code class="language-jsp"><%--
+    Created by IntelliJ IDEA.
+    User: zhangkx
+  Date: 2020/4/20
+      Time: 下午6:09
+          To change this template use File | Settings | File Templates.
+          --%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+    <head>
+        <title>Title</title>
+    </head>
+    <body>
+        <h1>success!!!!</h1>
+    </body>
+</html><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="resource"><a href="#resource" class="headerlink" title="resource"></a>resource</h3><p>springMVC.xml配置文件</p>
+<pre class="line-numbers language-xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>beans</span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>http://www.springframework.org/schema/beans<span class="token punctuation">"</span></span>
+       <span class="token attr-name"><span class="token namespace">xmlns:</span>mvc</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>http://www.springframework.org/schema/mvc<span class="token punctuation">"</span></span>
+       <span class="token attr-name"><span class="token namespace">xmlns:</span>context</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>http://www.springframework.org/schema/context<span class="token punctuation">"</span></span>
+       <span class="token attr-name"><span class="token namespace">xmlns:</span>xsi</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>http://www.w3.org/2001/XMLSchema-instance<span class="token punctuation">"</span></span>
+       <span class="token attr-name"><span class="token namespace">xsi:</span>schemaLocation</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/mvc
+                           http://www.springframework.org/schema/mvc/spring-mvc.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token comment" spellcheck="true">&lt;!-- 配置创建 spring 容器要扫描的包 --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">context:</span>component-scan</span> <span class="token attr-name">base-package</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>uestc.zhangkx<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+    <span class="token comment" spellcheck="true">&lt;!-- 配置视图解析器 --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>bean</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>internalResourceViewResolver<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>org.springframework.web.servlet.view.InternalResourceViewResolver<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>prefix<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>/WEB-INF/pages/<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>suffix<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>.jsp<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>bean</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>beans</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="controller"><a href="#controller" class="headerlink" title="controller"></a>controller</h3><pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">package</span> uestc<span class="token punctuation">.</span>zhangkx<span class="token punctuation">.</span>controller<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>stereotype<span class="token punctuation">.</span>Controller<span class="token punctuation">;</span>
+<span class="token keyword">import</span> org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>bind<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span>RequestMapping<span class="token punctuation">;</span>
+
+<span class="token annotation punctuation">@Controller</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">HelloController</span> <span class="token punctuation">{</span>
+
+    <span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/hello"</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> String <span class="token function">sayHello</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"HelloController 的 sayHello 方法执行了。。。。"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token string">"success"</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="简单分析"><a href="#简单分析" class="headerlink" title="简单分析"></a>简单分析</h2><p>先看看执行流程：</p>
+<p><img src="1587378201500.png" alt="1587378201500"></p>
+<p>说的很明白了，大致可以分为下面几步：</p>
+<ol>
+<li>当启动Tomcat服务器的时候,因为配置了<code>load-on-startup</code>标签,所以会创建<code>DispatcherServlet</code>对象,<br> 就会加载<code>springmvc.xml</code>配置文件</li>
+<li>开启了注解扫描,那么<code>HelloController</code>对象就会被创建</li>
+<li>从<code>index.jsp</code>发送请求,请求会先到达<code>DispatcherServlet</code>核心控制器,根据配置<code>@RequestMapping</code>注解<br> 找到执行的具体方法</li>
+<li>根据执行方法的返回值,再根据配置的视图解析器,去指定的目录下查找指定名称的JSP文件</li>
+<li>Tomcat服务器渲染页面,做出响应</li>
+</ol>
+<p><img src="1587378353897.png" alt="1587378353897"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/springMVC/" rel="tag"># springMVC</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/14/old/spring-8-spring%E4%BA%8B%E5%8A%A1/" rel="prev" title="spring#8-spring事务">
+      <i class="fa fa-chevron-left"></i> spring#8-spring事务
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/16/old/debug%E6%97%A5%E8%AE%B0-1/" rel="next" title="debug日记#1">
+      debug日记#1 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SpringMVC-的基本概念"><span class="nav-text">SpringMVC 的基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#关于三层架构和MVC"><span class="nav-text">关于三层架构和MVC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#三层架构"><span class="nav-text">三层架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MVC-模型"><span class="nav-text">MVC 模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SpringMVC-概述"><span class="nav-text">SpringMVC 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SpringMVC-是什么"><span class="nav-text">SpringMVC 是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SpringMVC-在三层架构的位置"><span class="nav-text">SpringMVC 在三层架构的位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SpringMVC-的优势"><span class="nav-text">SpringMVC 的优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SpringMVC-和-Struts2-的优略分析"><span class="nav-text">SpringMVC 和 Struts2 的优略分析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SpringMVC-的入门"><span class="nav-text">SpringMVC 的入门</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#入门源码："><span class="nav-text">入门源码：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#webapp"><span class="nav-text">webapp</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#"><span class="nav-text">success!!!!</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#resource"><span class="nav-text">resource</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#controller"><span class="nav-text">controller</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#简单分析"><span class="nav-text">简单分析</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

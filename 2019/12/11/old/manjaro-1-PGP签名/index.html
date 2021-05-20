@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="今天更新manjaro系统升级，弹出：无效或已损坏的软件包 (PGP 签名)。反复几次都是这样，我又想起几天前，我更新deepin-wine时候也有类似的PGP错误。今天就好好了解一下PGP是什么东西。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="manjaro#1-PGP签名">
+<meta property="og:url" content="http://yoursite.com/2019/12/11/old/manjaro-1-PGP%E7%AD%BE%E5%90%8D/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="今天更新manjaro系统升级，弹出：无效或已损坏的软件包 (PGP 签名)。反复几次都是这样，我又想起几天前，我更新deepin-wine时候也有类似的PGP错误。今天就好好了解一下PGP是什么东西。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2019/12/11/old/manjaro-1-PGP%E7%AD%BE%E5%90%8D/PGP%E9%AA%8C%E8%AF%81%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E8%BF%87%E7%A8%8B.png">
+<meta property="og:image" content="http://yoursite.com/2019/12/11/old/manjaro-1-PGP%E7%AD%BE%E5%90%8D/%E6%95%B0%E5%AD%97%E7%AD%BE%E8%AF%81%E7%9A%84%E7%94%9F%E6%88%90%E4%B8%8E%E9%AA%8C%E8%AF%81.png">
+<meta property="article:published_time" content="2019-12-11T05:16:45.000Z">
+<meta property="article:modified_time" content="2019-12-11T05:16:45.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="加密解密">
+<meta property="article:tag" content="manjaro">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/12/11/old/manjaro-1-PGP%E7%AD%BE%E5%90%8D/PGP%E9%AA%8C%E8%AF%81%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E8%BF%87%E7%A8%8B.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/12/11/old/manjaro-1-PGP%E7%AD%BE%E5%90%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>manjaro#1-PGP签名 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/11/old/manjaro-1-PGP%E7%AD%BE%E5%90%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          manjaro#1-PGP签名
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-12-11 13:16:45" itemprop="dateCreated datePublished" datetime="2019-12-11T13:16:45+08:00">2019-12-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">其他技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>今天更新manjaro系统升级，弹出：无效或已损坏的软件包 (PGP 签名)。反复几次都是这样，我又想起几天前，我更新deepin-wine时候也有类似的PGP错误。今天就好好了解一下PGP是什么东西。</p>
+<a id="more"></a>
+
+<h1 id="Linux下校验下载文件的完整性-MD5-SHA1-PGP"><a href="#Linux下校验下载文件的完整性-MD5-SHA1-PGP" class="headerlink" title="Linux下校验下载文件的完整性(MD5,SHA1,PGP)"></a>Linux下校验下载文件的完整性(MD5,SHA1,PGP)</h1><p>Linux下的学习开始总是艰难的，但有的时候，却发现linux下远比Windows的操作来的实在的多——这下载文件的完整性就是其中一件，让本人觉着很爽的一件事情。在编译安装各种软件的时候，总要到各个网站上收集下软件源码包。正由于此，软件的入口就非常复杂校验下载文件是否被修改过就显得非常有必要了。而校验方法当前一般是MD5，SHA1，PGP三种。在Windows那个漫长的岁月里（沧桑有木有），一般只能接触到前两种——前提是你会去校验的话。</p>
+<h2 id="MD5-校验"><a href="#MD5-校验" class="headerlink" title="MD5 校验"></a>MD5 校验</h2><p>原理：对文件进行MD5 Hash，求出文件的MD5哈希值，通过下载后文件MD5哈希值和发布者提供的MD5哈希值是否一致来判断文件是否在发布者发布之后被篡改过。</p>
+<p>说明：寿命老长的一个Hash算法，适用范围广，网站存储密码也经常使用。不同的文件产生的MD5哈希值是唯一的，但这点已经有办法通过对文件进行少量的修改，让文件的MD5后的哈希值保持一致。</p>
+<p>使用：在CentOS下，要对文件进行MD5 Hash是很简单的，一个<code>md5sum</code>命令即可：</p>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># $是终端提示符，非输入.</span>
+<span class="token comment" spellcheck="true"># #号是注释</span>
+<span class="token comment" spellcheck="true"># 没有提示符的是输出</span>
+<span class="token comment" spellcheck="true"># 直接输出MD5 Hash</span>
+$ md5sum your-downloaded-file-name
+fd4a1b802373c57c10c926eb7ac823d8  your-downloaded-file-name
+
+<span class="token comment" spellcheck="true">#将MD5 Hash值保存到md5-hash.txt文件中.</span>
+$ md5sum your-downloaded-file-name <span class="token operator">></span> md5-hash.txt
+<span class="token comment" spellcheck="true"># 显示输出的md5-hast.txt内容</span>
+$ <span class="token function">cat</span> md5-hash.txt
+fd4a1b802373c57c10c926eb7ac823d8  your-downloaded-file-name
+
+<span class="token comment" spellcheck="true"># 通过md5-hash.txt来校验你下载的文件是否正确</span>
+$ md5sum -c md5-hash.txt
+your-downloaded-file-name: OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>你是文件的发布者话，你可以通过md5sum把文件的哈希值发送给验证者，这样下载你文件的人就可以通过MD5哈希值来验证你的文件正确性。反过来，我们在网站上下载文件之后，同时可以获取发布者的MD5哈希值和本地生成的Hash值对比，如果一致，认为文件是正确的。</p>
+<h2 id="SHA1校验"><a href="#SHA1校验" class="headerlink" title="SHA1校验"></a>SHA1校验</h2><p>原理： 原理同MD5一样，都是通过对文件进行HASH求值，比对文件发布者发布的HASH值，通过是否相等判断文件是否被篡改</p>
+<p>说明： SHA1 HASH求值方法可以说是MD5的一个升级版本（SHA1 20位，MD5 16位），在HASH求值方面，MD5退出的舞台将有SHA1占据。SHA家族有五个算法：SHA-1、SHA-224、SHA-256、SHA- 384，和SHA-512，后四种有时候称为SHA2</p>
+<p>使用： CentOS有SHA1的命令：<code>sha1sum</code></p>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># 说明同上</span>
+<span class="token comment" spellcheck="true"># 直接输出SHA1 Hash</span>
+$ sha1sum your-downloaded-file-name
+12dc96cbd822598c1230c87622f3591461a77227  your-downloaded-file-name
+
+<span class="token comment" spellcheck="true"># 将SHA1 Hash值保存到文件中</span>
+$ sha1sum your-downloaded-file-name <span class="token operator">></span> sha1-hash.txt
+<span class="token comment" spellcheck="true"># 显示文件内容</span>
+$ <span class="token function">cat</span> sha1-hash.txt
+12dc96cbd822598c1230c87622f3591461a77227  your-downloaded-file-name
+
+<span class="token comment" spellcheck="true">#通过sha1-hash.txt来校验我们下载的文件your-downloaded-file-name</span>
+<span class="token comment" spellcheck="true"># 注意，文件必须要要通过txt文件中的路径知道哦</span>
+$ sha1sum -c sha1-hash.txt
+your-downloaded-file-name: OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p> 这个SHA1和MD5基本一致，需要补充说明下的是，在使用<code>md5sum</code>也好，还是<code>sha1sum</code>也罢，校验文件的时候，务必要让系统能够根据文件中提供的路径找到文件，如果文件找不到，是没有办法进行校验的。</p>
+<p>如果是做多个文件的Hash校验，可以通过一个文件保存多个文件的Hash值即可。</p>
+<h2 id="PGP校验"><a href="#PGP校验" class="headerlink" title="PGP校验"></a>PGP校验</h2><p>原理：使用非对称加密，程序生成唯一的密钥对（公钥和私钥：Public Key和Private Key/Secret Key）。操作方法如下：</p>
+<ol>
+<li>发布者通过用生成的密钥对中的私钥对要发布的文件进行签名，得到签名文件（sign）；</li>
+<li>发布者将密钥对中的公钥发布到公钥服务器；</li>
+<li>发布者将文件和用私钥生成的签名一起发布；</li>
+<li>验证者下载发布者发布的文件和签名；</li>
+<li>使用PGP的程序获取的发布者第二步发布的公钥；</li>
+<li>使用公钥校验文件签名</li>
+</ol>
+<p>说明：签名算法中，密钥的用处分别是：公钥用于加密信息和验证，私钥用于解密和签名。私钥掌握在信息发布方，公钥可以任意分发。信息发布方用密钥进行对信息进行签名，接收方在获取公钥后，可以用公钥对发布方发布的信息+签名进行验证。如果验证失败则认为信息被篡改。在网络中，我们经常碰到的 HTTPS协议，使用了同样的机制。</p>
+<p>使用：由于PGP是商业应用程序，在CentOS/Linux中，具有同类功能的是GPG（也就是：<a href="http://blog.useasp.net/tags/GPG" target="_blank" rel="noopener">GnuPG</a>），同样遵守OpenPGP数据加密标准（<a href="http://tools.ietf.org/html/rfc4880" target="_blank" rel="noopener">RFC 4880</a>），没有安装可以用<code>yum install gnupg</code>安装，命令是：<code>gpg</code></p>
+<pre><code># 说明同上
+# 由于过程相对复杂，并且在实际使用中，校验用的比较多，因此这里只介绍文件的校验过程。
+# 在获得文件和签名时，我们先用gpg校验签名，此时文件必须存在
+$ gpg --verify downloaded-file-sign.asc</code></pre><p> 这里有多种情况，如果你只有签名，但生成签名的文件不存在时（系统没找到，一般应该放在同目录下面），返回的是：</p>
+<pre><code>gpg: 不含签名的数据
+gpg: can&#39;t hash datafile: No data</code></pre><p>当你有文件的时候，但还没有与签名对应的公钥时，gpg返回的信息类似下面：</p>
+<pre class="line-numbers language-bash"><code class="language-bash">gpg: 于 2019年12月12日 星期三 18时27分27秒 CST 创建的签名，使用 RSA，钥匙号 47ACDAFB
+gpg: 无法检查签名：No public key<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>注意：上面的信息在不同的文件和操作系统上生成的信息是不同的。但在没有公钥的时候，你可以发现gpg提供了一个该签名对应的钥匙号：47ACDAFB，这个是我们需要找的公钥。</p>
+<p>上面已经说过，发布者已经将公钥发布到公钥服务器中，供验证者下载，因此我们需要到公钥服务器中下载公钥，要下载公钥，钥匙号就很重要了。</p>
+<p>可用的公钥服务器可以通过wikipedia 上的Key Server条目来查看常用的一些key服务器列表。这里使用hkp://pgp.mit.edu：</p>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true"># 获取服务器上的public key</span>
+$ gpg --keyserver hkp://pgp.mit.edu --recv-keys 47ACDAFB
+gpg: 下载密钥‘47ACDAFB’，从 hkp 服务器 pgp.mit.edu
+gpg: 密钥 47ACDAFB：公钥“Stephan Mueller <span class="token operator">&lt;</span>Stephan.Mueller@atsec.com<span class="token operator">></span>”已导入
+gpg: 没有找到任何绝对信任的密钥
+gpg: 合计被处理的数量：1
+gpg:           已导入：1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>–recv-keys要与–keyserver配合使用，导入密钥对的公钥之后，我们就能够使用这个公钥来验证我们的签名了。</p>
+<p>再次运行我们之前的验证命令（gpg –verify sign-file），就可以看到验证的结果了。</p>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token comment" spellcheck="true">#这时候我们再次验证我们的签名，就能得到验证结果了</span>
+$ gpg --verify downloaded-file-sign.asc
+gpg: 于 2013年05月06日 星期一 18时27分27秒 CST 创建的签名，使用 RSA，钥匙号 47ACDAFB
+gpg: 完好的签名，来自于“Stephan Mueller <span class="token operator">&lt;</span>Stephan.Mueller@atsec.com<span class="token operator">></span>”
+gpg: 警告：这把密钥未经受信任的签名认证！
+gpg:       没有证据表明这个签名属于它所声称的持有者。
+主钥指纹： B0F4 2D33 73F8 F6F5 10D4  2178 520A 9993 A1C0 52F8<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p> 看到这个结果，至少确认一个结果：这个文件是没有被篡改过的。</p>
+<p>一般我们到这步也就差不多了。</p>
+<p>但注意消息里面有个警告，说明这个是未受信任的签名认证。因为这个公钥谁都可以发布上去的，如果你确实需要进一步认证，可以在签名认证之前，你能还要联系下真正的发布者，确认这个密钥的信息——指纹(fingerprint)！这个算是PGP算法的一个弱点。</p>
+<p>如果签名认证已经通过，你也就可以安心的在自己的系统内编译，安装它了。</p>
+<h1 id="PGP验证数字签名的过程"><a href="#PGP验证数字签名的过程" class="headerlink" title="PGP验证数字签名的过程"></a>PGP验证数字签名的过程</h1><h2 id="验证数字签证的过程"><a href="#验证数字签证的过程" class="headerlink" title="验证数字签证的过程"></a>验证数字签证的过程</h2><p><img src="PGP%E9%AA%8C%E8%AF%81%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E8%BF%87%E7%A8%8B.png" alt="PGP验证数字签名过程"></p>
+<p>整个过程如下：</p>
+<ol>
+<li><p>将报文数据（文本数据）转换为二进制数据。</p>
+</li>
+<li><p>将经过压缩的数据进行解压缩。</p>
+</li>
+<li><p>将解压缩后的数据分解成经过签名的散列值和消息两部分。</p>
+</li>
+<li><p>将经过签名的散列值（经过加密的散列值）用发送者的公钥进行解密，恢复出发送者发送的散列值。</p>
+</li>
+<li><p>将步骤3中分解出的消息输入单向散列函数计算散列值。</p>
+</li>
+<li><p>将步骤4中得到的散列值与步骤5中得到的散列值进行对比。</p>
+</li>
+<li><p>如果步骤6的结果相等则数字签名验证成功，不相等则验证失败。这就是数字签名的验证结果。</p>
+</li>
+<li><p>步骤3中分解出的消息就是发送者发送的消息。</p>
+</li>
+</ol>
+<h2 id="数字签名的生成与验证在网络上的传输"><a href="#数字签名的生成与验证在网络上的传输" class="headerlink" title="数字签名的生成与验证在网络上的传输"></a>数字签名的生成与验证在网络上的传输</h2><p><img src="%E6%95%B0%E5%AD%97%E7%AD%BE%E8%AF%81%E7%9A%84%E7%94%9F%E6%88%90%E4%B8%8E%E9%AA%8C%E8%AF%81.png" alt="数字签证的生成与验证"></p>
+<h1 id="包无效或损坏pgp的解决"><a href="#包无效或损坏pgp的解决" class="headerlink" title="包无效或损坏pgp的解决"></a>包无效或损坏pgp的解决</h1><p>原因是使用了社区源，并开启了验证，关闭验证即可</p>
+<pre class="line-numbers language-bash"><code class="language-bash">kate /etc/pacman.conf<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-bash"><code class="language-bash"><span class="token punctuation">[</span>archlinuxcn<span class="token punctuation">]</span>
+<span class="token comment" spellcheck="true">#SigLevel = Optional TrustedOnly</span>
+SigLevel <span class="token operator">=</span> Optional TrustAll
+Server <span class="token operator">=</span> http://repo.archlinuxcn.org/<span class="token variable">$arch</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>再重新更新一下keyring</p>
+<pre class="line-numbers language-bash"><code class="language-bash">$ <span class="token function">sudo</span> pacman -S archlinuxcn-keyring<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>后来下午重启后，又报出更新，PGP签名错误，这次我选择换个源，用新的源更新PGP</p>
+<pre class="line-numbers language-bash"><code class="language-bash">$ <span class="token function">sudo</span> pacman-mirrors -i -c China -m rank //更新镜像排名
+$ <span class="token function">sudo</span> pacman -Syy //更新数据源
+$ pacman -S archlinux-keyring 
+$ <span class="token function">sudo</span> pacman -Syy
+$ yaourt -Syua<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>发现也无法解决问题，最后翻阅很多资料后，找到可以屏蔽签名源</p>
+<pre class="line-numbers language-bash"><code class="language-bash">$ leafpad /etc/pacman.conf<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>将该文件的<code>#SigLevel = Optional TrustOnly</code>改为<code>SigLevel = Never</code></p>
+<p>pacman.conf.buckup如下：</p>
+<pre class="line-numbers language-c"><code class="language-c">#
+# <span class="token operator">/</span>etc<span class="token operator">/</span>pacman<span class="token punctuation">.</span>conf
+#
+<span class="token macro property"># See the pacman.conf(5) manpage for option and repository directives</span>
+
+#
+<span class="token macro property"># GENERAL OPTIONS</span>
+#
+<span class="token punctuation">[</span>options<span class="token punctuation">]</span>
+<span class="token macro property"># The following paths are commented out with their default values listed.</span>
+<span class="token macro property"># If you wish to use different paths, uncomment and update the paths.</span>
+<span class="token macro property">#RootDir     = /</span>
+<span class="token macro property">#DBPath      = /var/lib/pacman/</span>
+CacheDir <span class="token operator">=</span> <span class="token operator">/</span>var<span class="token operator">/</span>cache<span class="token operator">/</span>pacman<span class="token operator">/</span>pkg<span class="token operator">/</span>
+<span class="token macro property">#LogFile     = /var/log/pacman.log</span>
+<span class="token macro property">#GPGDir      = /etc/pacman.d/gnupg/</span>
+<span class="token macro property">#HookDir     = /etc/pacman.d/hooks/</span>
+HoldPkg      <span class="token operator">=</span> pacman glibc manjaro<span class="token operator">-</span>system
+<span class="token macro property"># If upgrades are available for these packages they will be asked for first</span>
+SyncFirst    <span class="token operator">=</span> manjaro<span class="token operator">-</span>system archlinux<span class="token operator">-</span>keyring manjaro<span class="token operator">-</span>keyring
+<span class="token macro property">#XferCommand = /usr/bin/curl -C - -f %u > %o</span>
+<span class="token macro property">#XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u</span>
+<span class="token macro property">#CleanMethod = KeepInstalled</span>
+<span class="token macro property">#UseDelta    = 0.7</span>
+Architecture <span class="token operator">=</span> <span class="token keyword">auto</span>
+
+<span class="token macro property"># Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup</span>
+<span class="token macro property">#IgnorePkg   =</span>
+<span class="token macro property">#IgnoreGroup =</span>
+
+<span class="token macro property">#NoUpgrade   =</span>
+<span class="token macro property">#NoExtract   =</span>
+
+<span class="token macro property"># Misc options</span>
+<span class="token macro property">#UseSyslog</span>
+<span class="token macro property">#Color</span>
+<span class="token macro property">#TotalDownload</span>
+<span class="token macro property"># We cannot check disk space from within a chroot environment</span>
+CheckSpace
+<span class="token macro property">#VerbosePkgLists</span>
+
+<span class="token macro property"># By default, pacman accepts packages signed by keys that its local keyring</span>
+<span class="token macro property"># trusts (see pacman-key and its man page), as well as unsigned packages.</span>
+SigLevel    <span class="token operator">=</span> Required DatabaseOptional
+LocalFileSigLevel <span class="token operator">=</span> Optional
+<span class="token macro property">#RemoteFileSigLevel = Required</span>
+
+<span class="token macro property"># NOTE: You must run `pacman-key --init` before first using pacman; the local</span>
+<span class="token macro property"># keyring can then be populated with the keys of all official Manjaro Linux</span>
+<span class="token macro property"># packagers with `pacman-key --populate archlinux manjaro`.</span>
+
+#
+<span class="token macro property"># REPOSITORIES</span>
+#   <span class="token operator">-</span> can be defined here or included from another file
+#   <span class="token operator">-</span> pacman will search repositories in the order defined here
+#   <span class="token operator">-</span> local<span class="token operator">/</span>custom mirrors can be added here or in separate files
+#   <span class="token operator">-</span> repositories listed first will take precedence when packages
+<span class="token macro property">#     have identical names, regardless of version number</span>
+#   <span class="token operator">-</span> URLs will have $repo replaced by the name of the current repo
+#   <span class="token operator">-</span> URLs will have $arch replaced by the name of the architecture
+#
+<span class="token macro property"># Repository entries are of the format:</span>
+#       <span class="token punctuation">[</span>repo<span class="token operator">-</span>name<span class="token punctuation">]</span>
+<span class="token macro property">#       Server = ServerName</span>
+<span class="token macro property">#       Include = IncludePath</span>
+#
+<span class="token macro property"># The header [repo-name] is crucial - it must be present and</span>
+<span class="token macro property"># uncommented to enable the repo.</span>
+#
+
+<span class="token macro property"># The testing repositories are disabled by default. To enable, uncomment the</span>
+<span class="token macro property"># repo name header and Include lines. You can add preferred servers immediately</span>
+<span class="token macro property"># after the header, and they will be used before the default mirrors.</span>
+
+<span class="token punctuation">[</span>core<span class="token punctuation">]</span>
+SigLevel <span class="token operator">=</span> Never
+<span class="token macro property">#SigLevel = PackageRequired</span>
+<span class="token macro property">#SigLevel = Optional TrustAll</span>
+Include <span class="token operator">=</span> <span class="token operator">/</span>etc<span class="token operator">/</span>pacman<span class="token punctuation">.</span>d<span class="token operator">/</span>mirrorlist
+
+<span class="token punctuation">[</span>extra<span class="token punctuation">]</span>
+SigLevel <span class="token operator">=</span> Never
+<span class="token macro property">#SigLevel = PackageRequired</span>
+<span class="token macro property">#SigLevel = Optional TrustAll</span>
+Include <span class="token operator">=</span> <span class="token operator">/</span>etc<span class="token operator">/</span>pacman<span class="token punctuation">.</span>d<span class="token operator">/</span>mirrorlist
+
+<span class="token punctuation">[</span>community<span class="token punctuation">]</span>
+SigLevel <span class="token operator">=</span> Never
+<span class="token macro property">#SigLevel = PackageRequired</span>
+<span class="token macro property">#SigLevel = Optional TrustAll</span>
+Include <span class="token operator">=</span> <span class="token operator">/</span>etc<span class="token operator">/</span>pacman<span class="token punctuation">.</span>d<span class="token operator">/</span>mirrorlist
+
+<span class="token macro property"># If you want to run 32 bit applications on your x86_64 system,</span>
+<span class="token macro property"># enable the multilib repositories as required here.</span>
+
+<span class="token punctuation">[</span>multilib<span class="token punctuation">]</span>
+SigLevel <span class="token operator">=</span> Never
+<span class="token macro property">#SigLevel = PackageRequired</span>
+Include <span class="token operator">=</span> <span class="token operator">/</span>etc<span class="token operator">/</span>pacman<span class="token punctuation">.</span>d<span class="token operator">/</span>mirrorlist
+
+<span class="token macro property"># An example of a custom package repository.  See the pacman manpage for</span>
+<span class="token macro property"># tips on creating your own repositories.</span>
+#<span class="token punctuation">[</span>custom<span class="token punctuation">]</span>
+<span class="token macro property">#SigLevel = Optional TrustAll</span>
+<span class="token macro property">#Server = file:/</span><span class="token comment" spellcheck="true">//home/custompkgs</span>
+
+<span class="token punctuation">[</span>archlinuxcn<span class="token punctuation">]</span>
+<span class="token macro property">#SigLevel = Optional TrustOnly</span>
+SigLevel <span class="token operator">=</span> Never
+<span class="token macro property">#Server = https://mirrors.ustc.edu.cn/archlinuxcn/$arch</span>
+<span class="token macro property">#SigLevel = Optional TrustedOnly</span>
+<span class="token macro property">#SigLevel = Optional TrustAll</span>
+<span class="token macro property">#Server = http://repo.archlinuxcn.org/$arch</span>
+<span class="token macro property">#SigLevel = Optional TrustedOnly</span>
+Server <span class="token operator">=</span> http<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>mirrors<span class="token number">.163</span><span class="token punctuation">.</span>com<span class="token operator">/</span>archlinux<span class="token operator">-</span>cn<span class="token operator">/</span>$arch<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86/" rel="tag"># 加密解密</a>
+              <a href="/tags/manjaro/" rel="tag"># manjaro</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/12/10/old/linux-1-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%B3%A8%E6%84%8F/" rel="prev" title="linux#1-安装与注意">
+      <i class="fa fa-chevron-left"></i> linux#1-安装与注意
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/12/11/old/manjaro-2-plasma/" rel="next" title="manjaro#2-plasma">
+      manjaro#2-plasma <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Linux下校验下载文件的完整性-MD5-SHA1-PGP"><span class="nav-text">Linux下校验下载文件的完整性(MD5,SHA1,PGP)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MD5-校验"><span class="nav-text">MD5 校验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SHA1校验"><span class="nav-text">SHA1校验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PGP校验"><span class="nav-text">PGP校验</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PGP验证数字签名的过程"><span class="nav-text">PGP验证数字签名的过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#验证数字签证的过程"><span class="nav-text">验证数字签证的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数字签名的生成与验证在网络上的传输"><span class="nav-text">数字签名的生成与验证在网络上的传输</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#包无效或损坏pgp的解决"><span class="nav-text">包无效或损坏pgp的解决</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

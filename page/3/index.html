@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="generator" content="Hexo 4.2.1">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -72,7 +72,8 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -183,7 +184,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/18/JVM_jmm-9-%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/08/store/NVMe/%E4%B8%80%E3%80%81NVMe%E5%8F%91%E5%B1%95%E7%8E%B0%E7%8A%B6%E5%92%8C%E5%8E%86%E5%8F%B2%E4%BB%8B%E7%BB%8D/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -197,7 +198,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/18/JVM_jmm-9-%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/" class="post-title-link" itemprop="url">JVM_jmm#9-执行引擎</a>
+            <a href="/2020/10/08/store/NVMe/%E4%B8%80%E3%80%81NVMe%E5%8F%91%E5%B1%95%E7%8E%B0%E7%8A%B6%E5%92%8C%E5%8E%86%E5%8F%B2%E4%BB%8B%E7%BB%8D/" class="post-title-link" itemprop="url">一、NVMe发展现状和历史介绍</a>
         </h2>
 
         <div class="post-meta">
@@ -207,7 +208,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-18 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-18T09:34:33+08:00">2020-09-18</time>
+              <time title="创建时间：2020-10-08 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-08T23:58:13+08:00">2020-10-08</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -215,7 +216,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -230,609 +231,98 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>java使用解释器和编译器共存的架构，编译器启动慢（后端编译过程）但执行快，解释器执行慢但启动快。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/18/JVM_jmm-9-%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/17/netty-7-AIO/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="摘星">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="摘星">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/17/netty-7-AIO/" class="post-title-link" itemprop="url">netty#7-AIO</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-17 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-17T09:34:33+08:00">2020-09-17</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/netty/" itemprop="url" rel="index"><span itemprop="name">netty</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>从JDK 7版本开始，Java新加入的文件和网络io特性称为nio2(new io 2, 因为jdk1.4中已经有过一个nio了)，包含了众多性能和功能上的改进，其中最重要的部分，就是对异步io的支持，称为Java AIO(asynchronous IO)。</p>
-<p>因为AIO的实施需充分调用OS参与，IO需要操作系统支持、并发也同样需要操作系统的支持，所以性能方面不同操作系统差异会比较明显。所以本文也附带介绍了Linux 2.6及以后版本新增的AIO特性（因为这跟Java AIO是对应关系）。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/17/netty-7-AIO/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/16/%E7%AE%97%E6%B3%95-4-%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="摘星">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="摘星">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/16/%E7%AE%97%E6%B3%95-4-%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95/" class="post-title-link" itemprop="url">算法#3-贪心算法</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-16 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-16T09:34:33+08:00">2020-09-16</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>贪心算法是动态规划的特例！</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/16/%E7%AE%97%E6%B3%95-4-%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/16/JVM_jmm-8-%E6%96%B9%E6%B3%95%E5%8C%BA/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="摘星">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="摘星">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/16/JVM_jmm-8-%E6%96%B9%E6%B3%95%E5%8C%BA/" class="post-title-link" itemprop="url">JVM_jmm#8-方法区</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-16 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-16T09:34:33+08:00">2020-09-16</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>方法区是字节码文件装载的重要区域，字节码文件的内容大量都放入到方法区。此外由于历史原因，方法区的实现比较复杂，永久代向元空间过渡。过渡细节中却在堆中留下了字符串常量池和静态变量（方便gc）。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/16/JVM_jmm-8-%E6%96%B9%E6%B3%95%E5%8C%BA/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/15/netty-6-NIO%E5%92%8C%E9%9B%B6%E6%8B%B7%E8%B4%9D/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="摘星">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="摘星">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/15/netty-6-NIO%E5%92%8C%E9%9B%B6%E6%8B%B7%E8%B4%9D/" class="post-title-link" itemprop="url">netty#6-NIO和零拷贝</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-15 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-15T09:34:33+08:00">2020-09-15</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/netty/" itemprop="url" rel="index"><span itemprop="name">netty</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>零拷贝技术非常重要，由于该技术和linux内核关系紧密，需要较多内核方面的了解。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/15/netty-6-NIO%E5%92%8C%E9%9B%B6%E6%8B%B7%E8%B4%9D/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/14/JVM_jmm-7-%E5%A0%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="摘星">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="摘星">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/14/JVM_jmm-7-%E5%A0%86/" class="post-title-link" itemprop="url">JVM_jmm#7-堆</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-14 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-14T09:34:33+08:00">2020-09-14</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>堆是线程共享的区域，是垃圾回收的主战场，非常非常重要！</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/14/JVM_jmm-7-%E5%A0%86/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/13/JVM_jmm-6-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="摘星">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="摘星">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/13/JVM_jmm-6-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88/" class="post-title-link" itemprop="url">JVM_jmm#6-本地方法栈</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-13 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-13T09:34:33+08:00">2020-09-13</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>native方法是为了让jvm更好的和外界（其他语言）交互而产生的。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/13/JVM_jmm-6-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/12/%E7%AE%97%E6%B3%95-3-%E6%95%B0%E5%AD%A6%E6%96%B9%E6%B3%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="摘星">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="摘星">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/12/%E7%AE%97%E6%B3%95-3-%E6%95%B0%E5%AD%A6%E6%96%B9%E6%B3%95/" class="post-title-link" itemprop="url">算法#3-数学方法</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-12 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-12T09:34:33+08:00">2020-09-12</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>数学方法因题而异，各有千秋。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/12/%E7%AE%97%E6%B3%95-3-%E6%95%B0%E5%AD%A6%E6%96%B9%E6%B3%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/11/JVM_jmm-5-%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A0%88/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="摘星">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="摘星">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/11/JVM_jmm-5-%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A0%88/" class="post-title-link" itemprop="url">JVM_jmm#5-虚拟机栈</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-11 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-11T09:34:33+08:00">2020-09-11</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>虚拟机栈是运行时数据库的最重要一部分，是jvm最主要的栈式结构。同样是线程独占的，由以下组成：</p>
+          <p>NVM(Non-Volatile Memory)翻译为非易失存储介质，是一类存储器的一个一般术语。这类介质不用定期地刷新存储器内容，具有断电后储存内容不会消失的特点，可以作为存储程序和数据的元件。这类存储器包括只读存储器(ROM)、可编程只读存储器(PROM)、可擦可编程只读存储器(EPROM)、电可擦除只读存储器(EEPROM)、闪存(Flash)以及电池供电的随机存取存储器(RAM)。</p>
+<p>传统机械硬盘和固态硬盘均属于非易失存储器。传统的机械硬盘采用的是磁介质，通过磁记录的原理来实现数据的存储。</p>
+<p>SSD(Solid State Disk)则摒弃传统磁介质，采用电子存储介质进行数据存储和读取的一种技术。由于结构上的区别，SSD没有了磁头、磁道、柱面等概念，主要由控制单元和固态存储单元组成。根据使用的存储介质不同，分为基于闪存的SSD和基于DRAM的SSD。</p>
+<p>基于闪存的SSD是最常见的，可移动且数据保护不受电源控制;基于DRAM的SSD较少见，需要独立电源保护数据安全。目前主流的SSD还是SATA(Serial ATA)、SAS(Serial Attached SCSI)接口和原生PCIe接口(PCIe控制器走的是PCIe总线)。SATA接口与SAS接口的固态盘数据速率多在百兆级别，离SSD的最大性能还很远。原生PCIe接口的固态盘为了更好的发挥闪存的性能也各自有不同的软件接口，性能在2GB/s左右。这个时候，基于SSD特点而研发的NVMe，能够较大的提升SSD的性能，同时为基于原生PCIe接口的固态盘的软件接口标准的统一走出重要一步。</p>
+<p>NVMe(Non-Volatile Memory Express)是一个可扩展的主控器芯片接口标准，主要为企业、数据中心以及客户端系统中应用PCIe接口的固态存储设备(SSD)设计，它的目标是最大限度的释放闪存的潜能。</p>
+<p>NVMe接口属于逻辑设备接口，工作在支持NVMe的板卡上的主控器和主机端的对等层内，它规定了操作系统与NVM子系统之间的通信协议，定义了一套指令集和功能集。NVMe为基于PCIe的SSD带来了较低的时延，较高的IOPS和较低能耗的优势。</p>
+<p>下图展示了NVMe在数据传输过程中的位置，一部分位于PCIe之上，这部分也是NVMe驱动的主要部分，还有一部分位于用户态的软件层，用于应用层与NVMe驱动间的交互。</p>
+<p><img src="/pics/image-20210417222449192.png" alt="image-20210417222449192"></p>
+<p>NVMe 有以下几个关键属性:</p>
 <ul>
-<li>局部变量表（Local Variables）</li>
-<li>操作数栈（operand Stack）（或表达式栈）</li>
-<li>动态链接（Dynamic Linking）（或指向运行时常量池的方法引用）</li>
-<li>方法返回地址（Return Address）（或方法正常退出或者异常退出的定义）</li>
+<li>在命令提交(command submission)或者完成(completion)的路径上不需要读取相关寄存器(不可缓存或MMIO寄存器);</li>
+<li>支持最多可达64K 的I/O 队列，每个队列支持64K的未处理命令命令;</li>
+<li>每个队列的的优先级拥有明确的仲裁机制;</li>
+<li>为确保超高效的IO操作，完成一个4KB读取请求需要的所有信息包含在64B的命令中;</li>
+<li>高效且流线型的指令集;</li>
+<li>支持MSI/MSI-X中断和中断聚合;</li>
+<li>支持多个命名空间;</li>
+<li>有效支持IO虚拟化架构，如SR-IOV;</li>
+<li>健全的错误报告和管理功能;</li>
+<li>支持多路径IO和命名空间共享;</li>
+<li>支持许多企业需求，如端到端的数据保护(与SCSI保护信息兼容);</li>
 </ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/07/old/AOP%E5%88%87%E7%82%B9%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/07/old/AOP%E5%88%87%E7%82%B9%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">AOP切点表达式总结</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-07 22:51:16" itemprop="dateCreated datePublished" datetime="2020-10-07T22:51:16+08:00">2020-10-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>AOP——面向切面编程各种表达式得总结。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/09/11/JVM_jmm-5-%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A0%88/#more" rel="contents">
+              <a class="btn" href="/2020/10/07/old/AOP%E5%88%87%E7%82%B9%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%80%BB%E7%BB%93/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -856,7 +346,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/10/netty-4-NIO%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/06/old/%E9%80%9A%E7%94%A8mapper/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -870,7 +360,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/10/netty-4-NIO%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">netty#4-NIO编程基础</a>
+            <a href="/2020/10/06/old/%E9%80%9A%E7%94%A8mapper/" class="post-title-link" itemprop="url">通用Mapper</a>
         </h2>
 
         <div class="post-meta">
@@ -880,7 +370,304 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-10 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-10T09:34:33+08:00">2020-09-10</time>
+              <time title="创建时间：2020-10-06 22:51:16" itemprop="dateCreated datePublished" datetime="2020-10-06T22:51:16+08:00">2020-10-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">其他技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>使用MyBatis的开发者，大多数都会遇到一个问题，就是要写大量的SQL在xml文件中，除了特殊的业务逻辑SQL之外，还有大量结构类似的增删改查SQL。而且，当数据库表结构改动时，对应的所有SQL以及实体类都需要更改。这工作量和效率的影响或许就是区别增删改查程序员和真正程序员的屏障。这时，通用Mapper便应运而生……</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/06/old/%E9%80%9A%E7%94%A8mapper/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/" class="post-title-link" itemprop="url">数据库连接池性能比对</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-05 22:51:16" itemprop="dateCreated datePublished" datetime="2020-10-05T22:51:16+08:00">2020-10-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">其他技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>对现有的<a href="http://lib.csdn.net/base/14" target="_blank" rel="noopener">数据库</a>连接池做调研对比，综合性能，可靠性，稳定性，扩展性等因素选出推荐出最优的数据库连接池 。   </p>
+<p><strong>NOTE: 本文所有测试均是<a href="http://lib.csdn.net/base/14" target="_blank" rel="noopener">MySQL</a>库</strong></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/04/old/%E8%AE%A4%E8%AF%86Undertow/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/04/old/%E8%AE%A4%E8%AF%86Undertow/" class="post-title-link" itemprop="url">Undertow服务器</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-04 22:51:16" itemprop="dateCreated datePublished" datetime="2020-10-04T22:51:16+08:00">2020-10-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">其他技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>undertow,jetty和tomcat可以说是javaweb项目当下最火的三款服务器。SpringBoot推荐使用 Undertow 来替代Tomcat。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/04/old/%E8%AE%A4%E8%AF%86Undertow/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/03/old/%E8%AE%A4%E8%AF%86Jetty/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/03/old/%E8%AE%A4%E8%AF%86Jetty/" class="post-title-link" itemprop="url">认识Jetty</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-03 22:51:16" itemprop="dateCreated datePublished" datetime="2020-10-03T22:51:16+08:00">2020-10-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">其他技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>jetty是一款和tomcat类似的web服务器。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/03/old/%E8%AE%A4%E8%AF%86Jetty/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/02/old/netty-13-%E7%BC%96%E8%A7%A3%E7%A0%81Decoder/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/02/old/netty-13-%E7%BC%96%E8%A7%A3%E7%A0%81Decoder/" class="post-title-link" itemprop="url">netty#13-编解码Decoder</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-02 09:34:33" itemprop="dateCreated datePublished" datetime="2020-10-02T09:34:33+08:00">2020-10-02</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -903,10 +690,232 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>Java NIO 全称 java non-blocking IO，是指 JDK 提供的新 API。从 JDK1.4 开始，Java 提供了一系列改进的输入/输出的新特性，被统称为 NIO(即 New IO)，是<strong>同步非阻塞</strong>的。</p>
+          <p>上文讲解了粘包和拆包，下面直接代码讲解下编码和解码器Decoder。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/09/10/netty-4-NIO%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80/#more" rel="contents">
+              <a class="btn" href="/2020/10/02/old/netty-13-%E7%BC%96%E8%A7%A3%E7%A0%81Decoder/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/01/old/netty-12-TCP%E7%B2%98%E5%8C%85%E6%8B%86%E5%8C%85/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/01/old/netty-12-TCP%E7%B2%98%E5%8C%85%E6%8B%86%E5%8C%85/" class="post-title-link" itemprop="url">netty#12-TCP粘包拆包</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-01 09:34:33" itemprop="dateCreated datePublished" datetime="2020-10-01T09:34:33+08:00">2020-10-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/netty/" itemprop="url" rel="index"><span itemprop="name">netty</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>我们都知道TCP是基于字节流的传输协议。那么数据在通信层传播其实就像河水一样并没有明显的分界线，而数据具体表示什么意思什么地方有句号什么地方有分号这个对于TCP底层来说并不清楚。应用层向TCP层发送用于网间传输的、用8位字节表示的数据流，然后TCP把数据流分区成适当长度的报文段，之后TCP把结果包传给IP层，由它来通过网络将包传送给接收端实体的TCP层。所以对于这个数据拆分成大包小包的问题就是我们今天要讲的粘包和拆包的问题。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/01/old/netty-12-TCP%E7%B2%98%E5%8C%85%E6%8B%86%E5%8C%85/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/30/old/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/30/old/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/" class="post-title-link" itemprop="url">内存分配策略</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-30 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-30T09:34:33+08:00">2020-09-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">操作系统</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近看了glibc的ptmaoolc，Goolge的tcmalloc和jemalloc，顺便做了一点记录。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/30/old/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/29/old/netty-11-%E5%86%85%E5%AD%98%E5%AE%B9%E5%99%A8ByteBuf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/29/old/netty-11-%E5%86%85%E5%AD%98%E5%AE%B9%E5%99%A8ByteBuf/" class="post-title-link" itemprop="url">netty#11-内存容器ByteBuf</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-29 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-29T09:34:33+08:00">2020-09-29</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/netty/" itemprop="url" rel="index"><span itemprop="name">netty</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Netty 出发点作为一款高性能的 RPC 框架必然涉及到频繁的内存分配销毁操作，如果是在堆上分配内存空间将会触发频繁的GC，JDK 在1.4之后提供的 NIO 也已经提供了直接直接分配堆外内存空间的能力，但是也仅仅是提供了基本的能力，创建、回收相关的功能和效率都很简陋。基于此，在堆外内存使用方面，Netty 自己实现了一套创建、回收堆外内存池的相关功能。基于此我们一起来看一下 Netty 是如何实现内存分配的。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/29/old/netty-11-%E5%86%85%E5%AD%98%E5%AE%B9%E5%99%A8ByteBuf/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -929,7 +938,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -997,20 +1006,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-count">261</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">25</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-count">142</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

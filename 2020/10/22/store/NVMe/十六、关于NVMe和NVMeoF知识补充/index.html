@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="作为Nonvolatile Memory Express的缩写，NVMe是一种使固态硬盘（SSD）速度更快的协议，并且在企业用户中越来越受欢迎。  了解NVMe的最简单方法可能是类比。想象一下，你刚买了一辆比普通汽车快15倍的跑车。您的新车不会超过100英里&#x2F;小时，而是可以达到每小时1500英里。  唯一的问题是，要往返于高速公路，您必须沿着25英里&#x2F;小时的速度限制和保险杠到高速公路的车道下行。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="十六、关于NVMe和NVMeoF知识补充">
+<meta property="og:url" content="http://yoursite.com/2020/10/22/store/NVMe/%E5%8D%81%E5%85%AD%E3%80%81%E5%85%B3%E4%BA%8ENVMe%E5%92%8CNVMeoF%E7%9F%A5%E8%AF%86%E8%A1%A5%E5%85%85/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="作为Nonvolatile Memory Express的缩写，NVMe是一种使固态硬盘（SSD）速度更快的协议，并且在企业用户中越来越受欢迎。  了解NVMe的最简单方法可能是类比。想象一下，你刚买了一辆比普通汽车快15倍的跑车。您的新车不会超过100英里&#x2F;小时，而是可以达到每小时1500英里。  唯一的问题是，要往返于高速公路，您必须沿着25英里&#x2F;小时的速度限制和保险杠到高速公路的车道下行。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418150858265.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418152020338.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418152054888.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418152300800.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418152404133.png">
+<meta property="article:published_time" content="2020-10-22T15:58:13.000Z">
+<meta property="article:modified_time" content="2020-10-22T15:58:13.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="Store">
+<meta property="article:tag" content="NVMe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/pics/image-20210418150858265.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/10/22/store/NVMe/%E5%8D%81%E5%85%AD%E3%80%81%E5%85%B3%E4%BA%8ENVMe%E5%92%8CNVMeoF%E7%9F%A5%E8%AF%86%E8%A1%A5%E5%85%85/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>十六、关于NVMe和NVMeoF知识补充 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/22/store/NVMe/%E5%8D%81%E5%85%AD%E3%80%81%E5%85%B3%E4%BA%8ENVMe%E5%92%8CNVMeoF%E7%9F%A5%E8%AF%86%E8%A1%A5%E5%85%85/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          十六、关于NVMe和NVMeoF知识补充
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-22 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-22T23:58:13+08:00">2020-10-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>作为Nonvolatile Memory Express的缩写，NVMe是一种使固态硬盘（SSD）速度更快的协议，并且在企业用户中越来越受欢迎。 </p>
+<p>了解NVMe的最简单方法可能是类比。想象一下，你刚买了一辆比普通汽车快15倍的跑车。您的新车不会超过100英里/小时，而是可以达到每小时1500英里。 </p>
+<p>唯一的问题是，要往返于高速公路，您必须沿着25英里/小时的速度限制和保险杠到高速公路的车道下行。 </p>
+<p>如果只是你不必在愚蠢的小街上浪费时间，你就会知道你的整个通勤可能会更快。你可能会开始寻找更快的替代方案。 </p>
+<p>制造商推出基于闪存的固态硬盘后，这种情况有点像存储行业的情况。闪存技术比硬盘驱动器中的旋转磁盘快许多倍（速度快多少取决于您使用的设备），但早期驱动器使用与硬盘驱动器相同的SATA或SAS连接连接到系统和网络。虽然这些接口对于硬盘驱动器（HDD）可提供的性能类型来说已经足够了，但它们却为SSD造成了瓶颈。对于企业大数据分析和其他数据密集型工作负载而言，这尤其成问题。 </p>
+<p><img src="/pics/image-20210418150858265.png" alt="image-20210418150858265"></p>
+<h1 id="什么是NVMe？"><a href="#什么是NVMe？" class="headerlink" title="什么是NVMe？"></a>什么是NVMe？</h1><p>NVMe协议标准由NVM Express公司监管，NVM Express公司是一个由100多个组织组成的联盟，这些组织有兴趣开发更快的协议以提高非易失性存储器的性能。该组织由13名发起人组成，其中包括Cavium，思科，戴尔EMC，Facebook，英特尔，美光，Microsemi，微软，NetApp，三星，希捷，东芝内存和西部数据。 </p>
+<p>NVMe的官方定义将其描述为：一系列标准和信息的开放式集合，以充分揭示从移动设备到数据中心的各种类型计算环境中非易失性存储器的优势.NVMe从一开始就设计为提供高带宽和低延迟当前和未来NVM技术的存储访问。 </p>
+<p>NVMe是一种接口规范，用于通过PCI Express总线将存储连接到服务器。通俗地说，这是SSD与主机系统通信的更快捷方式。它有助于缓解当快速闪存通过最初为HDD设计的SAS或SATA连接连接到系统时发生的瓶颈。 </p>
+<p><img src="/pics/image-20210418152020338.png" alt="image-20210418152020338"></p>
+<p>英特尔750系列是采用NVMe技术的众多固态硬盘之一。 </p>
+<h1 id="NVMe速度比SATA或SAS快得多"><a href="#NVMe速度比SATA或SAS快得多" class="headerlink" title="NVMe速度比SATA或SAS快得多"></a>NVMe速度比SATA或SAS快得多</h1><p>一个NVMe控制器在几个不同的方式加速性能。一种是使用PCIe总线，它将存储直接连接到系统CPU。这种直接连接消除了SATA所需的一些步骤，提高了整体性能。 </p>
+<p>此外，NVMe SSD大规模实现并行性以显着提高吞吐量。当数据从存储器传输到服务器主机时，它会进入一行或一个队列。传统SATA连接只能支持一个队列，一次只能有32个数据串联。再回到那辆车的比喻，就像只有一条车道，可以在路上行驶32辆车。 </p>
+<p>但NVMe存储支持多达64,000个队列，每个队列有64,000个条目。换句话说，就像从单车道公路到64,000车道公路，每条车道可容纳64,000辆车。如下图所示，这对整体性能产生巨大影响。 </p>
+<p>还记得回到我们的汽车比喻和小巷25英里/小时的限速吗？SATA和SAS连接也会限制速度。对于SATA，理论最大传输速度为6.0 Gbps（实际上，最大传输速度要低得多）。这为SATA固态硬盘的速度提供了上限。超过某一点，使用更快的闪存对系统的整体性能没有影响，因为SATA连接会产生瓶颈。 </p>
+<p>对于大多数消费者而言，SATA SSD为他们可能定期执行的任务提供了足够的性能。由于SATA SSD比NVMe SSD便宜，大多数消费者固态存储仍然使用SATA接口。 </p>
+<p>但是，企业通常使用比消费者更多的数据，对于他们来说，SATA连接所带来的延迟可能成为一个问题。 </p>
+<p>与SAS相比，NVMe提供了一种快速通过系统移动数据的方法，因此可用于当今最先进的系统。 </p>
+<p><img src="/pics/image-20210418152054888.png" alt="image-20210418152054888"></p>
+<h1 id="只有SSD在NVMe上运行？"><a href="#只有SSD在NVMe上运行？" class="headerlink" title="只有SSD在NVMe上运行？"></a>只有SSD在NVMe上运行？</h1><p>由于NVMe驱动器比SATA快得多，因此将NVMe与硬盘驱动器配合使用可能会提高性能。但请记住，NVMe代表Nonvolatile Memory Express，它专门设计用于非易失性存储器，如Nand闪存（尽管它也可以用于更新形式的非易失性存储器，如3D XPoint。） </p>
+<p>当系统从旋转磁盘读取数据时，它一次只能读取一个数据。那是因为它必须旋转直到它到达第一段数据的正确物理位置，然后旋转并移动到第二段数据的正确位置，依此类推。 </p>
+<p>另一方面，闪存和其他非易失性存储器技术没有移动部件。这意味着系统可以同时自由地从许多不同位置读取数据。这就是为什么SSD可以利用NVMe提供的并行性，但HDD不能。 </p>
+<h1 id="PCIe和NVMe是相关的，但不是一回事"><a href="#PCIe和NVMe是相关的，但不是一回事" class="headerlink" title="PCIe和NVMe是相关的，但不是一回事"></a>PCIe和NVMe是相关的，但不是一回事</h1><p>对于许多人来说，NVMe最令人困惑的部分是它与PCIe的关系。一些供应商将他们的SSD称为NVMe标签，一些供应商使用PCIe标签，有些供应商似乎可以互换使用这些术语。 </p>
+<p>虽然PCIe和NVMe密切相关，但这些术语指的是略有不同的技术。您可以将PCIe视为系统的物理部分。将NVMe SSD插入服务器时，将通过PCIe插槽连接。 </p>
+<p>相比之下，NVMe是一种协议，一组允许SSD使用PCIe总线的硬件和软件标准。从外行的角度来看，您可以将NVMe视为允许存储设备与服务器连接的语言，而PCIe是实际的物理连接。 </p>
+<h1 id="NVMe-over-Fabric将SSD连接到网络"><a href="#NVMe-over-Fabric将SSD连接到网络" class="headerlink" title="NVMe over Fabric将SSD连接到网络"></a>NVMe over Fabric将SSD连接到网络</h1><p>本文的大部分内容都集中在将SSD直接连接到服务器的标准NVMe上，但NVM Express组织还发布了针对NVMe over Fabric（NVMe-oF）的规范，该规范将用于块存储的非易失性存储器连接到网络。据该组称：NVM Express over Fabrics定义了一种通用架构，支持通过存储网络结构为NVMe块存储协议提供一系列存储网络结构。这包括为存储系统启用前端接口，扩展到大量NVMe设备和扩展数据中心内的距离，可以访问NVMe设备和NVMe子系统。 </p>
+<p>大约90％的NVME-oF规范与NVMe规范相同; 但是，它确实使用了不同的传输映射机制。NVME-oF还有两种不同的变体：一种用于RDMA，另一种用于光纤通道。 </p>
+<p>NVMe-oF规范也比NVMe规范要新得多，虽然一些厂商宣布支持该技术，但实际上很少有人销售NVME-oF产品。寻求这项技术在未来几年变得更加普及。 </p>
+<table>
+<thead>
+<tr>
+<th>SATA / SAS / PCIe / NVMe时间线</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2003</td>
+<td>SATA 1.0发布</td>
+</tr>
+<tr>
+<td>2003</td>
+<td>PCIe 1.0发布</td>
+</tr>
+<tr>
+<td>2004年</td>
+<td>SATA 2.0发布</td>
+</tr>
+<tr>
+<td>2004年</td>
+<td>SAS 1.0发布</td>
+</tr>
+<tr>
+<td>2007年</td>
+<td>PCIe 2.0发布</td>
+</tr>
+<tr>
+<td>2009年</td>
+<td>SAS 2.0发布</td>
+</tr>
+<tr>
+<td>2009年</td>
+<td>SATA 3.0发布</td>
+</tr>
+<tr>
+<td>2009年</td>
+<td>开始使用NVMe标准</td>
+</tr>
+<tr>
+<td>2010</td>
+<td>PCIe 3.0发布</td>
+</tr>
+<tr>
+<td>2011</td>
+<td>NVMe 1.0发布</td>
+</tr>
+</tbody></table>
+<p>毫无疑问，NVMe速度令人印象深刻：存储和服务器供应商的蓝带联盟开发了NVMe作为高性能接口规范，使用PCIe总线加速NAND SSD。 </p>
+<p>NVMe的逻辑设备接口利用SSD的低延迟和并行性来改善IOP和吞吐量并减少延迟。这不是供应商第一次使用PCIe来加速SSD，但这是第一种标准化方法。 </p>
+<p>NVMe代表非易失性存储器，并且协议通过闪存特定的改进提供高带宽和低延迟。它支持当前的NAND闪存，并将扩展以支持依赖于持久存储器技术的未来高性能设备。 </p>
+<h1 id="NVMe速度-NVMe-AHCI-SATA"><a href="#NVMe速度-NVMe-AHCI-SATA" class="headerlink" title="NVMe速度(NVMe/AHCI/SATA)"></a>NVMe速度(NVMe/AHCI/SATA)</h1><p>NVMe的性能和吞吐量有多快？显然足以引起数据存储行业的关注。 </p>
+<ul>
+<li><p>高达64K的队列： NVMe专为提高速度而设计，使用PCIe通过共享内存映射操作，简化内部软件，并优化多达64,000个队列的I / O. </p>
+</li>
+<li><p>加速其他顶级格式： NVMe的功能使其显着快于传统SAS和SATA SSD协议，更不用说SAS / SATA HDD。 </p>
+</li>
+<li><p>最高速率最快的NVMe驱动器通常只能通过OEM或大型企业客户使用，读取速度为3 GB / s，写入速度为1 GB / s。相同的驱动器可提供300,000多个随机读取IOP和40,000-50,000个写入IOP。 </p>
+</li>
+<li><p>SSD传输速率：中型数据中心的最佳NVMe驱动器无法达到这些平流层速度，但也更便宜。例如，三星的983 DCT NVMe驱动器具有1.92 TB的容量。该驱动器实现了1900 MB / s的连续写入速度，540k IOP的随机读取以及50k IOP的随机写入。 </p>
+</li>
+</ul>
+<p><img src="/pics/image-20210418152300800.png" alt="image-20210418152300800"></p>
+<p>在NVMe与SATA速度的比较中，SATA确实比NVMe有一些优势。它被广泛部署，其SSD速度足以满足许多应用的需求。虽然客户可能希望在技术更新期间升级到SAS或NVMe，但无需立即翻录和更换SATA。 </p>
+<p>供应商仍在为SATA开发。三星开发了消费级SATA固态硬盘接口，测试读取速度高达3500 MB / s，写入速度高达2500 MB / s。虽然客户不会将这些设备添加到数据中心，但它们将加速消费者设备。 </p>
+<p>SATA不能很好地处理高事务应用程序的高性能级别。对于这些，NVMe性能是您更好的选择。如果您的存储平台提供需要NVMe高SSD传输速率的高需求应用程序，那么这是非常值得的。 </p>
+<h1 id="NVMe速度背后的架构"><a href="#NVMe速度背后的架构" class="headerlink" title="NVMe速度背后的架构"></a>NVMe速度背后的架构</h1><p>NVMe SSD以32 GBps（每秒千兆字节）的速率显示吞吐量。50万IOP是常见的，高端驱动器的IOP高达1000万。尽管有这些高速度，但延迟率通常保持在20微秒以下，有些只有一半。按照传统标准，这些数字令人印象深刻。 </p>
+<h1 id="NVMe接口外形因素"><a href="#NVMe接口外形因素" class="headerlink" title="NVMe接口外形因素"></a>NVMe接口外形因素</h1><p>NVMe规范采用标准尺寸的PCIe扩展卡，或采用2.5英寸外形尺寸，四通道PCIe接口通过U.2连接器。U.2易于部署是最受欢迎的选择，它将SSD连接到主机，</p>
+<p>可与PCIe，SAS或SATA配合使用。NVMe U.2驱动器通常具有四个PCIe通道，两个SAS通道和一个SATA通道，可在2.5英寸外形中支持广泛的接口。 </p>
+<p>用于PCIe，SATA或USB外形尺寸的M.2迷你板规格也越来越受消费者级别NVMe使用的影响。M.2板有多种尺寸，包括最小的PCIe占用空间。NVMe磁盘上的存储容量从消费者大小的450GB开始，到数据中心的容量上升到11TB。 </p>
+<h1 id="提升NVMe速度的常用选项"><a href="#提升NVMe速度的常用选项" class="headerlink" title="提升NVMe速度的常用选项"></a>提升NVMe速度的常用选项</h1><ul>
+<li><p>SSD并行性。该架构利用SSD并行性来减少IO开销。HDD和磁带对访问模式很敏感。顺序数据可以提高性能，而随机数据可以减慢数据访问速度。SSD并行运行，因此随机或顺序数据对SSD性能影响不大。 </p>
+</li>
+<li><p>更新了总线。阵列经常出现瓶颈，因为SSD层的速度比HDD存储接口所支持的速度更快。IT使用多核处理器和大量RAM进行补偿。但是，部署NVMe可以更有效，更便宜，它可以利用SSD速度。 </p>
+</li>
+<li><p>性能增强。其他增强功能包括支持64K的单个队列容量，以及同时处理大约64K这些长队列的能力。随着延迟减少，这加速了处理同时请求的繁忙服务器的性能。 </p>
+</li>
+<li><p>RDMA。NVMe使用PCIe总线采用远程直接存储器访问（RDMA）。这使接口能够将IO命令和响应映射到主机共享内存，从而释放CPU资源。NVMe还简化了其命令集，发出不到一半的CPU指令作为SATA或SAS。（需要10个管理命令，5个是可选的;需要3个IO命令，8个是可选的。） </p>
+</li>
+<li><p>其他高级功能。NVMe支持安全容器命令，电源管理和命令增强等功能。主机内存缓冲区有助于支持客户端和移动NVMe。 </p>
+</li>
+<li><p>控制器内存缓冲区。NVMe缓冲区使主机能够在控制器存储器中制定命令，而不是依赖于通过PCIe的获取命令。NVMe传递内存块而不是SCSI命令，这样可以降低延迟。NVMe还通过观察服务级别协议参数来仲裁优先级命令。 </p>
+</li>
+<li><p>预订。NVMe支持Windows群集中的多主机预留，通过管理共享命名空间来协调主机访问。 </p>
+</li>
+</ul>
+<p><img src="/pics/image-20210418152404133.png" alt="image-20210418152404133"></p>
+<h1 id="关于NVMe-oF（Fabric上的NVMe）"><a href="#关于NVMe-oF（Fabric上的NVMe）" class="headerlink" title="关于NVMe-oF（Fabric上的NVMe）"></a>关于NVMe-oF（Fabric上的NVMe）</h1><p>但是，NVMe的所有性能优势都取决于对单个主机的直接连接。存储控制器是共享存储的必需品，并且管理容量供应，一些数据保护，物理寻址和协议转换。但是添加一个存储控制器并且NVMe速度变慢，从而失去了高成本的理由。 </p>
+<p>NVMe over Fabrics（NVMe-oF）是一种解决问题的方法。该规范使基于NVMe消息的命令能够通过以太网，光纤通道（FC）或InfiniBand结构传输数据，而无需通过慢速存储控制器。存储管理员可以将NVMe SSD从服务器中取出并通过结构连接。远程SSD存储服务以极低的延迟以内存到内存传输的速度运行。 </p>
+<p>该规范使用RDMA进行InfiniBand，融合以太网和Internet广域。它使用第二种方法跨光纤通道传输。 </p>
+<h1 id="NVMe瓶颈与局限"><a href="#NVMe瓶颈与局限" class="headerlink" title="NVMe瓶颈与局限"></a>NVMe瓶颈与局限</h1><p>没有什么是完美的，包括NVMe速度。 </p>
+<ul>
+<li><p>热量节流。这是可能的M.2固态硬盘的PCIe产生热量与持续使用，使得节流必要的。然而，垂直mM2形状因子通风更好并解决了问题。实际上，这些驱动器的运行速度非常快，通常在热量成为问题之前完成传输。 </p>
+</li>
+<li><p>NAND SSD的速度。NVMe发布了SSD速度和旧存储接口之间的瓶颈，因此速度瓶颈主要出现在NAND闪存中。该技术在不断改进，市场预计SSD速度会有更多性能提升。NVMe随时准备为他们提供支持。 </p>
+</li>
+<li><p>SSD-SSD传输速度慢。将数据SATA或SAS SSD传输到NVMe SSD时，数据移动速度会降低。系统无法在NVMe SSD上更快地写入数据，而不是较慢的接口可以提供的数据。 </p>
+</li>
+<li><p>缺乏高级存储功能。全闪存阵列一直在改进其高级存储功能，包括加密，重复数据删除和压缩，复制和快照。虽然NVMe驱动器制造商通常会添加保护驱动器端到端数据完整性的功能，但较新的NVMe驱动器还缺乏此级别的功能。 </p>
+</li>
+<li><p>价格。虽然SSD价格正在下降，但NVMe价格昂贵且对每个存储环境都没有必要。它的主要用途是支持高事务数据库和业务关键应用程序的密集性能。如果IT将NVMe用于性能需求较低的其他应用程序，那么它们将是浪费预算和IO带宽。通过在分层存储架构中将它们与SATA或SAS闪存配对，并将老化数据迁移到HDD，磁带或云，IT可以节省资金。 </p>
+</li>
+<li><p>关于NVMe成本的另一个注意事项。对于大多数数据中心而言，中级NVMe驱动器将绰绰有余。很少有数据中心处理如此多的数据，甚至还需要顶级NVMe的极高性能和吞吐速度。保守购买，这样您就不会在非活动驱动器上超支。还要确保NVMe驱动器的容量足以满足您的存储需求。 </p>
+</li>
+</ul>
+<h1 id="NVMe高性能应用场景"><a href="#NVMe高性能应用场景" class="headerlink" title="NVMe高性能应用场景"></a>NVMe高性能应用场景</h1><p>生命科学，金融服务和能源公司都依赖于极快的HPC，具有高性能和低延迟。生命科学和能源利用NVMe速度进行快速复杂的计算，因为它实际上消除了从存储读取时的处理器等待时间。金融服务使用NVMe作为辅助内存来加速极高数量的交易。在生命科学领域，行业测试显示出比SATA更高的性能提升6倍。该行业为此付出了代价 - 大约50％的价格上涨 - 但总投资回报率非常有利。 </p>
+<p>OLTP关系数据库和大数据也受益于高性能读取。在数据库中，DBA可以使用SSD缓存来固定元数据，数据和索引，而不会降低速度。查询速度大大提高，大大提高了数据库性能。大数据密集型工作负载不再遇到存储瓶颈，这使业务分析师可以使用即时可用数据做出实时决策。由于NVMe不仅限于特定类型的工作负载，因此可以加速其他应用程序的性能。 </p>
+<p>在一个鲜为人知的用例中，NVMe允许管理员通过增加虚拟化网络可以支持的虚拟机数量来优化虚拟化环境。VMware和Hyper-V管理员经常通过按工作负载，延迟或IOP划分网络来优化VM性能。这增加了费用和管理的复杂性。NVMe专门用于管理群集并优化跨工作负载的性能。这使管理员可以提高网络速度和性能，并省去复杂的分区。这不是一个便宜的主张，但通过将NVMe应用于关键虚拟机 - 并密切关注价格下跌 - 管理员可以轻松证明NVMe的额外费用。 </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Store/" rel="tag"># Store</a>
+              <a href="/tags/NVMe/" rel="tag"># NVMe</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/21/store/NVMe/%E5%8D%81%E4%BA%94%E3%80%81%E5%9F%BA%E4%BA%8EFC%E7%9A%84NVMe%E6%88%96FC-NVMe%E6%A0%87%E5%87%86/" rel="prev" title="十五、基于FC的NVMe或FC-NVMe标准">
+      <i class="fa fa-chevron-left"></i> 十五、基于FC的NVMe或FC-NVMe标准
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/23/store/NVMe/%E5%8D%81%E4%B8%83%E3%80%81%E6%B5%85%E8%B0%88SPDK/" rel="next" title="十七、浅谈SPDK">
+      十七、浅谈SPDK <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是NVMe？"><span class="nav-text">什么是NVMe？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe速度比SATA或SAS快得多"><span class="nav-text">NVMe速度比SATA或SAS快得多</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#只有SSD在NVMe上运行？"><span class="nav-text">只有SSD在NVMe上运行？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PCIe和NVMe是相关的，但不是一回事"><span class="nav-text">PCIe和NVMe是相关的，但不是一回事</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe-over-Fabric将SSD连接到网络"><span class="nav-text">NVMe over Fabric将SSD连接到网络</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe速度-NVMe-AHCI-SATA"><span class="nav-text">NVMe速度(NVMe&#x2F;AHCI&#x2F;SATA)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe速度背后的架构"><span class="nav-text">NVMe速度背后的架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe接口外形因素"><span class="nav-text">NVMe接口外形因素</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#提升NVMe速度的常用选项"><span class="nav-text">提升NVMe速度的常用选项</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#关于NVMe-oF（Fabric上的NVMe）"><span class="nav-text">关于NVMe-oF（Fabric上的NVMe）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe瓶颈与局限"><span class="nav-text">NVMe瓶颈与局限</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NVMe高性能应用场景"><span class="nav-text">NVMe高性能应用场景</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

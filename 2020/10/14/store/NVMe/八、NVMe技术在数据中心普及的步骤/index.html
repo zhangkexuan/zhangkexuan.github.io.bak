@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="作为SCSI存储协议的替代品，NVMe可以提供更灵敏的存储和更低的延迟。但是，在数据中心过渡到NVMe需要进行全面规划。数据中心前往NVMe的过程将是多步骤的，每一步都由实际需求以及NVMe技术成熟的速度驱动。  在数据中心转换到NVMe的第一步是使用全闪存阵列，其中系统内的驱动器是NVMe连接的。但是，在外部，系统没有重大变化。与存储网络和其他环境的连接仍然是相同的：传统以太网和&#x2F;或FC。即使使">
+<meta property="og:type" content="article">
+<meta property="og:title" content="八、NVMe技术在数据中心普及的步骤">
+<meta property="og:url" content="http://yoursite.com/2020/10/14/store/NVMe/%E5%85%AB%E3%80%81NVMe%E6%8A%80%E6%9C%AF%E5%9C%A8%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%BF%83%E6%99%AE%E5%8F%8A%E7%9A%84%E6%AD%A5%E9%AA%A4/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="作为SCSI存储协议的替代品，NVMe可以提供更灵敏的存储和更低的延迟。但是，在数据中心过渡到NVMe需要进行全面规划。数据中心前往NVMe的过程将是多步骤的，每一步都由实际需求以及NVMe技术成熟的速度驱动。  在数据中心转换到NVMe的第一步是使用全闪存阵列，其中系统内的驱动器是NVMe连接的。但是，在外部，系统没有重大变化。与存储网络和其他环境的连接仍然是相同的：传统以太网和&#x2F;或FC。即使使">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418135427734.png">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418135853278.png">
+<meta property="article:published_time" content="2020-10-14T15:58:13.000Z">
+<meta property="article:modified_time" content="2020-10-14T15:58:13.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="Store">
+<meta property="article:tag" content="NVMe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/pics/image-20210418135427734.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/10/14/store/NVMe/%E5%85%AB%E3%80%81NVMe%E6%8A%80%E6%9C%AF%E5%9C%A8%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%BF%83%E6%99%AE%E5%8F%8A%E7%9A%84%E6%AD%A5%E9%AA%A4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>八、NVMe技术在数据中心普及的步骤 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/14/store/NVMe/%E5%85%AB%E3%80%81NVMe%E6%8A%80%E6%9C%AF%E5%9C%A8%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%BF%83%E6%99%AE%E5%8F%8A%E7%9A%84%E6%AD%A5%E9%AA%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          八、NVMe技术在数据中心普及的步骤
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-14 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-14T23:58:13+08:00">2020-10-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>作为SCSI存储协议的替代品，NVMe可以提供更灵敏的存储和更低的延迟。但是，在数据中心过渡到NVMe需要进行全面规划。数据中心前往NVMe的过程将是多步骤的，每一步都由实际需求以及NVMe技术成熟的速度驱动。 <img src="/pics/image-20210418135427734.png" alt="image-20210418135427734"></p>
+<p>在数据中心转换到NVMe的第一步是使用全闪存阵列，其中系统内的驱动器是NVMe连接的。但是，在外部，系统没有重大变化。与存储网络和其他环境的连接仍然是相同的：传统以太网和/或FC。即使使用基于服务器的NVMe驱动器的超融合系统仍将通过传统以太网连接其节点。 </p>
+<p>现状：好消息是将基于NVMe的全闪存阵列插入存储基础架构是无缝的。坏消息是它没有充分利用NVMe技术提供的所有功能。 </p>
+<p>如果数据必须使用传统协议进入并离开存储系统，那么全闪存阵列中NVMe的回报是多少？现实情况是，存储系统成为性能的瓶颈，特别是在共享存储环境中。全闪存阵列的内部结构本身就是一个生态系统。存储软件使用存储系统的CPU来接收，操作和存储数据。闪存驱动器必须操纵数据以确保正确有效地存储数据。软件必须再次使用CPU来查找数据并将数据发送回请求用户或应用程序。 </p>
+<p><img src="/pics/image-20210418135853278.png" alt="image-20210418135853278"></p>
+<p>网络互连软件，CPU和存储之间的通信。通过向该系统发送和从该系统发送的所有数据，更快的数据可以遍历系统的内部，整体性能将更好。 </p>
+<p>在NVMe突然出现之前，大多数全闪存阵列的内部网络都是SAS。现在，它很快成为NVMe。SAS是一种较慢的连接，必须处理SCSI协议的低效率。NVMe在连接方面更快，并且在任何给定时间点可以更高效地运行多少数据。 </p>
+<h1 id="基于存储扩展NVMe"><a href="#基于存储扩展NVMe" class="headerlink" title="基于存储扩展NVMe"></a>基于存储扩展NVMe</h1><p>NVMe-oF仍处于早期阶段。虽然它有效，但它仍然很脆弱，互操作性还有很多不足之处。数据中心的第一步是采用NVMe内部存储但外部传统网络的全闪存阵列。NVMe-oF确实有效; 供应商必须严格控制组件以消除问题。对受控网络部署的需求使基于NVMe的横向扩展存储成为NVMe过渡的理想第二步。 </p>
+<p>横向扩展存储创建一组服务节点。每个服务节点都有自己的内部存储。它将每个节点的存储聚合到一个虚拟存储池中。互连这些节点的网络通常是使用IP的传统以太网。节点间通信密集，特别是增加了更多节点。NVMe-oF具有高性能和低延迟，是一种更理想的互连。它应该能够以更好的整体性能扩展到更多节点。 </p>
+<h1 id="端到端的NVMe"><a href="#端到端的NVMe" class="headerlink" title="端到端的NVMe"></a>端到端的NVMe</h1><p>转换到NVMe技术的下一步是端到端NVMe技术，其中存储系统和连接到它的服务器都通过NVMe连接。此设计应为共享存储带来服务器内存储性能。主要的交换机供应商Cisco和Brocade已经为其交换机增加了NVMe支持，并且有几种NVMe主机总线适配器（HBA）卡可用。 </p>
+<p>不幸的是，端到端NVMe有几个障碍： </p>
+<ul>
+<li><p>互操作性问题。在任何网卡可以与任何其他网卡和交换机一起使用之前，部署将会缓慢进行。 </p>
+</li>
+<li><p>基础设施升级缓慢。不支持NVMe的交换机和HBA需要达到使用寿命，这可能需要数年时间替换迁移。 </p>
+</li>
+<li><p>在广泛实施方面缺乏经验。实际上，网络（没有NVMe）和存储比大多数数据中心其他设备需要的更快。 </p>
+</li>
+</ul>
+<p>对于少数数据中心对其当前的全闪存阵列和网络立即迁移到NVMe可能会有所帮助。但他们也应该同时考虑网络升级带来复杂性和风险。目前很少有NVMe全闪存专家可以提供交钥匙的端到端产品，或者拥有所有NVMe生态合作伙伴关系。 </p>
+<p>然而，大多数数据中心无法立即利用NVMe，因此这不是组织需要丢弃其全闪存阵列并将其替换为基于NVMe的全闪存阵列。随着存储系统刷新和技术革新，寻找至少部分NVMe的闪存阵列是有意义的。确保对网络基础设施（无论是交换机还是HBA）的任何投资都具有内置的NVMe兼容性也是有意义的。 </p>
+<p>NVMe的普及和实施更像是一个快点和计划的平衡。现在是确保未来投资(无论是存储还是基础设施)是该为NVMe技术做好准备的时候了。 </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Store/" rel="tag"># Store</a>
+              <a href="/tags/NVMe/" rel="tag"># NVMe</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/13/store/NVMe/%E4%B8%83%E3%80%81NVMe%20SSD%E9%80%9F%E5%BA%A6%E8%A7%A3%E9%87%8A/" rel="prev" title="七、NVMe SSD速度解释">
+      <i class="fa fa-chevron-left"></i> 七、NVMe SSD速度解释
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/15/store/NVMe/%E4%B9%9D%E3%80%81%E5%85%B3%E4%BA%8E%E8%8B%B1%E7%89%B9%E5%B0%94Optane%20SSD/" rel="next" title="九、关于英特尔Optane SSD">
+      九、关于英特尔Optane SSD <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基于存储扩展NVMe"><span class="nav-text">基于存储扩展NVMe</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#端到端的NVMe"><span class="nav-text">端到端的NVMe</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

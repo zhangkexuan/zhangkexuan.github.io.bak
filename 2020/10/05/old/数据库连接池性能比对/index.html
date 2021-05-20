@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="对现有的数据库连接池做调研对比，综合性能，可靠性，稳定性，扩展性等因素选出推荐出最优的数据库连接池 。    NOTE: 本文所有测试均是MySQL库">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库连接池性能比对">
+<meta property="og:url" content="http://yoursite.com/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="对现有的数据库连接池做调研对比，综合性能，可靠性，稳定性，扩展性等因素选出推荐出最优的数据库连接池 。    NOTE: 本文所有测试均是MySQL库">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/image-20201102193545346.png">
+<meta property="og:image" content="http://yoursite.com/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/image-20201102193613062.png">
+<meta property="og:image" content="http://yoursite.com/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/image-20201102193630422.png">
+<meta property="article:published_time" content="2020-10-05T14:51:16.000Z">
+<meta property="article:modified_time" content="2020-10-05T14:51:16.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="数据库连接池">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/image-20201102193545346.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据库连接池性能比对 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/05/old/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E6%AF%94%E5%AF%B9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库连接池性能比对
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-05 22:51:16" itemprop="dateCreated datePublished" datetime="2020-10-05T22:51:16+08:00">2020-10-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">其他技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>对现有的<a href="http://lib.csdn.net/base/14" target="_blank" rel="noopener">数据库</a>连接池做调研对比，综合性能，可靠性，稳定性，扩展性等因素选出推荐出最优的数据库连接池 。   </p>
+<p><strong>NOTE: 本文所有测试均是<a href="http://lib.csdn.net/base/14" target="_blank" rel="noopener">MySQL</a>库</strong></p>
+<a id="more"></a>
+
+<h1 id="测试结论"><a href="#测试结论" class="headerlink" title="测试结论"></a><strong>测试结论</strong></h1><p>  1：性能方面 hikariCP&gt;druid&gt;tomcat-jdbc&gt;dbcp&gt;c3p0 。hikariCP的高性能得益于最大限度的避免锁竞争。</p>
+<p>  2：druid功能最为全面，sql拦截等功能，统计数据较为全面，具有良好的扩展性。</p>
+<p>  3：综合性能，扩展性等方面，可考虑使用druid或者hikariCP连接池。</p>
+<p>  4：可开启prepareStatement缓存，对性能会有大概20%的提升。</p>
+<h1 id="功能对比"><a href="#功能对比" class="headerlink" title="功能对比"></a><strong>功能对比</strong></h1><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>dbcp</th>
+<th>druid</th>
+<th>c3p0</th>
+<th>tomcat-jdbc</th>
+<th>HikariCP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>是否支持PSCache</td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td>监控</td>
+<td>jmx</td>
+<td>jmx/log/http</td>
+<td>jmx,log</td>
+<td>jmx</td>
+<td>jmx</td>
+</tr>
+<tr>
+<td>扩展性</td>
+<td>弱</td>
+<td>好</td>
+<td>弱</td>
+<td>弱</td>
+<td>弱</td>
+</tr>
+<tr>
+<td>sql拦截及解析</td>
+<td>无</td>
+<td>支持</td>
+<td>无</td>
+<td>无</td>
+<td>无</td>
+</tr>
+<tr>
+<td>代码</td>
+<td>简单</td>
+<td>中等</td>
+<td>复杂</td>
+<td>简单</td>
+<td>简单</td>
+</tr>
+<tr>
+<td>更新时间</td>
+<td>2015.8.6</td>
+<td>2015.10.10</td>
+<td>2015.12.09</td>
+<td></td>
+<td>2015.12.3</td>
+</tr>
+<tr>
+<td>特点</td>
+<td>依赖于common-pool</td>
+<td>阿里开源，功能全面</td>
+<td>历史久远，代码逻辑复杂，且不易维护</td>
+<td></td>
+<td>优化力度大，功能简单，起源于boneCP</td>
+</tr>
+<tr>
+<td>连接池管理</td>
+<td>LinkedBlockingDeque</td>
+<td>数组</td>
+<td></td>
+<td>FairBlockingQueue</td>
+<td>threadlocal+CopyOnWriteArrayList</td>
+</tr>
+</tbody></table>
+<ul>
+<li>由于boneCP被hikariCP替代，并且已经不再更新，boneCP没有进行调研。</li>
+<li>proxool网上有评测说在并发较高的情况下会出错，proxool便没有进行调研。</li>
+<li>druid的功能比较全面，且扩展性较好，比较方便对jdbc接口进行监控跟踪等。</li>
+<li>c3p0历史悠久，代码及其复杂，不利于维护。并且存在deadlock的潜在风险。</li>
+</ul>
+<h1 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a><strong>性能测试</strong></h1><p><strong>环境配置：</strong></p>
+<table>
+<thead>
+<tr>
+<th>CPU</th>
+<th>Intel(R) Xeon(R) CPU E5-2430 v2 @ 2.50GHz，24core</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>msyql version</td>
+<td>5.5.46</td>
+</tr>
+<tr>
+<td>tomcat-jdbc version</td>
+<td>8.0.28</td>
+</tr>
+<tr>
+<td>HikariCP version</td>
+<td>2.4.3</td>
+</tr>
+<tr>
+<td>c3p0 Version</td>
+<td>0.9.5-pre8</td>
+</tr>
+<tr>
+<td>dbcpVersion</td>
+<td>2.0.1</td>
+</tr>
+<tr>
+<td>druidVersion</td>
+<td>1.0.5</td>
+</tr>
+</tbody></table>
+<p><strong>1：获取关闭连接性能测试</strong></p>
+<p>​    测试说明：</p>
+<ul>
+<li><p>初始连接和最小连接均为5，最大连接为20。在borrow和return均不心跳检测</p>
+</li>
+<li><p>其中打开关闭次数为: 100w次</p>
+</li>
+<li><p>测试用例和mysql在同一台机器上面，尽量避免io的影响</p>
+</li>
+<li><p>使用mock和连接mysql在不同线程并发下的响应时间</p>
+<p> 图形：</p>
+</li>
+</ul>
+<p><img src="image-20201102193545346.png" alt="image-20201102193545346"></p>
+<p><img src="image-20201102193613062.png" alt="image-20201102193613062"></p>
+<p>  mock性能数据 (单位:ms)</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>5</th>
+<th>20</th>
+<th>50</th>
+<th>100</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tomcat-jdbc</td>
+<td>442</td>
+<td>447</td>
+<td>1,013</td>
+<td>1,264</td>
+</tr>
+<tr>
+<td>c3p0</td>
+<td>4,480</td>
+<td>5,527</td>
+<td>7,449</td>
+<td>10,725</td>
+</tr>
+<tr>
+<td>dbcp</td>
+<td>676</td>
+<td>689</td>
+<td>867</td>
+<td>1,292</td>
+</tr>
+<tr>
+<td>hikari</td>
+<td>38</td>
+<td>33</td>
+<td>38</td>
+<td>30</td>
+</tr>
+<tr>
+<td>druid</td>
+<td>291</td>
+<td>293</td>
+<td>562</td>
+<td>985</td>
+</tr>
+</tbody></table>
+<p>mysql性能数据 (单位:ms)</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>5</th>
+<th>20</th>
+<th>50</th>
+<th>100</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tomcat-jdbc</td>
+<td>436</td>
+<td>453</td>
+<td>1,033</td>
+<td>1,291</td>
+</tr>
+<tr>
+<td>c3p0</td>
+<td>4,378</td>
+<td>5,726</td>
+<td>7,975</td>
+<td>10,948</td>
+</tr>
+<tr>
+<td>dbcp</td>
+<td>671</td>
+<td>679</td>
+<td>897</td>
+<td>1,380</td>
+</tr>
+<tr>
+<td>hikari</td>
+<td>96</td>
+<td>82</td>
+<td>87</td>
+<td>78</td>
+</tr>
+<tr>
+<td>druid</td>
+<td>304</td>
+<td>424</td>
+<td>690</td>
+<td>1,130</td>
+</tr>
+</tbody></table>
+<p>测试结果：</p>
+<ul>
+<li><p>mock和mysql连接性能表现差不多，主要是由于初始化的时候建立了连接后期不再建立连接，和使用mock连接逻辑一致。 </p>
+</li>
+<li><p>性能表现：hikariCP&gt;druid&gt;tomcat-jdbc&gt;dbcp&gt;c3p0。</p>
+</li>
+<li><p>hikariCP 的性能及其优异。hikariCP号称java平台最快的数据库连接池。</p>
+</li>
+<li><p>hikariCP在并发较高的情况下，性能基本上没有下降。</p>
+</li>
+<li><p>c3p0连接池的性能很差，不建议使用该数据库连接池。</p>
+</li>
+</ul>
+<p>  hikariCP性能分析：</p>
+<ul>
+<li>hikariCP通过优化(concurrentBag，fastStatementList )集合来提高并发的读写效率。</li>
+<li>hikariCP使用threadlocal缓存连接及大量使用CAS的机制，最大限度的避免lock。单可能带来cpu使用率的上升。</li>
+<li>从字节码的维度优化代码。 (default inline threshold for a JVM running the server Hotspot compiler is 35 bytecodes ）让方法尽量在35个字节码一下，来提升jvm的处理效率。</li>
+</ul>
+<p><strong>2：查询一条语句性能测试</strong></p>
+<p>   测试说明：</p>
+<ul>
+<li>初始连接和最小连接均为8，最大连接为8。在borrow和return均不心跳检测</li>
+<li>查询的次数为10w次，查询的语句为 1：打开连接 2：执行 ：select 1 3：关闭连接</li>
+<li>测试用例和mysql在同一台机器上面，尽量避免io的影响</li>
+</ul>
+<p>图形：</p>
+<p><img src="image-20201102193630422.png" alt="image-20201102193630422"></p>
+<p> 测试数据：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>5</th>
+<th>8</th>
+<th>20</th>
+<th>50</th>
+<th>100</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tomcat-jdbc</td>
+<td>2,178</td>
+<td>1,495</td>
+<td>1,769</td>
+<td>1,818</td>
+<td>1,858</td>
+</tr>
+<tr>
+<td>c3p0</td>
+<td>3,237</td>
+<td>3,451</td>
+<td>4,488</td>
+<td>5,994</td>
+<td>7,906</td>
+</tr>
+<tr>
+<td>dbcp</td>
+<td>2,816</td>
+<td>1,935</td>
+<td>2,097</td>
+<td>2,243</td>
+<td>2,280</td>
+</tr>
+<tr>
+<td>hikari</td>
+<td>2,299</td>
+<td>1,546</td>
+<td>1,682</td>
+<td>1,751</td>
+<td>1,772</td>
+</tr>
+<tr>
+<td>druid</td>
+<td>2,297</td>
+<td>1,551</td>
+<td>1,800</td>
+<td>1,977</td>
+<td>2,032</td>
+</tr>
+</tbody></table>
+<p>测试结果：</p>
+<ul>
+<li>在并发比较少的情况下，每个连接池的响应时间差不多。是由于并发少，基本上没有资源竞争。</li>
+<li>在并发较高的情况下，随着并发的升高，hikariCP响应时间基本上没有变动。</li>
+<li>c3p0随着并发的提高，性能急剧下降。</li>
+</ul>
+<p><strong>3：pscache性能对比</strong></p>
+<p>  测试说明：</p>
+<ul>
+<li><p>通过druid进行设置pscache和不设置pscache的性能对比</p>
+</li>
+<li><p>初始连接和最小连接均为8，最大连接为8。在borrow和return均不心跳检测。并且执行的并发数为8.</p>
+</li>
+<li><p>查询10w次。查询流程为：1：建立连接，2：循环查询preparestatement语句 3：close连接</p>
+</li>
+<li><p>测试用例和mysql在同一台机器上面，尽量避免io的影响</p>
+<p>测试数据：</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>cache</th>
+<th>1,927</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>not cache</td>
+<td>2,134</td>
+</tr>
+</tbody></table>
+<p> 测试结果：</p>
+<ul>
+<li><p>开启psCache缓存,性能大概有20%幅度的提升。可考虑开启pscache.</p>
+<p>测试说明：</p>
+</li>
+<li><p>psCache是connection私有的，所以不存在线程竞争的问题，开启pscache不会存在竞争的性能损耗。</p>
+</li>
+<li><p>psCache的key为prepare执行的sql和catalog等，value对应的为prepareStatement对象。开启缓存主要是减少了解析sql的开销。</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0/" rel="tag"># 数据库连接池</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/04/old/%E8%AE%A4%E8%AF%86Undertow/" rel="prev" title="Undertow服务器">
+      <i class="fa fa-chevron-left"></i> Undertow服务器
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/06/old/%E9%80%9A%E7%94%A8mapper/" rel="next" title="通用Mapper">
+      通用Mapper <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#测试结论"><span class="nav-text">测试结论</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#功能对比"><span class="nav-text">功能对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#性能测试"><span class="nav-text">性能测试</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

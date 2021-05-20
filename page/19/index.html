@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="generator" content="Hexo 4.2.1">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -72,7 +72,8 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -183,7 +184,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/13/old/mybatis%E6%BA%90%E7%A0%81-2-%E6%98%A0%E5%B0%84%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -197,7 +198,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">设计模式之工厂模式</a>
+            <a href="/2020/04/13/old/mybatis%E6%BA%90%E7%A0%81-2-%E6%98%A0%E5%B0%84%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/" class="post-title-link" itemprop="url">mybatis源码#2-映射文件解析</a>
         </h2>
 
         <div class="post-meta">
@@ -207,7 +208,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-24 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-24T09:34:33+08:00">2020-03-24</time>
+              <time title="创建时间：2020-04-13 20:48:14" itemprop="dateCreated datePublished" datetime="2020-04-13T20:48:14+08:00">2020-04-13</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -215,7 +216,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
                 </span>
             </span>
 
@@ -230,10 +231,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>工厂模式（Factory Pattern）是 Java 中最常用的设计模式之一。这种类型的设计模式属于创建型模式，它提供了一种创建对象的最佳方式。<br>在工厂模式中，我们在创建对象时不会对客户端暴露创建逻辑，并且是通过使用一个共同的接口来指向新创建的对象。</p>
+          <p>分析一下映射文件解析的过程。与配置文件不同,映射文件用于配置 SQL语句,字段映射关系等。映射文件中包含<code>&lt;cache&gt;</code>、<code>&lt;cache-ref&gt;</code>、<code>&lt;resultMap&gt;</code>、<code>&lt;sql&gt;</code>、<code>&lt;select|insert|update|delete&gt;</code>等二级节点,这些节点将在接下来内容中进行分析。本章除了分析常规的 XML 解析过程外,还会向大家介绍 Mapper 接口的绑定过程,以及其他一些知识。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/#more" rel="contents">
+              <a class="btn" href="/2020/04/13/old/mybatis%E6%BA%90%E7%A0%81-2-%E6%98%A0%E5%B0%84%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -257,7 +258,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/23/java-20-Maven/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/12/old/spring-7-AOP/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -271,7 +272,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/23/java-20-Maven/" class="post-title-link" itemprop="url">java#20-Maven</a>
+            <a href="/2020/04/12/old/spring-7-AOP/" class="post-title-link" itemprop="url">spring#7-AOP</a>
         </h2>
 
         <div class="post-meta">
@@ -281,7 +282,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-23 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-23T09:34:33+08:00">2020-03-23</time>
+              <time title="创建时间：2020-04-12 18:15:13" itemprop="dateCreated datePublished" datetime="2020-04-12T18:15:13+08:00">2020-04-12</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -289,7 +290,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -304,10 +305,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>Maven 是一个项目管理工具,使用Maven可以解决jar包冲突，简化项目的单元测试、打包、生成报表，甚至帮你部署……</p>
+          <p>简单引入AOP的概念和使用方式。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/23/java-20-Maven/#more" rel="contents">
+              <a class="btn" href="/2020/04/12/old/spring-7-AOP/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -331,7 +332,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/22/java-19-redis/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/11/old/spring-6-%E4%BA%8B%E5%8A%A1%E7%BB%91%E5%AE%9A%E5%92%8C%E4%BB%A3%E7%90%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -345,7 +346,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/22/java-19-redis/" class="post-title-link" itemprop="url">java#19-redis</a>
+            <a href="/2020/04/11/old/spring-6-%E4%BA%8B%E5%8A%A1%E7%BB%91%E5%AE%9A%E5%92%8C%E4%BB%A3%E7%90%86/" class="post-title-link" itemprop="url">spring#6-事务绑定和代理</a>
         </h2>
 
         <div class="post-meta">
@@ -355,7 +356,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-22 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-22T09:34:33+08:00">2020-03-22</time>
+              <time title="创建时间：2020-04-11 18:15:13" itemprop="dateCreated datePublished" datetime="2020-04-11T18:15:13+08:00">2020-04-11</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -363,7 +364,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -378,10 +379,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>redis是一款高性能的NOSQL系列的非关系型数据库，缓存的使用使性能更高。</p>
+          <p>通过转账的小demo，熟悉事务控制、动态代理、线程绑定等知识，给之后的AOP做铺垫。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/22/java-19-redis/#more" rel="contents">
+              <a class="btn" href="/2020/04/11/old/spring-6-%E4%BA%8B%E5%8A%A1%E7%BB%91%E5%AE%9A%E5%92%8C%E4%BB%A3%E7%90%86/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -405,7 +406,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/21/java-18-Ajax%E5%92%8CJson/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/10/old/spring-5-anno%E5%85%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -419,7 +420,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/21/java-18-Ajax%E5%92%8CJson/" class="post-title-link" itemprop="url">javaweb#18-Ajax和Json</a>
+            <a href="/2020/04/10/old/spring-5-anno%E5%85%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">spring#5-anno全注解分析</a>
         </h2>
 
         <div class="post-meta">
@@ -429,7 +430,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-21 16:52:02" itemprop="dateCreated datePublished" datetime="2020-03-21T16:52:02+08:00">2020-03-21</time>
+              <time title="创建时间：2020-04-10 17:23:25" itemprop="dateCreated datePublished" datetime="2020-04-10T17:23:25+08:00">2020-04-10</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -437,7 +438,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -452,10 +453,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>Ajax 是一种在无需重新加载整个网页的情况下，能够更新部分网页的技术。<br>Json 是JavaScript对象表示方法。通常将数据序列化后用json传输。</p>
+          <p><code>annotation-based configuration</code> 的引入提出了这种方法是否比 XML 更“好”？人各有异，本文总结了上文中涉及的anno。并且加以补充，整理方便学习使用。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/21/java-18-Ajax%E5%92%8CJson/#more" rel="contents">
+              <a class="btn" href="/2020/04/10/old/spring-5-anno%E5%85%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -479,7 +480,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/20/java-17-jQuery/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/09/old/spring-4-xml%E5%92%8Canno%E7%9A%84%E5%8D%95%E8%A1%A8CRUD/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -493,7 +494,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/20/java-17-jQuery/" class="post-title-link" itemprop="url">javaweb#17-jQuery</a>
+            <a href="/2020/04/09/old/spring-4-xml%E5%92%8Canno%E7%9A%84%E5%8D%95%E8%A1%A8CRUD/" class="post-title-link" itemprop="url">spring#4-xml和anno的单表CRUD</a>
         </h2>
 
         <div class="post-meta">
@@ -503,7 +504,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-20 16:52:02" itemprop="dateCreated datePublished" datetime="2020-03-20T16:52:02+08:00">2020-03-20</time>
+              <time title="创建时间：2020-04-09 17:23:25" itemprop="dateCreated datePublished" datetime="2020-04-09T17:23:25+08:00">2020-04-09</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -511,7 +512,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -526,10 +527,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>jQuery是一个快速、简洁的JavaScript框架，是继Prototype之后又一个优秀的JavaScript代码库（或JavaScript框架）。jQuery设计的宗旨    是“write Less，Do More”，即倡导写更少的代码，做更多的事情。它封装JavaScript常用的功能代码，提供一种简便的JavaScript设计模式，优    化HTML文档操作、事件处理、动画设计和Ajax交互。<br>本质上就是一些js文件，封装了js的原生代码而已。对前端很重要的框架。</p>
+          <p>直接引入案例，对单表的crud。使用xml方式，再逐步将xml方式转换到anno方式。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/20/java-17-jQuery/#more" rel="contents">
+              <a class="btn" href="/2020/04/09/old/spring-4-xml%E5%92%8Canno%E7%9A%84%E5%8D%95%E8%A1%A8CRUD/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -553,7 +554,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/19/java-16-Filter&Listener/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/08/old/mybatis%E6%BA%90%E7%A0%81-1-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -567,7 +568,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/19/java-16-Filter&Listener/" class="post-title-link" itemprop="url">javaweb#16-Filter&Listener</a>
+            <a href="/2020/04/08/old/mybatis%E6%BA%90%E7%A0%81-1-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/" class="post-title-link" itemprop="url">mybatis源码#1-配置文件解析</a>
         </h2>
 
         <div class="post-meta">
@@ -577,7 +578,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-19 16:52:02" itemprop="dateCreated datePublished" datetime="2020-03-19T16:52:02+08:00">2020-03-19</time>
+              <time title="创建时间：2020-04-08 17:23:25" itemprop="dateCreated datePublished" datetime="2020-04-08T17:23:25+08:00">2020-04-08</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -585,7 +586,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
                 </span>
             </span>
 
@@ -600,10 +601,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>javaweb的三大组件分别是servlet、filter、listener。</p>
+          <p>我们在使用 MyBatis 框架时,通常会进行一定的设置,使其能更好的满足我们的需求。对于一个框架来说,提供较为丰富的配置文件,也是其灵活性的体现。本章将会介绍 MyBatis 配置文件中的大部分节点解析过程,包含但不限于 <code>properties</code>、<code>settings</code>、<code>typeAliase</code>、<code>typeHandlers</code> 等.</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/19/java-16-Filter&Listener/#more" rel="contents">
+              <a class="btn" href="/2020/04/08/old/mybatis%E6%BA%90%E7%A0%81-1-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -627,7 +628,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/18/java-15-EL&JSTL/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/07/old/leetcode-1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -641,7 +642,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/18/java-15-EL&JSTL/" class="post-title-link" itemprop="url">javaweb#15-EL&JSTL</a>
+            <a href="/2020/04/07/old/leetcode-1/" class="post-title-link" itemprop="url">leetcode#1</a>
         </h2>
 
         <div class="post-meta">
@@ -651,7 +652,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-18 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-18T09:34:33+08:00">2020-03-18</time>
+              <time title="创建时间：2020-04-07 01:16:56" itemprop="dateCreated datePublished" datetime="2020-04-07T01:16:56+08:00">2020-04-07</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -659,7 +660,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
                 </span>
             </span>
 
@@ -674,10 +675,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>EL和JSTL都是替换和简化jsp页面中java代码的编写的标签库。</p>
+          <p>leetcode 1-20</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/18/java-15-EL&JSTL/#more" rel="contents">
+              <a class="btn" href="/2020/04/07/old/leetcode-1/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -701,7 +702,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/17/java-14-%E4%BC%9A%E8%AF%9D%E6%8A%80%E6%9C%AF/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/06/old/spring-3-IOC%E8%AF%A6%E8%A7%A3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -715,7 +716,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/17/java-14-%E4%BC%9A%E8%AF%9D%E6%8A%80%E6%9C%AF/" class="post-title-link" itemprop="url">javaweb#14-会话技术</a>
+            <a href="/2020/04/06/old/spring-3-IOC%E8%AF%A6%E8%A7%A3/" class="post-title-link" itemprop="url">spring#3-IOC详解</a>
         </h2>
 
         <div class="post-meta">
@@ -725,7 +726,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-17 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-17T09:34:33+08:00">2020-03-17</time>
+              <time title="创建时间：2020-04-06 22:31:55" itemprop="dateCreated datePublished" datetime="2020-04-06T22:31:55+08:00">2020-04-06</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -733,7 +734,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -748,10 +749,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>一次会话中包含多次请求和响应——主要是客户端会话技术（Cookie）和服务器端会话技术（Session）。</p>
+          <p>详解spring的核心IOC</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/17/java-14-%E4%BC%9A%E8%AF%9D%E6%8A%80%E6%9C%AF/#more" rel="contents">
+              <a class="btn" href="/2020/04/06/old/spring-3-IOC%E8%AF%A6%E8%A7%A3/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -775,7 +776,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/16/java-13-http/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/05/old/spring-2-IOC/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -789,7 +790,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/16/java-13-http/" class="post-title-link" itemprop="url">javaweb#13-http</a>
+            <a href="/2020/04/05/old/spring-2-IOC/" class="post-title-link" itemprop="url">spring#2-IOC和DI</a>
         </h2>
 
         <div class="post-meta">
@@ -799,7 +800,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-16 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-16T09:34:33+08:00">2020-03-16</time>
+              <time title="创建时间：2020-04-05 22:31:55" itemprop="dateCreated datePublished" datetime="2020-04-05T22:31:55+08:00">2020-04-05</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -807,7 +808,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -822,10 +823,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>http协议载servlet中使用，request和response的使用。</p>
+          <p>在传统方式中，我们使用new实体类，这样impl之间反复new会让程序的耦合很高。IOC就是用于降低程序间的耦合（依赖关系）。再使用spring来维护依赖关系。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/16/java-13-http/#more" rel="contents">
+              <a class="btn" href="/2020/04/05/old/spring-2-IOC/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -849,7 +850,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/15/java-12-servlet/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/04/old/spring-1-spring%E6%A6%82%E8%BF%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -863,7 +864,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/15/java-12-servlet/" class="post-title-link" itemprop="url">javaweb#12-servlet</a>
+            <a href="/2020/04/04/old/spring-1-spring%E6%A6%82%E8%BF%B0/" class="post-title-link" itemprop="url">spring#1-spring概述</a>
         </h2>
 
         <div class="post-meta">
@@ -873,7 +874,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-15 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-15T09:34:33+08:00">2020-03-15</time>
+              <time title="创建时间：2020-04-04 22:31:55" itemprop="dateCreated datePublished" datetime="2020-04-04T22:31:55+08:00">2020-04-04</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -881,7 +882,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -896,10 +897,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>Servlet——运行在服务器端的小程序</p>
+          <p>Spring 是分层的 Java SE/EE 应用 full-stack 轻量级开源框架,以 IoC(Inverse Of Control:反转控制)和 AOP(Aspect Oriented Programming:面向切面编程)为内核,提供了展现层 SpringMVC 和持久层 Spring JDBC 以及业务层事务管理等众多的企业级应用技术,还能整合开源世界众多著名的第三方框架和类库,逐渐成为使用最多的 Java EE 企业应用开源框架。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/15/java-12-servlet/#more" rel="contents">
+              <a class="btn" href="/2020/04/04/old/spring-1-spring%E6%A6%82%E8%BF%B0/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -922,7 +923,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/18/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><a class="extend next" rel="next" href="/page/20/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/18/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/20/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -990,20 +991,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-count">261</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">25</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-count">142</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

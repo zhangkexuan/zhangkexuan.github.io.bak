@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="当当当当当当当，本来打算出去浪来着，想想还是把这个先一起写完吧，毕竟这篇的主角跟我一样是一个超级偷懒的角色——LinkedHashSet，有多偷懒？看完你就知道了。 　　本篇将从以下几个方面对LinkedHashSet进行介绍： 　　1、LinkedHashSet中的特性 　　2、LinkedHashSet源码分析 　　3、LinkedHashSet应用场景">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java容器#12-LinkedHashSet详解">
+<meta property="og:url" content="http://yoursite.com/2020/06/18/old/java%E5%AE%B9%E5%99%A8-12-LinkedHashSet%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="当当当当当当当，本来打算出去浪来着，想想还是把这个先一起写完吧，毕竟这篇的主角跟我一样是一个超级偷懒的角色——LinkedHashSet，有多偷懒？看完你就知道了。 　　本篇将从以下几个方面对LinkedHashSet进行介绍： 　　1、LinkedHashSet中的特性 　　2、LinkedHashSet源码分析 　　3、LinkedHashSet应用场景">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-18T05:11:09.000Z">
+<meta property="article:modified_time" content="2020-06-18T05:11:09.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="java容器">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/18/old/java%E5%AE%B9%E5%99%A8-12-LinkedHashSet%E8%AF%A6%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>java容器#12-LinkedHashSet详解 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/18/old/java%E5%AE%B9%E5%99%A8-12-LinkedHashSet%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          java容器#12-LinkedHashSet详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-18 13:11:09" itemprop="dateCreated datePublished" datetime="2020-06-18T13:11:09+08:00">2020-06-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%AE%B9%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">java容器</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>　当当当当当当当，本来打算出去浪来着，想想还是把这个先一起写完吧，毕竟这篇的主角跟我一样是一个超级偷懒的角色——LinkedHashSet，有多偷懒？看完你就知道了。</p>
+<p>　　本篇将从以下几个方面对LinkedHashSet进行介绍：</p>
+<p>　　1、LinkedHashSet中的特性</p>
+<p>　　2、LinkedHashSet源码分析</p>
+<p>　　3、LinkedHashSet应用场景</p>
+<a id="more"></a>
+
+<h1 id="LinkedHashSet中的特性"><a href="#LinkedHashSet中的特性" class="headerlink" title="LinkedHashSet中的特性"></a>LinkedHashSet中的特性</h1><p>　　前面已经介绍过了HashSet，本篇要介绍的LinkedHashSet正是它的儿子，作为HashSet的唯一法定继承人，可以说是继承了HashSet的全部优点——懒，并且将其发挥到了极致，这一点在之后的源码分析里可以看到。</p>
+<p>　　LinkedHashSet继承了HashSet的全部特性，元素不重复，快速查找，快速插入，并且新增了一个重要特性，那就是有序，可以保持元素的插入顺序，所以可以应用在对元素顺序有要求的场景中。</p>
+<p>　　先来看一个小栗子：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">LinkedHashSetTest</span> <span class="token punctuation">{</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span>String<span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span><span class="token punctuation">{</span>
+        LinkedHashSet<span class="token operator">&lt;</span>String<span class="token operator">></span> linkedHashSet <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">LinkedHashSet</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        HashSet<span class="token operator">&lt;</span>String<span class="token operator">></span> hashSet <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashSet</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            linkedHashSet<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">"I"</span> <span class="token operator">+</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            hashSet<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">"I"</span> <span class="token operator">+</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"linkedHashSet遍历："</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span>String string <span class="token operator">:</span> linkedHashSet<span class="token punctuation">)</span><span class="token punctuation">{</span>
+            System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span>string <span class="token operator">+</span> <span class="token string">" "</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"hashSet遍历："</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span>String string <span class="token operator">:</span> hashSet<span class="token punctuation">)</span><span class="token punctuation">{</span>
+            System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span>string <span class="token operator">+</span> <span class="token string">" "</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+linkedHashSet遍历：
+I0 I1 I2 I3 I4 I5 I6 I7 I8 I9 
+hashSet遍历：
+I9 I0 I1 I2 I3 I4 I5 I6 I7 I8 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>　　可以看到，在HashSet中存储的元素遍历是无序的，而在LinkedHashSet中存储的元素遍历是有序的。嗯，它和HashSet就这唯一的区别了。</p>
+<h1 id="LinkedHashSet源码分析"><a href="#LinkedHashSet源码分析" class="headerlink" title="LinkedHashSet源码分析"></a>LinkedHashSet源码分析</h1><p>　　那么问题来了，LinkedHashSet中的元素为什么会是有序的呢？难道也跟LinkedHashMap一样用了链表把元素都拴起来了？别着急，让我们一起来看看源码。</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">LinkedHashSet</span><span class="token operator">&lt;</span>E<span class="token operator">></span>
+        <span class="token keyword">extends</span> <span class="token class-name">HashSet</span><span class="token operator">&lt;</span>E<span class="token operator">></span>
+        <span class="token keyword">implements</span> <span class="token class-name">Set</span><span class="token operator">&lt;</span>E<span class="token operator">></span><span class="token punctuation">,</span> Cloneable<span class="token punctuation">,</span> java<span class="token punctuation">.</span>io<span class="token punctuation">.</span>Serializable <span class="token punctuation">{</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">long</span> serialVersionUID <span class="token operator">=</span> <span class="token operator">-</span>2851667679971038690L<span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">/**
+     * 使用指定初始容量和装载因子构造一个空的LinkedHashSet实例
+     */</span>
+    <span class="token keyword">public</span> <span class="token function">LinkedHashSet</span><span class="token punctuation">(</span><span class="token keyword">int</span> initialCapacity<span class="token punctuation">,</span> <span class="token keyword">float</span> loadFactor<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">super</span><span class="token punctuation">(</span>initialCapacity<span class="token punctuation">,</span> loadFactor<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">/**
+     * 使用指定的初始容量和默认的装载因子构造一个空的LinkedHashSet实例
+     */</span>
+    <span class="token keyword">public</span> <span class="token function">LinkedHashSet</span><span class="token punctuation">(</span><span class="token keyword">int</span> initialCapacity<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">super</span><span class="token punctuation">(</span>initialCapacity<span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token number">75f</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">/**
+     * 使用默认的初始容量和默认的装载因子构造一个空的LinkedHashSet实例
+     */</span>
+    <span class="token keyword">public</span> <span class="token function">LinkedHashSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token number">16</span><span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token number">75f</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">/**
+     * 构造一个与指定集合有相同元素的空LinkedHashSet实例，使用默认的装载因子和能够容纳下指定集合所有元素的合适的容量。
+     */</span>
+    <span class="token keyword">public</span> <span class="token function">LinkedHashSet</span><span class="token punctuation">(</span>Collection<span class="token operator">&lt;</span><span class="token operator">?</span> <span class="token keyword">extends</span> <span class="token class-name">E</span><span class="token operator">></span> c<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">super</span><span class="token punctuation">(</span>Math<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span>c<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">11</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token number">75f</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">addAll</span><span class="token punctuation">(</span>c<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment" spellcheck="true">/**
+     * 可分割式迭代器
+     */</span>
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> Spliterator<span class="token operator">&lt;</span>E<span class="token operator">></span> <span class="token function">spliterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> Spliterators<span class="token punctuation">.</span><span class="token function">spliterator</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> Spliterator<span class="token punctuation">.</span>DISTINCT <span class="token operator">|</span> Spliterator<span class="token punctuation">.</span>ORDERED<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>　　你没看错，这应该是所有容器类中最短小精悍的了，这也就是开头为什么说这家伙懒到家的原因了。</p>
+<p>　　可是，LinkedHashSet中并没有覆盖add方法，只是加了几个构造函数和一个迭代器，其他全部和HashSet一毛一样，为什么它就能有序呢？？</p>
+<p>　　玄机就藏在这个构造函数中，这几个构造函数其实都是调用了它父类（HashSet）的一个构造函数：</p>
+<pre class="line-numbers language-java"><code class="language-java">    <span class="token function">HashSet</span><span class="token punctuation">(</span><span class="token keyword">int</span> initialCapacity<span class="token punctuation">,</span> <span class="token keyword">float</span> loadFactor<span class="token punctuation">,</span> <span class="token keyword">boolean</span> dummy<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        map <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">LinkedHashMap</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span>initialCapacity<span class="token punctuation">,</span> loadFactor<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>　　嗯，这个构造函数跟其他构造函数唯一的区别就在于，它创建的是一个LinkedHashMap对象，所以元素之所以有序，完全是LinkedHashMap的功劳。该构造函数是默认访问权限的，所以在HashSet中是不能直接调用的，留给子类去调用或覆盖（讲道理使用protected权限不是更合理吗）。</p>
+<h1 id="LinkedHashSet应用场景"><a href="#LinkedHashSet应用场景" class="headerlink" title="LinkedHashSet应用场景"></a>LinkedHashSet应用场景</h1><p> 　现在假设这样的场景，现在我有一堆商品，商品有名称和价格，但是里面有重复商品，我希望把重复的商品（名称和价格都一样的）过滤掉，只保留一个，并且希望输出后的顺序跟原来的顺序一致。嗯，这时候LinkedHashSet就派上用场了。（废话，那是你特意给主角加的戏）</p>
+<p> 　商品的结构是这样的：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Commodity</span> <span class="token punctuation">{</span>
+    <span class="token keyword">private</span> String name<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> Double price<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token function">Commodity</span><span class="token punctuation">(</span>String name<span class="token punctuation">,</span> Double price<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>price <span class="token operator">=</span> price<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> String <span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> name<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setName</span><span class="token punctuation">(</span>String name<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> Double <span class="token function">getPrice</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> price<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setPrice</span><span class="token punctuation">(</span>Double price<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>price <span class="token operator">=</span> price<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> String <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">"Commodity{"</span> <span class="token operator">+</span>
+                <span class="token string">"name='"</span> <span class="token operator">+</span> name <span class="token operator">+</span> <span class="token string">'\''</span> <span class="token operator">+</span>
+                <span class="token string">", price="</span> <span class="token operator">+</span> price <span class="token operator">+</span>
+                <span class="token string">'}'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>　　来用LinkedHashSet解决一下这个需求：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">CommodityTest</span> <span class="token punctuation">{</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span>String<span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">//有7个商品，A和E、D和G信息完全一样，希望能过滤掉，只保留一个，C和F虽然名称一样，但是价格不同，希望保留</span>
+        Commodity commodityA <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Commodity</span><span class="token punctuation">(</span><span class="token string">"Iphone6S"</span><span class="token punctuation">,</span> <span class="token number">6666.66</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Commodity commodityB <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Commodity</span><span class="token punctuation">(</span><span class="token string">"Iphone7"</span><span class="token punctuation">,</span> <span class="token number">7777.77</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Commodity commodityC <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Commodity</span><span class="token punctuation">(</span><span class="token string">"Iphone8"</span><span class="token punctuation">,</span> <span class="token number">8888.88</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Commodity commodityD <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Commodity</span><span class="token punctuation">(</span><span class="token string">"IphoneX"</span><span class="token punctuation">,</span> <span class="token number">9999.99</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Commodity commodityE <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Commodity</span><span class="token punctuation">(</span><span class="token string">"Iphone6S"</span><span class="token punctuation">,</span> <span class="token number">6666.66</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Commodity commodityF <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Commodity</span><span class="token punctuation">(</span><span class="token string">"Iphone8"</span><span class="token punctuation">,</span> <span class="token number">6666.66</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Commodity commodityG <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Commodity</span><span class="token punctuation">(</span><span class="token string">"IphoneX"</span><span class="token punctuation">,</span> <span class="token number">9999.99</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        LinkedHashSet<span class="token operator">&lt;</span>Commodity<span class="token operator">></span> commodities <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">LinkedHashSet</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        commodities<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>commodityA<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        commodities<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>commodityB<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        commodities<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>commodityC<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        commodities<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>commodityD<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        commodities<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>commodityE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        commodities<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>commodityF<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        commodities<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>commodityG<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span>Commodity commodity <span class="token operator">:</span> commodities<span class="token punctuation">)</span><span class="token punctuation">{</span>
+            System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>commodity<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>　　输出如下：</p>
+<pre class="line-numbers language-java"><code class="language-java">Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'Iphone6S'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">6666.66</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'Iphone7'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">7777.77</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'Iphone8'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">8888.88</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'IphoneX'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">9999.99</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'Iphone6S'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">6666.66</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'Iphone8'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">6666.66</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'IphoneX'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">9999.99</span><span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>　　翻…翻…翻车了？虽然输出的顺序与插入的顺序是一致的最后一个IphoneX和Iphone6S并没有被去掉，怎么回事呢？说好的可以去重呢？</p>
+<p>　　嗯，别慌，我既然可以让车翻过来，那就有办法让它再翻回去。</p>
+<p>　　想要利用LinkedHashSet自动去重性质，那么我们就要先理解它是怎样去重的，其实和HashSet是一样的，往里面添加元素的时候，其实是这样的：</p>
+<pre class="line-numbers language-java"><code class="language-java">    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">add</span><span class="token punctuation">(</span>E e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> map<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> PRESENT<span class="token punctuation">)</span><span class="token operator">==</span>null<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>　　所以当该元素在map中存在的时候，map.put方法就会返回旧值，此时add方法会返回false，在查找map中put元素的时候，会先调用hashCode方法得到该元素的hashCode值，然后查看table中是否存在该hashCode值，如果存在则调用equals方法重新确定是否存在该元素，如果存在，则更新value值，否则将新的元素添加到HashMap中，如果没有覆盖过hashcode方法，那么就会使用对象默认的hashcode，这个值跟对象成员变量的具体值就没有直接关联了，所以我们需要覆盖hashcode方法和equals方法。</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Commodity</span> <span class="token punctuation">{</span>
+    <span class="token keyword">private</span> String name<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> Double price<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token function">Commodity</span><span class="token punctuation">(</span>String name<span class="token punctuation">,</span> Double price<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>price <span class="token operator">=</span> price<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> String <span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> name<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setName</span><span class="token punctuation">(</span>String name<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> Double <span class="token function">getPrice</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> price<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setPrice</span><span class="token punctuation">(</span>Double price<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>price <span class="token operator">=</span> price<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> String <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token string">"Commodity{"</span> <span class="token operator">+</span>
+                <span class="token string">"name='"</span> <span class="token operator">+</span> name <span class="token operator">+</span> <span class="token string">'\''</span> <span class="token operator">+</span>
+                <span class="token string">", price="</span> <span class="token operator">+</span> price <span class="token operator">+</span>
+                <span class="token string">'}'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">equals</span><span class="token punctuation">(</span>Object o<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">this</span> <span class="token operator">==</span> o<span class="token punctuation">)</span> <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>o <span class="token operator">==</span> null <span class="token operator">||</span> <span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> o<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+        Commodity commodity <span class="token operator">=</span> <span class="token punctuation">(</span>Commodity<span class="token punctuation">)</span> o<span class="token punctuation">;</span>
+        <span class="token keyword">return</span> Objects<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> commodity<span class="token punctuation">.</span>name<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span>
+                Objects<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>price<span class="token punctuation">,</span> commodity<span class="token punctuation">.</span>price<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">int</span> <span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> Objects<span class="token punctuation">.</span><span class="token function">hash</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> price<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>　　这里用的equals方法和hashCode方法是很通用的，在其他地方也可以使用类似的写法，现在再来重新跑一下程序看下：</p>
+<pre class="line-numbers language-java"><code class="language-java">Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'Iphone6S'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">6666.66</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'Iphone7'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">7777.77</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'Iphone8'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">8888.88</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'IphoneX'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">9999.99</span><span class="token punctuation">}</span>
+Commodity<span class="token punctuation">{</span>name<span class="token operator">=</span><span class="token string">'Iphone8'</span><span class="token punctuation">,</span> price<span class="token operator">=</span><span class="token number">6666.66</span><span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java%E5%AE%B9%E5%99%A8/" rel="tag"># java容器</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/17/old/java%E5%AE%B9%E5%99%A8-11-LinkedHashMap%E8%AF%A6%E8%A7%A3/" rel="prev" title="java容器#11-LinkedHashMap详解">
+      <i class="fa fa-chevron-left"></i> java容器#11-LinkedHashMap详解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/19/old/java%E5%AE%B9%E5%99%A8-13-TreeMap%E8%AF%A6%E8%A7%A3/" rel="next" title="java容器#13-TreeMap详解">
+      java容器#13-TreeMap详解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#LinkedHashSet中的特性"><span class="nav-text">LinkedHashSet中的特性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LinkedHashSet源码分析"><span class="nav-text">LinkedHashSet源码分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LinkedHashSet应用场景"><span class="nav-text">LinkedHashSet应用场景</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

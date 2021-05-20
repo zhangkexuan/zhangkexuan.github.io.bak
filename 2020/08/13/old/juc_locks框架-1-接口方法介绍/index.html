@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="早期的JDK版本中，仅仅提供了synchronizd、wait、notify等等比较底层的多线程同步工具，开发人员如果需要开发复杂的多线程应用，通常需要基于JDK提供的这些基础工具进行封装，开发自己的工具类。JDK1.5+后，Doug Lea根据一系列常见的多线程设计模式，设计了JUC并发包，其中java.util.concurrent.locks包下提供了一系列基础的锁工具，用以对synchro">
+<meta property="og:type" content="article">
+<meta property="og:title" content="juc_locks框架#1-接口方法介绍">
+<meta property="og:url" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="早期的JDK版本中，仅仅提供了synchronizd、wait、notify等等比较底层的多线程同步工具，开发人员如果需要开发复杂的多线程应用，通常需要基于JDK提供的这些基础工具进行封装，开发自己的工具类。JDK1.5+后，Doug Lea根据一系列常见的多线程设计模式，设计了JUC并发包，其中java.util.concurrent.locks包下提供了一系列基础的锁工具，用以对synchro">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015559079.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015559094.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015564839.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015564840.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015562217.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015562202.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015804922.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015804923.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015804924.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015562392.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015562406.PNG">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015562407.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015562408.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015562409.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015562459.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015562460.png">
+<meta property="article:published_time" content="2020-08-13T01:34:33.000Z">
+<meta property="article:modified_time" content="2020-08-13T01:34:33.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="深入并发">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/1460000015559079.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>juc_locks框架#1-接口方法介绍 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/13/old/juc_locks%E6%A1%86%E6%9E%B6-1-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          juc_locks框架#1-接口方法介绍
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-13 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-13T09:34:33+08:00">2020-08-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>早期的JDK版本中，仅仅提供了synchronizd、wait、notify等等比较底层的多线程同步工具，开发人员如果需要开发复杂的多线程应用，通常需要基于JDK提供的这些基础工具进行封装，开发自己的工具类。JDK1.5+后，Doug Lea根据一系列常见的多线程设计模式，设计了JUC并发包，其中<code>java.util.concurrent.locks</code>包下提供了一系列基础的锁工具，用以对synchronizd、wait、notify等进行补充、增强。</p>
+<a id="more"></a>
+
+<p><code>java.util.concurrent.locks</code>包的结构如下：</p>
+<p><img src="1460000015559079.png" alt="juc-locks框架.png"></p>
+<p>包内接口和类的简单UML图如下：<br><img src="1460000015559094.png" alt="juc-locks框架2.png"></p>
+<h1 id="Lock接口简介"><a href="#Lock接口简介" class="headerlink" title="Lock接口简介"></a>Lock接口简介</h1><p>Lock接口可以视为synchronized的增强版，提供了更灵活的功能。该接口提供了限时锁等待、锁中断、锁尝试等功能。</p>
+<h2 id="接口定义"><a href="#接口定义" class="headerlink" title="接口定义"></a>接口定义</h2><p>该接口的方法声明如下：<br><img src="1460000015564839.png" alt="Locks接口"></p>
+<p>需要注意<code>lock()</code>和<code>lockInterruptibly()</code>这两个方法的区别：</p>
+<blockquote>
+<p><code>lock()方法</code>类似于使用synchronized关键字加锁，如果锁不可用，出于线程调度目的，将禁用当前线程，并且在获得锁之前，该线程将一直处于休眠状态。<br><code>lockInterruptibly()</code>方法顾名思义，就是如果锁不可用，那么当前正在等待的线程是可以被中断的，这比synchronized关键字更加灵活。</p>
+</blockquote>
+<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><p>可以看到，Lock作为一种同步器，一般会用一个finally语句块确保锁最终会释放。</p>
+<pre class="line-numbers language-java"><code class="language-java">Lock lock <span class="token operator">=</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">;</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span>lock<span class="token punctuation">.</span><span class="token function">tryLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">try</span> <span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">// manipulate protected state</span>
+    <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+        lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">// perform alternative actions</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="Condition接口简介"><a href="#Condition接口简介" class="headerlink" title="Condition接口简介"></a>Condition接口简介</h1><p>Condition可以看做是Obejct类的<code>wait()</code>、<code>notify()</code>、<code>notifyAll()</code>方法的替代品，与Lock配合使用。<br>当线程执行condition对象的<code>await</code>方法时，当前线程会立即释放锁，并进入对象的等待区，等待其它线程唤醒或中断。</p>
+<blockquote>
+<p>JUC在实现Conditon对象时，其实是通过实现AQS框架，来实现了一个Condition等待队列，这个在后面讲AQS框架时会详细介绍，目前只要了解Condition如何使用即可。</p>
+</blockquote>
+<h2 id="接口定义-1"><a href="#接口定义-1" class="headerlink" title="接口定义"></a>接口定义</h2><p><img src="1460000015564840.png" alt="Condition接口"></p>
+<h2 id="使用示例-1"><a href="#使用示例-1" class="headerlink" title="使用示例"></a>使用示例</h2><p>Oracle官方文档中给出了一个缓冲队列的示例：</p>
+<p><em>假定有一个缓冲队列，支持 put 和 take 方法。如果试图在空队列中执行 take 操作，则线程将一直阻塞，直到队列中有可用元素；如果试图在满队列上执行 put 操作，则线程也将一直阻塞，直到队列不满。</em></p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">class</span> <span class="token class-name">BoundedBuffer</span> <span class="token punctuation">{</span>
+    <span class="token keyword">final</span> Lock lock <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReentrantLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">final</span> Condition notFull <span class="token operator">=</span> lock<span class="token punctuation">.</span><span class="token function">newCondition</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">final</span> Condition notEmpty <span class="token operator">=</span> lock<span class="token punctuation">.</span><span class="token function">newCondition</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">final</span> Object<span class="token punctuation">[</span><span class="token punctuation">]</span> items <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Object</span><span class="token punctuation">[</span><span class="token number">100</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> putptr<span class="token punctuation">,</span> takeptr<span class="token punctuation">,</span> count<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">put</span><span class="token punctuation">(</span>Object x<span class="token punctuation">)</span> <span class="token keyword">throws</span> InterruptedException <span class="token punctuation">{</span>
+        lock<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>
+            <span class="token keyword">while</span> <span class="token punctuation">(</span>count <span class="token operator">==</span> items<span class="token punctuation">.</span>length<span class="token punctuation">)</span>    <span class="token comment" spellcheck="true">//防止虚假唤醒，Condition的await调用一般会放在一个循环判断中</span>
+                notFull<span class="token punctuation">.</span><span class="token function">await</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            items<span class="token punctuation">[</span>putptr<span class="token punctuation">]</span> <span class="token operator">=</span> x<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">++</span>putptr <span class="token operator">==</span> items<span class="token punctuation">.</span>length<span class="token punctuation">)</span>
+                putptr <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            <span class="token operator">++</span>count<span class="token punctuation">;</span>
+            notEmpty<span class="token punctuation">.</span><span class="token function">signal</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+            lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> Object <span class="token function">take</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> InterruptedException <span class="token punctuation">{</span>
+        lock<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>
+            <span class="token keyword">while</span> <span class="token punctuation">(</span>count <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span>
+                notEmpty<span class="token punctuation">.</span><span class="token function">await</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            Object x <span class="token operator">=</span> items<span class="token punctuation">[</span>takeptr<span class="token punctuation">]</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">++</span>takeptr <span class="token operator">==</span> items<span class="token punctuation">.</span>length<span class="token punctuation">)</span>
+                takeptr <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            <span class="token operator">--</span>count<span class="token punctuation">;</span>
+            notFull<span class="token punctuation">.</span><span class="token function">signal</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> x<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+            lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<blockquote>
+<p>等待 Condition 时，为了防止发生“虚假唤醒”， Condition 一般都是在一个循环中被等待，并测试正被等待的状态声明，如上述代码注释部分。<br>虽然上面这个示例程序即使不用while，改用if判断也不会出现问题，但是最佳实践还是做while循环判断——Guarded Suspension模式，以防遗漏情况。</p>
+</blockquote>
+<h1 id="ReadWriteLock接口简介"><a href="#ReadWriteLock接口简介" class="headerlink" title="ReadWriteLock接口简介"></a>ReadWriteLock接口简介</h1><p>ReadWriteLock接口是一个单独的接口（未继承Lock接口），该接口提供了获取读锁和写锁的方法。</p>
+<blockquote>
+<p>所谓读写锁，是一对相关的锁——读锁和写锁，读锁用于只读操作，写锁用于写入操作。读锁可以由多个线程同时保持，而写锁是独占的，只能由一个线程获取。</p>
+</blockquote>
+<h2 id="接口定义-2"><a href="#接口定义-2" class="headerlink" title="接口定义"></a>接口定义</h2><p><img src="1460000015562217.png" alt="ReadWriteLock接口"></p>
+<h2 id="使用注意"><a href="#使用注意" class="headerlink" title="使用注意"></a>使用注意</h2><p>读写锁的阻塞情况如下图：<br><img src="1460000015562202.png" alt="读写锁的阻塞"></p>
+<p>举个例子，假设我有一份共享数据——订单金额，大多数情况下，线程只会进行高频的数据访问（读取订单金额），数据修改（修改订单金额）的频率较低。<br>那么一般情况下，如果采用互斥锁，读/写和读/读都是互斥的，性能显然不如采用读写锁。</p>
+<p>另外，由于读写锁本身的实现就远比独占锁复杂，因此，读写锁比较适用于以下情形：</p>
+<ol>
+<li>高频次的读操作，相对较低频次的写操作；</li>
+<li>读操作所用时间不会太短。（否则读写锁本身的复杂实现所带来的开销会成为主要消耗成本）</li>
+</ol>
+<h1 id="ReentrantLock类简介"><a href="#ReentrantLock类简介" class="headerlink" title="ReentrantLock类简介"></a>ReentrantLock类简介</h1><p>ReentrantLock类，实现了Lock接口，是一种<strong>可重入</strong>的<strong>独占锁</strong>，它具有与使用 <code>synchronized</code> 相同的一些基本行为和语义，但功能更强大。ReentrantLock内部通过内部类实现了AQS框架(AbstractQueuedSynchronizer)的API来实现<strong>独占锁</strong>的功能。</p>
+<h2 id="类声明"><a href="#类声明" class="headerlink" title="类声明"></a>类声明</h2><p>ReentrantLock类直接实现了Lock接口：<br><img src="1460000015804922.png" alt="ReentrantLock类声明"></p>
+<h2 id="构造声明"><a href="#构造声明" class="headerlink" title="构造声明"></a>构造声明</h2><p>ReentrantLock类提供了两类构造器：<br><img src="1460000015804923.png" alt="ReentrantLock构造声明"></p>
+<p>ReentrantLock类的其中一个构造器提供了指定<strong>公平策略</strong> / <strong>非公平策略</strong>的功能，默认为<strong>非公平策略</strong>。</p>
+<blockquote>
+<p><strong>公平策略：</strong>在多个线程争用锁的情况下，公平策略倾向于将访问权授予等待时间最长的线程。也就是说，相当于有一个线程等待队列，先进入等待队列的线程后续会先获得锁，这样按照“先来后到”的原则，对于每一个等待线程都是公平的。</p>
+</blockquote>
+<blockquote>
+<p><strong>非公平策略：</strong>在多个线程争用锁的情况下，能够最终获得锁的线程是随机的（由底层OS调度）。</p>
+</blockquote>
+<p><em>注意：一般情况下，使用公平策略的程序在多线程访问时，总体吞吐量（即速度很慢，常常极其慢）比较低，因为此时在线程调度上面的开销比较大。</em></p>
+<p>举个例子：<br>假设采用公平策略，线程A首先获取了锁，线程B和线程C等待获取锁，如下图：<br><img src="1460000015804924.png" alt="image.png"></p>
+<p>当线程A释放锁时，线程B将经历从 挂起-&gt;唤醒 的线程调度过程，线程调度非常耗时。</p>
+<p>在线程B的 挂起-&gt;唤醒 阶段：</p>
+<ol>
+<li>如果采用非公平策略，那么线程C可以立即获取锁，线程C使用完并释放锁后，线程B可能才刚唤醒完成；此时线程B又可以去获取锁，这样线程B和线程C的效率都得到提升，系统吞吐量提升；</li>
+<li>如果采用公平策略，线程C即使可用，也要等到线程调度完成，整个系统的吞吐量降低。</li>
+</ol>
+<p>因此，当线程持有锁的时间相对较长或者线程请求锁的平均时间间隔较长时，可以考虑使用公平策略。此时线程调度产生的耗时间隔影响会较小。</p>
+<h2 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h2><p>ReentrantLock的典型调用方式如下：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">class</span> <span class="token class-name">X</span> <span class="token punctuation">{</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> ReentrantLock lock <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReentrantLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment" spellcheck="true">// ...</span>
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">m</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        lock<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment" spellcheck="true">// block until condition holds</span>
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>
+            <span class="token comment" spellcheck="true">// ... method body</span>
+        <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+            lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="类原理"><a href="#类原理" class="headerlink" title="类原理"></a>类原理</h2><p>ReentrantLock的源码非常简单，它通过内部类实现了AQS框架，Lock接口的实现仅仅是对AQS的api的简单封装。</p>
+<h1 id="ReentrantReadWriteLock类简介"><a href="#ReentrantReadWriteLock类简介" class="headerlink" title="ReentrantReadWriteLock类简介"></a>ReentrantReadWriteLock类简介</h1><p>ReentrantReadWriteLock类，顾名思义，是一种读写锁，它是ReadWriteLock接口的直接实现，该类在内部实现了具体<strong>独占锁</strong>特点的写锁，以及具有<strong>共享锁</strong>特点的读锁，和ReentrantLock一样，ReentrantReadWriteLock类也是通过定义内部类实现AQS框架的API来实现独占/共享的功能。</p>
+<p>ReentrantReadWriteLock类具有如下特点：</p>
+<h2 id="支持公平-非公平策略"><a href="#支持公平-非公平策略" class="headerlink" title="支持公平/非公平策略"></a>支持公平/非公平策略</h2><p>与ReadWriteLock类一样，ReentrantReadWriteLock对象在构造时，可以传入参数指定是公平锁还是非公平锁。<br><img src="1460000015562392.png" alt="image.png"></p>
+<h2 id="支持锁重入"><a href="#支持锁重入" class="headerlink" title="支持锁重入"></a>支持锁重入</h2><ul>
+<li>同一读线程在获取了读锁后还可以获取读锁；</li>
+<li>同一写线程在获取了写锁之后既可以再次获取写锁又可以获取读锁；</li>
+</ul>
+<h2 id="支持锁降级"><a href="#支持锁降级" class="headerlink" title="支持锁降级"></a>支持锁降级</h2><p>所谓锁降级，就是：先获取写锁，然后获取读锁，最后释放写锁，这样写锁就降级成了读锁。但是，读锁不能升级到写锁。简言之，就是：</p>
+<blockquote>
+<p>写锁可以降级成读锁，读锁不能升级成写锁。</p>
+<h3 id="读锁套写锁会死锁、写锁套读锁却不会死锁？"><a href="#读锁套写锁会死锁、写锁套读锁却不会死锁？" class="headerlink" title="读锁套写锁会死锁、写锁套读锁却不会死锁？"></a>读锁套写锁会死锁、写锁套读锁却不会死锁？</h3><ul>
+<li>写锁：可以对 原子<code>state</code>低位 进行 ++ 来实现重入。</li>
+<li>读锁：可以对 <code>HoldCounter</code> 进行 ++ 来实现重入</li>
+</ul>
+<p>假设有十个线程正在共享读锁，此时其中一个读线程重入了写锁，这将导致写锁的<strong>独享形同虚设</strong>，正常应该是此线程进入等待队列，等待所有线程都释放了读锁后，才能实现获得独占锁。</p>
+<p>然而这个持有读锁的线程已经在执行逻辑了，它无法进行阻塞，如果进入阻塞状态，便会有一个问题：那就是这个阻塞的读线程将 <strong>永远无法释放读锁！</strong>这个时候，读锁套写锁就会死锁。</p>
+<p>再谈写锁套读锁–因为持有写锁的线程已经拥有了独占锁，此时再去获取读锁，这个对于整个读写锁来说无关紧要，我们只要保证其他的线程无法获取到读锁即可。</p>
+</blockquote>
+<h2 id="Condition条件支持"><a href="#Condition条件支持" class="headerlink" title="Condition条件支持"></a>Condition条件支持</h2><p>ReentrantReadWriteLock的内部读锁类、写锁类实现了Lock接口，所以可以通过<code>newCondition()</code>方法获取Condition对象。但是这里要注意，读锁是没法获取Condition对象的，读锁调用<code>newCondition()</code>方法会直接抛出<code>UnsupportedOperationException</code>。</p>
+<blockquote>
+<p>我们知道，condition的作用其实是对Object类的<code>wait()</code>和<code>notify()</code>的增强，是为了让线程在指定对象上等待，是一种线程之间进行协调的工具。<br>当线程调用condition对象的<code>await</code>方法时，必须拿到和这个condition对象关联的锁。由于线程对读锁的访问是不受限制的（在写锁未被占用的情况下），那么即使拿到了和读锁关联的condition对象也是没有意义的，因为读线程之前不需要进行协调。</p>
+</blockquote>
+<h2 id="使用示例-2"><a href="#使用示例-2" class="headerlink" title="使用示例"></a>使用示例</h2><p>以下是Oracle官方给出的一个例子：<br>使用ReentrantReadWriteLock控制对TreeMap的访问（利用读锁控制读操作的访问，利用写锁控制修改操作的访问），将TreeMap包装成一个线程安全的集合，并且利用了读写锁的特性来提高并发访问。</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">RWTreeMap</span> <span class="token punctuation">{</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> Map<span class="token operator">&lt;</span>String<span class="token punctuation">,</span> Data<span class="token operator">></span> m <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">TreeMap</span><span class="token operator">&lt;</span>String<span class="token punctuation">,</span> Data<span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> ReentrantReadWriteLock rwl <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReentrantReadWriteLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> Lock r <span class="token operator">=</span> rwl<span class="token punctuation">.</span><span class="token function">readLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> Lock w <span class="token operator">=</span> rwl<span class="token punctuation">.</span><span class="token function">writeLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> Data <span class="token function">get</span><span class="token punctuation">(</span>String key<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        r<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> m<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+            r<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> String<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token function">allKeys</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        r<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token punctuation">(</span>String<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span> m<span class="token punctuation">.</span><span class="token function">keySet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toArray</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+            r<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> Data <span class="token function">put</span><span class="token punctuation">(</span>String key<span class="token punctuation">,</span> Data value<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        w<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> m<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>key<span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+            w<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        w<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">{</span>
+            m<span class="token punctuation">.</span><span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+            w<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="类声明-1"><a href="#类声明-1" class="headerlink" title="类声明"></a>类声明</h2><p><img src="1460000015562406.PNG" alt="image.png"></p>
+<p>内部嵌套类声明：<br>ReentrantReadWriteLock类有两个内部嵌套类<code>ReadLock</code>和<code>WriteLock</code>，这两个内部类的实例会在ReentrantReadWriteLock类的构造器中创建，并通过ReentrantReadWriteLock类的<code>readLock()</code>和<code>writeLock()</code>方法访问。</p>
+<p><strong>ReadLock：</strong><br><img src="1460000015562407.png" alt="image.png"></p>
+<p><strong>WriteLock：</strong><br><img src="1460000015562408.png" alt="image.png"></p>
+<h2 id="方法声明"><a href="#方法声明" class="headerlink" title="方法声明"></a>方法声明</h2><p>ReentrantReadWriteLock类的核心方法其实就两个：<code>readLock()</code>和<code>writeLock()</code>，其它都是一些用来监控系统状态的方法，返回的都是某一时刻点的近似值。</p>
+<p><img src="1460000015562409.png" alt="image.png"></p>
+<h1 id="LockSupport类简介"><a href="#LockSupport类简介" class="headerlink" title="LockSupport类简介"></a>LockSupport类简介</h1><p>LockSupport类，是JUC包中的一个工具类，是用来创建锁和其他同步类的基本线程阻塞原语。（<a href="https://docs.oracle.com/javase/8/docs/api/" target="_blank" rel="noopener">Basic thread blocking primitives for creating locks and other synchronization classes</a>）</p>
+<p>LockSupport类的核心方法其实就两个：<code>park()</code>和<code>unpark()</code>，其中<code>park()</code>方法用来阻塞当前调用线程，<code>unpark()</code>方法用于唤醒指定线程。<br>这其实和Object类的wait()和signal()方法有些类似，但是LockSupport的这两种方法从语意上讲比Object类的方法更清晰，而且可以针对指定线程进行阻塞和唤醒。</p>
+<blockquote>
+<p>LockSupport类使用了一种名为Permit（许可）的概念来做到阻塞和唤醒线程的功能，可以把许可看成是一种(0,1)信号量（Semaphore），但与 Semaphore 不同的是，许可的累加上限是1。<br>初始时，permit为0，当调用<code>unpark()</code>方法时，线程的permit加1，当调用<code>park()</code>方法时，如果permit为0，则调用线程进入阻塞状态。</p>
+</blockquote>
+<h2 id="使用示例-3"><a href="#使用示例-3" class="headerlink" title="使用示例"></a>使用示例</h2><p>来看一个例子：<br><em>假设现在需要实现一种FIFO类型的独占锁，可以把这种锁看成是ReentrantLock的公平锁简单版本，且是不可重入的，就是说当一个线程获得锁后，其它等待线程以FIFO的调度方式等待获取锁。</em></p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FIFOMutex</span> <span class="token punctuation">{</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> AtomicBoolean locked <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AtomicBoolean</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> Queue<span class="token operator">&lt;</span>Thread<span class="token operator">></span> waiters <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ConcurrentLinkedQueue</span><span class="token operator">&lt;</span>Thread<span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        Thread current <span class="token operator">=</span> Thread<span class="token punctuation">.</span><span class="token function">currentThread</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        waiters<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>current<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment" spellcheck="true">// 如果当前线程不在队首，或锁已被占用，则当前线程阻塞</span>
+        <span class="token comment" spellcheck="true">// NOTE：这个判断的意图其实就是：锁必须由队首元素拿到</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>waiters<span class="token punctuation">.</span><span class="token function">peek</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> current <span class="token operator">||</span> <span class="token operator">!</span>locked<span class="token punctuation">.</span><span class="token function">compareAndSet</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            LockSupport<span class="token punctuation">.</span><span class="token function">park</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        waiters<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment" spellcheck="true">// 删除队首元素</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        locked<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        LockSupport<span class="token punctuation">.</span><span class="token function">unpark</span><span class="token punctuation">(</span>waiters<span class="token punctuation">.</span><span class="token function">peek</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>测试用例：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">{</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span>String<span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> InterruptedException <span class="token punctuation">{</span>
+        FIFOMutex mutex <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FIFOMutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        MyThread a1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">MyThread</span><span class="token punctuation">(</span><span class="token string">"a1"</span><span class="token punctuation">,</span> mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        MyThread a2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">MyThread</span><span class="token punctuation">(</span><span class="token string">"a2"</span><span class="token punctuation">,</span> mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        MyThread a3 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">MyThread</span><span class="token punctuation">(</span><span class="token string">"a3"</span><span class="token punctuation">,</span> mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        a1<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        a2<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        a3<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        a1<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        a2<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        a3<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">assert</span> MyThread<span class="token punctuation">.</span>count <span class="token operator">==</span> <span class="token number">300</span><span class="token punctuation">;</span>
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token string">"Finished"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">class</span> <span class="token class-name">MyThread</span> <span class="token keyword">extends</span> <span class="token class-name">Thread</span> <span class="token punctuation">{</span>
+    <span class="token keyword">private</span> String name<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> FIFOMutex mutex<span class="token punctuation">;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">int</span> count<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token function">MyThread</span><span class="token punctuation">(</span>String name<span class="token punctuation">,</span> FIFOMutex mutex<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>mutex <span class="token operator">=</span> mutex<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">100</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            mutex<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            count<span class="token operator">++</span><span class="token punctuation">;</span>
+            System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"name:"</span> <span class="token operator">+</span> name <span class="token operator">+</span> <span class="token string">"  count:"</span> <span class="token operator">+</span> count<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            mutex<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上述FIFOMutex 类的实现中，当判断锁已被占用时，会调用<code>LockSupport.park(this)</code>方法，将当前调用线程阻塞；当使用完锁时，会调用<code>LockSupport.unpark(waiters.peek())</code>方法将等待队列中的队首线程唤醒。</p>
+<p>通过LockSupport的这两个方法，可以很方便的阻塞和唤醒线程。但是LockSupport的使用过程中还需要注意以下几点：</p>
+<ol>
+<li><p><strong><code>park</code>方法的调用一般要方法一个循环判断体里面。</strong></p>
+<p>如上述示例中的：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">while</span> <span class="token punctuation">(</span>waiters<span class="token punctuation">.</span><span class="token function">peek</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> current <span class="token operator">||</span> <span class="token operator">!</span>locked<span class="token punctuation">.</span><span class="token function">compareAndSet</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    LockSupport<span class="token punctuation">.</span><span class="token function">park</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>之所以这样做，是为了防止线程被唤醒后，不进行判断而意外继续向下执行，这其实是一种Guarded Suspension的多线程设计模式。</p>
+</li>
+<li><p><code>park</code>方法是会响应中断的，但是不会抛出异常。(也就是说如果当前调用线程被中断，则会立即返回但不会抛出中断异常)</p>
+</li>
+<li><p>park的重载方法<code>park(Object blocker)</code>，会传入一个blocker对象，所谓Blocker对象，其实就是当前线程调用时所在调用对象（如上述示例中的FIFOMutex对象）。该对象一般供监视、诊断工具确定线程受阻塞的原因时使用。</p>
+</li>
+</ol>
+<h2 id="LockSupport类-方法声明"><a href="#LockSupport类-方法声明" class="headerlink" title="LockSupport类/方法声明"></a>LockSupport类/方法声明</h2><p><strong>类声明：</strong><br><img src="1460000015562459.png" alt="image.png"></p>
+<p><strong>方法声明：</strong><br><img src="1460000015562460.png" alt="image.png"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+              <a href="/tags/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" rel="tag"># 深入并发</a>
+              <a href="/tags/juc/" rel="tag"># juc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/12/old/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91-3-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="prev" title="深入并发#3-多线程设计模式">
+      <i class="fa fa-chevron-left"></i> 深入并发#3-多线程设计模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/14/old/juc_locks%E6%A1%86%E6%9E%B6-2-AQS%E4%BB%8B%E7%BB%8D/" rel="next" title="juc_locks框架#2-AQS介绍">
+      juc_locks框架#2-AQS介绍 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Lock接口简介"><span class="nav-text">Lock接口简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#接口定义"><span class="nav-text">接口定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用示例"><span class="nav-text">使用示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Condition接口简介"><span class="nav-text">Condition接口简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#接口定义-1"><span class="nav-text">接口定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用示例-1"><span class="nav-text">使用示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ReadWriteLock接口简介"><span class="nav-text">ReadWriteLock接口简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#接口定义-2"><span class="nav-text">接口定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用注意"><span class="nav-text">使用注意</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ReentrantLock类简介"><span class="nav-text">ReentrantLock类简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#类声明"><span class="nav-text">类声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#构造声明"><span class="nav-text">构造声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用方式"><span class="nav-text">使用方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类原理"><span class="nav-text">类原理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ReentrantReadWriteLock类简介"><span class="nav-text">ReentrantReadWriteLock类简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#支持公平-非公平策略"><span class="nav-text">支持公平&#x2F;非公平策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#支持锁重入"><span class="nav-text">支持锁重入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#支持锁降级"><span class="nav-text">支持锁降级</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#读锁套写锁会死锁、写锁套读锁却不会死锁？"><span class="nav-text">读锁套写锁会死锁、写锁套读锁却不会死锁？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Condition条件支持"><span class="nav-text">Condition条件支持</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用示例-2"><span class="nav-text">使用示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类声明-1"><span class="nav-text">类声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法声明"><span class="nav-text">方法声明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LockSupport类简介"><span class="nav-text">LockSupport类简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用示例-3"><span class="nav-text">使用示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LockSupport类-方法声明"><span class="nav-text">LockSupport类&#x2F;方法声明</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

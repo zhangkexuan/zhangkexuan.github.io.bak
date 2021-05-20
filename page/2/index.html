@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="generator" content="Hexo 4.2.1">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -72,7 +72,8 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -183,7 +184,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/28/netty-10-%E9%87%8D%E8%A6%81%E6%8E%A5%E5%8F%A3ChannelPipline/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/17/store/NVMe/%E5%8D%81%E4%B8%80%E3%80%81U.2%20SSD%EF%BC%88%E5%8E%9FSFF-8639%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -197,7 +198,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/28/netty-10-%E9%87%8D%E8%A6%81%E6%8E%A5%E5%8F%A3ChannelPipline/" class="post-title-link" itemprop="url">netty#10-重要接口ChannelPipline</a>
+            <a href="/2020/10/17/store/NVMe/%E5%8D%81%E4%B8%80%E3%80%81U.2%20SSD%EF%BC%88%E5%8E%9FSFF-8639%EF%BC%89/" class="post-title-link" itemprop="url">十一、U.2 SSD（原SFF-8639）</a>
         </h2>
 
         <div class="post-meta">
@@ -207,7 +208,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-28 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-28T09:34:33+08:00">2020-09-28</time>
+              <time title="创建时间：2020-10-17 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-17T23:58:13+08:00">2020-10-17</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -215,7 +216,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/netty/" itemprop="url" rel="index"><span itemprop="name">netty</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -230,15 +231,33 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>上一节我们写了一个案例，对于Netty的运行有了一定的了解，知道Netty是如何启动客户端和服务器端。这一节我们简要的讲解一下几个重要的接口，初步探讨Netty的运行机制，当然刚学Netty就深入原理肯定是很枯燥的，所以我们就点到为止。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/28/netty-10-%E9%87%8D%E8%A6%81%E6%8E%A5%E5%8F%A3ChannelPipline/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <p>U.2 SSD是一种高性能数据存储设备，旨在使用小型（SFF）连接器支持外围组件互连高速（PCIe）接口，该连接器还兼容基于标准SAS 和 SATA的旋转磁盘和固态状态驱动器（SSD）。尽管U.2 SSD在技术上可以描述PCIe，SAS或SATA驱动器，但制造商通常仅使用该术语来描述支持非易失性存储器（NVMe）主机控制器接口和存储协议的2.5英寸PCIe SSD 。NVMe技术可以通过PCIe互连加速主机系统和SSD之间的数据传输。 </p>
+<p>U.2开发的主要推动力是使更新更快的基于NVMe的PCIe SSD能够插入与传统SAS和SATA驱动器相同的驱动器底板，而无需关闭企业服务器和存储系统来插入或删除它们。 </p>
+<h1 id="U-2-Form-Factor的历史"><a href="#U-2-Form-Factor的历史" class="headerlink" title="U.2 Form Factor的历史"></a>U.2 Form Factor的历史</h1><p>SSD Form Factor Working Group由具有SSD技术商业利益的供应商组成，于2010年成立，旨在推动PCIe作为高速互连。集团成员开发了一种连接器规范，使PCIe能够与专为标准2.5或3.5英寸驱动器设计的磁盘盒中的SAS和SATA存储协议进行互操作。该规范定义了物理连接器的机械和电子属性，电源配置和热插拔设计。 </p>
+<p>开发U.2连接器规范的SSD外形工作组的创始成员包括戴尔和EMC(在两家公司合并之前) 富士通，IBM和英特尔。其他有助于连接器规范的成员包括Amphenol，Emulex（被Broadcom收购），Fusion-io（被SanDisk及后来的Western Digital收购），Integrated Device Technology，Marvell，Micron，Molex，PLX Technology（被Broadcom收购），QLogic （由Cavium收购），SandForce（由LSI收购，然后由Avago Technologies收购，后来由Seagate Technology收购），Smart Modular Technologies和sTec（由HGST收购，然后由Western Digital收购）。 </p>
+<p>SSD Form Factor Working Group选择U.2作为描述SFF-8639连接器的PCIe， SFF-8639连接器可在PCIe SSD中支持一个SATA端口，两个SAS端口或最多四个并行I / O通道。驱动器外形尺寸可以是2.5英寸或3.5英寸。 </p>
+<p><img src="/pics/image-20210418142102222.png" alt="image-20210418142102222"></p>
+<p>随后的SFF-9639规范定义了设计用于SFF-8639连接器的各种接口的引脚信息。除了U.2的PCIe，SAS和SATA之外，可用的配置文件还包括U.3和USB。存储网络行业协会（SNIA）SFF技术联盟技术工作组在与SFF-8639和SFF-9639连接器的原始工作组合并后，现在已经超越了SFF-9639规范。 </p>
+<h1 id="U-2优点缺点"><a href="#U-2优点缺点" class="headerlink" title="U.2优点缺点"></a>U.2优点缺点</h1><p>与插入计算机内部PCIe总线的典型附加卡（AIC）相比，U.2 SSD的主要优势之一是用户无需打开服务器即可插入或移除它们。无论系统是否接收事先通知，它们都是可热插拔的，就像SATA和SAS SSD以及硬盘驱动器（HDD）一样。 </p>
+<p>U.2连接器和外形的另一个关键优势是与HDD的向后兼容性。服务器和存储制造商能够配置混合使用2.5英寸或3.5英寸HDD以及基于PCIe，SAS和SATA的U.2 SSD的企业系统，以满足其客户的需求。系统的背板必须设计为支持NVMe才能使用基于NVMe的PCIe SSD。 </p>
+<p>U.2 SSD 通过企业服务器或存储系统中的PCIe连接支持最多四个并行I / O通道。使用双控制器存储阵列，一对双通道PCIe链路可以彼此独立地运行，从而允许一个控制器发生故障。SFF-8639连接器上定义的信号指示驱动器是以单端口还是双端口模式运行。 </p>
+<p>U.2 SSD规范提供系统管理总线（SMBus）协议的可选支持，以监控主板控制或系统管理控制器的电压和温度。 </p>
+<p>U.2 SSD的一个潜在缺点是驱动器技术的成本较高，包括SFF-8639连接器，因此用户需要确定他们是否需要基于NVME的PCIe SSD可以实现的更高性能和更低延迟。企业用户还可能需要购买旨在支持U.2 SSD的新服务器，因为他们的传统基础设施可能没有配备SFF-8639连接器技术。 </p>
+<h1 id="U-2-SSD与M-2"><a href="#U-2-SSD与M-2" class="headerlink" title="U.2 SSD与M.2"></a>U.2 SSD与M.2</h1><p>两种类型的SSD随着对高性能，低延迟NVMe技术不断升级的兴趣而越来越受欢迎，分别是M.2和U.2。 </p>
+<p>SFF M.2固态硬盘最初设计用于薄型，功耗受限的设备，如平板电脑和笔记本电脑。单端口M.2 SSD还可用作Web和其他服务器中的引导设备和存储驱动器，这些服务器不需要双端口驱动器供企业使用。M.2规范支持PCIe，SATA和USB接口。 </p>
+<p>制造商生产各种尺寸的M.2固态硬盘。M.2 SSD的宽度通常为22毫米，长度为60毫米，80毫米或110毫米。 </p>
+<p><img src="/pics/image-20210418142211756.png" alt="image-20210418142211756"></p>
+<p>此图显示了2.5英寸SAS和PCIe U.2 SSD，SATA SSD，PCIe AIC和M.2 SSD。 </p>
+<p>相比之下，U.2 SSD设计用于插入企业服务器和存储系统背板中的2.5英寸和3.5英寸插槽。U.2 SSD还可以实现比M.2 SSD更高的最大存储容量，因为它们具有更大的物理尺寸。 </p>
+<p>U.2外形比M.2 SSD更有利于散热，并允许更高的工作温度而不会损坏驱动器组件。该功能有助于在写入密集型操作期间驱动器升温时保持U.2 SSD免受限制性能。U.2和某些类型的M.2 SSD可以在正在运行的计算机系统中进行交换。但是系统布局必须允许对M.2 SSD的开放访问，以使热插拔功能从实用的角度来看是有用的。 </p>
+<h1 id="为什么在使用PCIe-AiC时使用U-2插槽？"><a href="#为什么在使用PCIe-AiC时使用U-2插槽？" class="headerlink" title="为什么在使用PCIe AiC时使用U.2插槽？"></a>为什么在使用PCIe AiC时使用U.2插槽？</h1><p>由于服务器或存储系统可能受PCIe插槽限制，但有更多可用的U.2插槽。英特尔和微软在内的各种供应商都提供U.2驱动器，戴尔，英特尔和联想等都提供相应服务器。 </p>
+<h1 id="何时使用NVMe-M-2设备？"><a href="#何时使用NVMe-M-2设备？" class="headerlink" title="何时使用NVMe M.2设备？"></a>何时使用NVMe M.2设备？</h1><p>NVMe M.2设备作为本地读/写缓存，或者可能是具有M.2插槽的服务器或设备上的引导和系统设备。许多服务器和较小的工作站（包括Intel NUC）都支持M.2。同样，有许多不同供应商提供M.2设备，包括美光和三星等。 </p>
+<h1 id="可在同一台服务器混合搭配不同类型的NVMe设备吗？"><a href="#可在同一台服务器混合搭配不同类型的NVMe设备吗？" class="headerlink" title="可在同一台服务器混合搭配不同类型的NVMe设备吗？"></a>可在同一台服务器混合搭配不同类型的NVMe设备吗？</h1><p>只要物理服务器及其软件（BIOS / UEFI，操作系统，虚拟机管理程序，驱动程序）支持它，那么就可以混合搭配使用。大多数服务器和设备供应商都支持PCIe NVMe AiC，但您需要注意外形和兼容性，需要操作系统和管理程序设备驱动程序支持。PCIe NVMe AiC可从戴尔，英特尔，美光和许多其他供应商处获得。 </p>
+<p>值得关注的供应商包括E8，Enmotus（微分层软件），Excelero，Magnotics，Mellanox，Microsemi，微软（Windows Server 2016 S2D，ReFS），NVM Express贸易集团（例如，nvmexpress.org），希捷，VMware（作为vSphere ESXi的一部分提供本机NVMe驱动程序）和WD / Sandisk </p>
+<p>NVMe over Fabrics通过充分利用数据中心能力并成为SAN环境的有效替代品，正在彻底改变存储市场。现在是时候看看NVMe over Fabrics的好处，以及如何最好地利用网络上的技术以及NVMe-oF背后的供应商和标准组织。 </p>
+<p>NVMe是主要存储供应商采用的新开放标准。它是一种逻辑设备接口规范，允许将非易失性存储连接到PCI Express接口。将NVMe设备连接到PCIe插槽可减少I / O开销。这使得他们所使用的设备和系统能够充分受益于现代SSD的并行性。 </p>
+<p>NVMe于2012年首次部署在服务器中，不久之后，它就进入了存储领域。2014年，NVM Express Inc.成立，旨在推动NVMe成为行业标准。NVM Express的董事会成员包括思科，戴尔EMC，英特尔，美光科技，Microsemi，微软，NetApp，希捷科技和西部数据公司的HGST部门。 </p>
+
       
     </div>
 
@@ -257,7 +276,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/27/%E7%AE%97%E6%B3%95-6-%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/16/store/NVMe/%E5%8D%81%E3%80%81%E5%88%9D%E8%AF%86SSD%E5%B8%B8%E8%A7%81%E6%8E%A5%E5%8F%A3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -271,7 +290,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/27/%E7%AE%97%E6%B3%95-6-%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3/" class="post-title-link" itemprop="url">算法#6-滑动窗口</a>
+            <a href="/2020/10/16/store/NVMe/%E5%8D%81%E3%80%81%E5%88%9D%E8%AF%86SSD%E5%B8%B8%E8%A7%81%E6%8E%A5%E5%8F%A3/" class="post-title-link" itemprop="url">十、初识SSD常见接口</a>
         </h2>
 
         <div class="post-meta">
@@ -281,7 +300,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-27 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-27T09:34:33+08:00">2020-09-27</time>
+              <time title="创建时间：2020-10-16 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-16T23:58:13+08:00">2020-10-16</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -289,7 +308,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -304,15 +323,24 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>滑动窗口可以看成数组中框起来的一个部分。在一些数组类题目中，我们可以用滑动窗口来观察可能的候选结果。当滑动窗口从数组的左边滑到了右边，我们就可以从所有的候选结果中找到最优的结果。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/27/%E7%AE%97%E6%B3%95-6-%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <h1 id="SATA接口-通用之选"><a href="#SATA接口-通用之选" class="headerlink" title="SATA接口-通用之选"></a>SATA接口-通用之选</h1><p>SATA接口目前仍然是电脑上最常见的接口。因此，不管是新组装电脑，还是升级电脑，SATA接口的SSD的兼容性和通用性都是最高的，极少会遇上不兼容或者不能安装的情况。通常来说，除了一些只支持M.2 SSD的超级本以外，其它所有的电脑都是支持SATA接口SSD的。 </p>
+<p><img src="/pics/image-20210418140745515.png" alt="image-20210418140745515">另外， SATA接口SSD的速度普遍为500MB/S左右，写入速度和随机读写速度对于大部分用户来说，都是绝对足够的。相比于传统的机械硬盘，足以极大地提升使用的体验。当然，如果你是对速度极端追求的极端发烧友，则可以选择M.2接口产品。 </p>
+<h1 id="mSATA接口：小型化的产物"><a href="#mSATA接口：小型化的产物" class="headerlink" title="mSATA接口：小型化的产物"></a>mSATA接口：小型化的产物</h1><p>mSATA是一种SSD在SATA协议时代小型化的产物。相比于常见的常规SATA接口SSD，mSATA接口SSD会小很多，也比较方便安装在笔记本等对空间要求比较苛刻的产品中。 </p>
+<p><img src="/pics/image-20210418140807041.png" alt="image-20210418140807041"></p>
+<p>和常规版SATA产品一样，mSATA仍然还是SATA接口，它走得仍然是SATA通道，性能自然也差不多，读写速度在500MB/S左右。这里需要注意的是，mSATA和M.2接口会有点像，在选择之前，一定要仔细认清楚自己电脑插槽是否是mSATA接口，还是M.2接口。 </p>
+<h1 id="M-2接口：购买务必谨慎"><a href="#M-2接口：购买务必谨慎" class="headerlink" title="M.2接口：购买务必谨慎"></a>M.2接口：购买务必谨慎</h1><p>M.2接口是SSD在小型化的过程中诞生的新一代接口，也是最为主打的一种接口。目前，一般的电脑主板和笔记本上都会预留有M.2接口。只是，在经过了多年的发展以后，M.2接口也拥有了多种规格，所以，在购买M.2接口SSD之前，请务必谨慎小心，避免出错。 </p>
+<p><img src="/pics/image-20210418141030728.png" alt="image-20210418141030728"></p>
+<p>当下，M.2接口主要可以从接口规格上和支持的通道上进行区分。从接口上来说，M.2主要有2242、2260、2280三种规格。一般而言，2242的SSD可以通过延长板在2260和2280的插槽上使用，2242和2260的SSD可以在2280的插槽上使用，至于2280的SSD就只能够在2280的插槽上使用了。 </p>
+<p>从通道上来说，M.2接口SSD主要有SATA通道版本以及PCI-E通道版本。SSD所走通道的不同，直接决定了SSD的最快速度。走SATA通道版本的SSD的读写速度为500MB/S左右，走PCI-E通道，特别是PCI-E 3.0X4通道的SSD的速度则能够达到上千MB/S，特别是支持NVMe的版本，甚至可以达到几千MB/S。 </p>
+<p><img src="/pics/image-20210418141116323.png" alt="image-20210418141116323"></p>
+<p>目前，市场上M.2接口版本SSD占比最大的2280接口产品。2280接口产品主要有两种类型，一种走SATA通道，不支持NVMe，主要为一些价格比较低廉的笔记本在采用，速度500MB/S左右；一种走PCI-E通道，支持NVMe，速度极快，基本都能够达到1000MB/S以上。两种接口插槽并不互相兼容，购买之前要注意认清插槽按需选择。 </p>
+<h1 id="PCI-E接口：速度快但非主流"><a href="#PCI-E接口：速度快但非主流" class="headerlink" title="PCI-E接口：速度快但非主流"></a>PCI-E接口：速度快但非主流</h1><p>目前，市面上还有一种PCI-E接口的SSD，它占用电脑主板上的PCI-E接口，走PCI-E通道，所以，这种产品的速度也非常快。 </p>
+<p><img src="/pics/image-20210418141147572.png" alt="image-20210418141147572"></p>
+<p>不过，由于它需要占用PCI-E接口（也就是显卡常用的接口），影响了显卡等其它PCI-E产品的拓展，所以，它的普及度自然不高。当然，如果你的电脑PCI-E接口富余的话，选择PCI-E接口SSD还是非常值得的，毕竟它的性能是非常好的。 </p>
+<p><img src="/pics/image-20210418141306861.png" alt="image-20210418141306861"></p>
+<p>常见SSD接口目前只有以上几种，不同接口的SSD支持的传输协议不同，决定了他们的性能表现。当然除了产品的接口以及支持的传输协议外，SSD的主控算法、颗粒品质、产品优化等也对SSD性能起到至关重要的影响。 </p>
+<p>三星作为目前唯一坚持所有部件都自主生产的SSD大厂，不仅在产品性能上独具优势，而且产品布局也充分考虑消费者的实际需求，SATA、mSATA、M.2 SATA、M.2 NVMe等各种接口的SSD几乎都是明星产品，在选择的过程中，搞清楚自己的使用需求，以及电脑支持的接口类型，三星SSD总有一款适合你。 </p>
+
       
     </div>
 
@@ -331,7 +359,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/26/%E7%AE%97%E6%B3%95-5-%E4%BA%8C%E5%8F%89%E6%A0%91/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/15/store/NVMe/%E4%B9%9D%E3%80%81%E5%85%B3%E4%BA%8E%E8%8B%B1%E7%89%B9%E5%B0%94Optane%20SSD/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -345,7 +373,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/26/%E7%AE%97%E6%B3%95-5-%E4%BA%8C%E5%8F%89%E6%A0%91/" class="post-title-link" itemprop="url">算法#5-二叉树</a>
+            <a href="/2020/10/15/store/NVMe/%E4%B9%9D%E3%80%81%E5%85%B3%E4%BA%8E%E8%8B%B1%E7%89%B9%E5%B0%94Optane%20SSD/" class="post-title-link" itemprop="url">九、关于英特尔Optane SSD</a>
         </h2>
 
         <div class="post-meta">
@@ -355,7 +383,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-26 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-26T09:34:33+08:00">2020-09-26</time>
+              <time title="创建时间：2020-10-15 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-15T23:58:13+08:00">2020-10-15</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -363,7 +391,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -378,15 +406,18 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>二叉树；</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/26/%E7%AE%97%E6%B3%95-5-%E4%BA%8C%E5%8F%89%E6%A0%91/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <p>多年来，半导体行业一直在用存储类存储器或SCM概念来取笑我们。这种神奇的新材料将比闪存更快，比DRAM更便宜，而且没有困扰闪存的讨厌耐力问题。 </p>
+<p>在过去的几年里，似乎3D XPoint将成为将我们带入持久记忆计算的新黄金时代的领头军。直到英特尔和美光宣布他们将终止他们的联合开发协议。 </p>
+<p>英特尔Optane SSD为何会“失败”？SCM是一种新型存储介质，如相变存储器，电阻式存储器，磁性RAM，忆阻器和电子自旋转移扭矩等，但是3D XPoint看起来与众不同。它具有高密度和持续性。 </p>
+<h1 id="存在的盈利能力和营销问题"><a href="#存在的盈利能力和营销问题" class="headerlink" title="存在的盈利能力和营销问题"></a>存在的盈利能力和营销问题</h1><p>看来这是盈利问题导致英特尔和美光决定在第二代（目前正在开发）之后结束他们对3D XPoint的联合开发。英特尔在其Optane产品中使用3D XPoint。对Optane产品的需求显然非常疲软，以至于美光公司一直在亏损，而不是推出其长期推迟的QuantX品牌3D XPoint设备，以至将其联合工厂生产的份额出售给英特尔。 </p>
+<p>如果英特尔Optane固态硬盘的销售速度没有公司管理层可能期望的那么快，那么我就将责任归咎于英特尔营销。在写入单个单元格时，3D XPoint可能比闪存快1000倍。但迄今为止唯一的3D XPoint产品是英特尔Optane固态硬盘，这种超高速技术置于x4外围组件互连高速（PCIe）插槽和面向块存储的非易失性存储器（NVMe）软件接口。 </p>
+<p>与使用NAND闪存的高端NVMe SSD（例如Intel的DC P3700）相比，Optane SSD的IOPS提升了4到10倍，或者延迟更低，而不是1000倍的改进。由于英特尔Optane固态硬盘的成本约为每GB存储闪存NVMe设备的五倍。 </p>
+<p>使用750 GB Intel Optane DC P4800X作为双层存储系统中的性能层，可以快速访问最热的750 GB数据(首先写入性能层的I / O)。 相同的$ 3,000左右，P4800X将在闪存驱动器的性能层中为您带来4 TB的容量。 </p>
+<p><img src="/pics/image-20210418140659463.png" alt="image-20210418140659463"></p>
+<p>然而，配置将给定的应用程序是否带来更快性能，取决于I / O热图和应用程序的长尾敏感性，因为访问存储层时会产生延迟。 </p>
+<h1 id="Optane性价比"><a href="#Optane性价比" class="headerlink" title="Optane性价比"></a>Optane性价比</h1><p>在我看来，新介质性能层必须提供至少2比1的性价比。也就是说，与下一层相比，性能提升必须至少是该媒介质成本溢价的两倍。Optane的成本大约是闪存的五倍，可以加速访问最热的数据大约也是五倍。这种比例为1比1使得Optane比在更快的闪存上花费相同的钱更令人信服，这对于今天的应用来说足够快。 </p>
+<p>英特尔最近推出的Optane DC非易失性DIMM的性能是Intel Optane SSD的10倍。更重要的是，512 GB Optane DC DIMM 在地址空间中仅作为非易失性存储器（NVM）出现。这使得应用程序不必将NVM视为难以置信的快速硬盘，因此内存数据库可以将远程直接内存访问调用到另一个节点的持久内存中得以保护。 </p>
+
       
     </div>
 
@@ -405,7 +436,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/25/Network-1-%E6%A6%82%E5%BF%B5%E6%80%BB%E7%BB%93/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/14/store/NVMe/%E5%85%AB%E3%80%81NVMe%E6%8A%80%E6%9C%AF%E5%9C%A8%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%BF%83%E6%99%AE%E5%8F%8A%E7%9A%84%E6%AD%A5%E9%AA%A4/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -419,7 +450,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/25/Network-1-%E6%A6%82%E5%BF%B5%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">Network#1-概念总结</a>
+            <a href="/2020/10/14/store/NVMe/%E5%85%AB%E3%80%81NVMe%E6%8A%80%E6%9C%AF%E5%9C%A8%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%BF%83%E6%99%AE%E5%8F%8A%E7%9A%84%E6%AD%A5%E9%AA%A4/" class="post-title-link" itemprop="url">八、NVMe技术在数据中心普及的步骤</a>
         </h2>
 
         <div class="post-meta">
@@ -429,7 +460,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-25 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-25T09:34:33+08:00">2020-09-25</time>
+              <time title="创建时间：2020-10-14 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-14T23:58:13+08:00">2020-10-14</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -437,7 +468,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">网络</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -452,15 +483,29 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>计算机网络的基本概念进行梳理！</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/25/Network-1-%E6%A6%82%E5%BF%B5%E6%80%BB%E7%BB%93/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <p>作为SCSI存储协议的替代品，NVMe可以提供更灵敏的存储和更低的延迟。但是，在数据中心过渡到NVMe需要进行全面规划。数据中心前往NVMe的过程将是多步骤的，每一步都由实际需求以及NVMe技术成熟的速度驱动。 <img src="/pics/image-20210418135427734.png" alt="image-20210418135427734"></p>
+<p>在数据中心转换到NVMe的第一步是使用全闪存阵列，其中系统内的驱动器是NVMe连接的。但是，在外部，系统没有重大变化。与存储网络和其他环境的连接仍然是相同的：传统以太网和/或FC。即使使用基于服务器的NVMe驱动器的超融合系统仍将通过传统以太网连接其节点。 </p>
+<p>现状：好消息是将基于NVMe的全闪存阵列插入存储基础架构是无缝的。坏消息是它没有充分利用NVMe技术提供的所有功能。 </p>
+<p>如果数据必须使用传统协议进入并离开存储系统，那么全闪存阵列中NVMe的回报是多少？现实情况是，存储系统成为性能的瓶颈，特别是在共享存储环境中。全闪存阵列的内部结构本身就是一个生态系统。存储软件使用存储系统的CPU来接收，操作和存储数据。闪存驱动器必须操纵数据以确保正确有效地存储数据。软件必须再次使用CPU来查找数据并将数据发送回请求用户或应用程序。 </p>
+<p><img src="/pics/image-20210418135853278.png" alt="image-20210418135853278"></p>
+<p>网络互连软件，CPU和存储之间的通信。通过向该系统发送和从该系统发送的所有数据，更快的数据可以遍历系统的内部，整体性能将更好。 </p>
+<p>在NVMe突然出现之前，大多数全闪存阵列的内部网络都是SAS。现在，它很快成为NVMe。SAS是一种较慢的连接，必须处理SCSI协议的低效率。NVMe在连接方面更快，并且在任何给定时间点可以更高效地运行多少数据。 </p>
+<h1 id="基于存储扩展NVMe"><a href="#基于存储扩展NVMe" class="headerlink" title="基于存储扩展NVMe"></a>基于存储扩展NVMe</h1><p>NVMe-oF仍处于早期阶段。虽然它有效，但它仍然很脆弱，互操作性还有很多不足之处。数据中心的第一步是采用NVMe内部存储但外部传统网络的全闪存阵列。NVMe-oF确实有效; 供应商必须严格控制组件以消除问题。对受控网络部署的需求使基于NVMe的横向扩展存储成为NVMe过渡的理想第二步。 </p>
+<p>横向扩展存储创建一组服务节点。每个服务节点都有自己的内部存储。它将每个节点的存储聚合到一个虚拟存储池中。互连这些节点的网络通常是使用IP的传统以太网。节点间通信密集，特别是增加了更多节点。NVMe-oF具有高性能和低延迟，是一种更理想的互连。它应该能够以更好的整体性能扩展到更多节点。 </p>
+<h1 id="端到端的NVMe"><a href="#端到端的NVMe" class="headerlink" title="端到端的NVMe"></a>端到端的NVMe</h1><p>转换到NVMe技术的下一步是端到端NVMe技术，其中存储系统和连接到它的服务器都通过NVMe连接。此设计应为共享存储带来服务器内存储性能。主要的交换机供应商Cisco和Brocade已经为其交换机增加了NVMe支持，并且有几种NVMe主机总线适配器（HBA）卡可用。 </p>
+<p>不幸的是，端到端NVMe有几个障碍： </p>
+<ul>
+<li><p>互操作性问题。在任何网卡可以与任何其他网卡和交换机一起使用之前，部署将会缓慢进行。 </p>
+</li>
+<li><p>基础设施升级缓慢。不支持NVMe的交换机和HBA需要达到使用寿命，这可能需要数年时间替换迁移。 </p>
+</li>
+<li><p>在广泛实施方面缺乏经验。实际上，网络（没有NVMe）和存储比大多数数据中心其他设备需要的更快。 </p>
+</li>
+</ul>
+<p>对于少数数据中心对其当前的全闪存阵列和网络立即迁移到NVMe可能会有所帮助。但他们也应该同时考虑网络升级带来复杂性和风险。目前很少有NVMe全闪存专家可以提供交钥匙的端到端产品，或者拥有所有NVMe生态合作伙伴关系。 </p>
+<p>然而，大多数数据中心无法立即利用NVMe，因此这不是组织需要丢弃其全闪存阵列并将其替换为基于NVMe的全闪存阵列。随着存储系统刷新和技术革新，寻找至少部分NVMe的闪存阵列是有意义的。确保对网络基础设施（无论是交换机还是HBA）的任何投资都具有内置的NVMe兼容性也是有意义的。 </p>
+<p>NVMe的普及和实施更像是一个快点和计划的平衡。现在是确保未来投资(无论是存储还是基础设施)是该为NVMe技术做好准备的时候了。 </p>
+
       
     </div>
 
@@ -479,7 +524,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/24/netty-9-Netty%E9%AB%98%E6%80%A7%E8%83%BD%E6%9E%B6%E6%9E%84/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/13/store/NVMe/%E4%B8%83%E3%80%81NVMe%20SSD%E9%80%9F%E5%BA%A6%E8%A7%A3%E9%87%8A/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -493,7 +538,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/24/netty-9-Netty%E9%AB%98%E6%80%A7%E8%83%BD%E6%9E%B6%E6%9E%84/" class="post-title-link" itemprop="url">netty#9-Netty高性能架构</a>
+            <a href="/2020/10/13/store/NVMe/%E4%B8%83%E3%80%81NVMe%20SSD%E9%80%9F%E5%BA%A6%E8%A7%A3%E9%87%8A/" class="post-title-link" itemprop="url">七、NVMe SSD速度解释</a>
         </h2>
 
         <div class="post-meta">
@@ -503,7 +548,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-24 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-24T09:34:33+08:00">2020-09-24</time>
+              <time title="创建时间：2020-10-13 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-13T23:58:13+08:00">2020-10-13</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -511,7 +556,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/netty/" itemprop="url" rel="index"><span itemprop="name">netty</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -526,15 +571,27 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>netty的模型主要是reactor主从上进行优化，本文主要介绍了各种线程模型，以及netty模型，并且通过简单案例说明了异步和netty的使用。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/24/netty-9-Netty%E9%AB%98%E6%80%A7%E8%83%BD%E6%9E%B6%E6%9E%84/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <p>NVMe协议正迅速成为支持固态驱动器和其他非易失性存储器子系统的行业标准。NVMe SSD速度明显优于传统存储协议，如SAS和SATA。 </p>
+<h1 id="介绍NVM-Express"><a href="#介绍NVM-Express" class="headerlink" title="介绍NVM Express"></a>介绍NVM Express</h1><p>NVM Express规范定义了存储协议和主机控制器接口，这些接口针对使用基于PCI Express（PCIe）的SSD的客户端和企业系统进行了优化，PCIe是一种串行扩展总线标准，可使计算机连接到外围设备。 </p>
+<p>与旧的总线技术（如PCI或PCI扩展（PCI-X）标准）相比，PCIe总线可以提供更低的延迟和更高的传输速率。使用PCIe，每条总线都有自己的专用连接，因此它们不必竞争带宽。 </p>
+<p>符合PCIe标准的扩展插槽可以支持从1到32个数据传输通道扩展，通常以1,4,8,12,16或32组的形式提供。通道越多，性能越好。NVMe目前支持三种外形：附加PCIe卡，M.2 SSD和2.5英寸U.2 SSD。 </p>
+<p><img src="/pics/image-20210418132339134.png" alt="image-20210418132339134"></p>
+<p>协议使用PCIe直接通过主机的共享内存映射命令，从而提高了NVMe SSD的速度。该协议针对本地使用进行了优化，并支持插入式存储和直接连接到主机的外部子系统。 </p>
+<h1 id="NVMe性能优势"><a href="#NVMe性能优势" class="headerlink" title="NVMe性能优势"></a>NVMe性能优势</h1><p>多年来，许多协议促进了主机软件和外围驱动器之间的连接。两种最常见的协议是SATA和SAS。SATA协议基于高级技术附加标准，SAS协议基于小型计算机系统接口标准。 </p>
+<p>SATA和SAS协议专为HDD设备开发。虽然SAS通常被认为更快，更可靠，但两种协议都可以轻松处理硬盘工作负载。如果系统遇到与存储相关的障碍，通常是因为驱动器本身或其他因素，而不是因为协议。 </p>
+<p>SSD改变了这个等式。它们更高的IOPS可以迅速压倒旧协议，这使得它们能够充分利用驱动器的性能能力之前达到极限 </p>
+<p><img src="/pics/image-20210418132407599.png" alt="image-20210418132407599"></p>
+<p>NVMe专为SSD而开发，旨在提高吞吐量和IOPS，同时减少延迟并提高整体NVMe SSD速度。今天基于NVMe的驱动器可实现高达每秒16 GBps的吞吐量，供应商正在推动32 GBps或更高的吞吐量。许多基于NVMe的驱动器的IOPS超过500,000。有些可提供150万，200万甚至1000万IOPS。与此同时，延迟率继续下降; 许多驱动器的速率低于20微秒，有些低于10微秒。 </p>
+<p>较旧的协议在SSD上的表现不尽人意。今天基于SATA的驱动器的吞吐量仅为6 Gbps，IOPS最高可达100,000。延迟容易超过100微秒。SAS驱动器提供更好的性能; 它们提供高达12 Gbps的吞吐量和平均200,000到400,000的IOPS。在某些情况下，SAS延迟率已降至100微秒以下，但不是很多。 </p>
+<p>也就是说，衡量NVMe SSD速度的指标可能差异很大。鉴于技术不断发展，这些性能数字是趋势而非绝对数字。即便如此，很明显NVMe在每个方面都明显优于其他协议。其中一个原因是<strong>NVMe使用更简化的命令集来处理I / O请求，这需要的CPU指令数量少于SATA或SAS生成的CPU指令数量的一半</strong>。 </p>
+<p>NVMe还有一个<strong>更加强大和高效的排队消息系统</strong>。例如，SATA和SAS每次仅支持一个I / O队列。SATA队列最多可包含32个未完成的命令，SAS队列最多可包含256个。NVMe最多可支持65,535个队列，每个队列最多可支持64,000个命令。 </p>
+<p>这种排队机制使NVMe能够更好地利用SSD的并行处理能力，这是其他协议无法做到的。此外，NVMe通过PCIe总线使用远程直接内存访问（RDMA）将I / O命令和响应直接映射到主机的共享内存。这进一步降低了CPU开销，并提高了NVMe SSD的速度。因此，每个CPU指令周期都可以支持更高的IOPS并减少主机软件堆栈中的延迟。 </p>
+<h1 id="在Fabric上引入NVMe"><a href="#在Fabric上引入NVMe" class="headerlink" title="在Fabric上引入NVMe"></a>在Fabric上引入NVMe</h1><p>尽管NVMe提供了优势，但协议仅限于具有直接连接的NVM子系统（插入式或外部有线）的单个主机。虽然这在某些情况下很有用，但许多组织都在寻找可以在数据中心实施的分布式系统。出于这个原因，NVM Express开发了第二个规范：NVM Express over Fabrics（NVMe-oF）。 </p>
+<p>新标准于2016年6月发布，旨在扩展NVMe在以太网，InfiniBand和光纤通道等网络结构中的优势。该组织估计，90％的NVM Express over Fabrics规范与NVM Express规范相同。在两者之间的主要区别是协议处理在主机和NVM子系统之间的命令和响应的方式。 </p>
+<p><img src="/pics/image-20210418133316126.png" alt="image-20210418133316126"></p>
+<p>NVMe协议<strong>将命令和响应映射到主机的共享内存</strong>。NVMe-oF协议<strong>遵循基于消息的模型</strong>，以促进NVMe主机与网络连接的NVMe存储设备之间的通信。新协议扩展了NVMe设备在数据中心内可以访问的距离，同时可以扩展到大量设备。 </p>
+<p>NVMe-oF规范目前提供了两种方法来传输通信。第一种方法使用RDMA来支持InfiniBand，融合以太网RDMA和互联网广域RDMA协议等结构进行连接。第二种方法是特别关注光纤通道传输。在某些时候，这项工作还将包括以太网光纤通道。 </p>
+
       
     </div>
 
@@ -553,7 +610,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/23/netty-8-Netty%E6%A6%82%E8%BF%B0/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/12/store/NVMe/%E5%85%AD%E3%80%81%E4%B8%BB%E6%B5%81NVMe%20over%20Fabric%E6%8A%80%E6%9C%AF%E5%AF%B9%E6%AF%94/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -567,7 +624,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/23/netty-8-Netty%E6%A6%82%E8%BF%B0/" class="post-title-link" itemprop="url">netty#8-Netty概述</a>
+            <a href="/2020/10/12/store/NVMe/%E5%85%AD%E3%80%81%E4%B8%BB%E6%B5%81NVMe%20over%20Fabric%E6%8A%80%E6%9C%AF%E5%AF%B9%E6%AF%94/" class="post-title-link" itemprop="url">六、主流NVMe over Fabric技术对比</a>
         </h2>
 
         <div class="post-meta">
@@ -577,7 +634,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-23 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-23T09:34:33+08:00">2020-09-23</time>
+              <time title="创建时间：2020-10-12 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-12T23:58:13+08:00">2020-10-12</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -585,7 +642,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/netty/" itemprop="url" rel="index"><span itemprop="name">netty</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -600,15 +657,80 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>netty到nio简单介绍！</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/23/netty-8-Netty%E6%A6%82%E8%BF%B0/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <p>通过NVMe over Fabric实现NVMe标准在PCIe总线上的扩展，以此来挑战SCSI在SAN中的统治地位。NVMe over Fabric支持把NVMe映射到多个Fabrics传输选项，主要包括FC、InfiniBand、RoCE v2、iWARP和TCP。 </p>
+<p>然而，在这些Fabrics选项协议中，我们常常认为InfiniBand、RoCE v2(可路由的RoCE)、iWARP是理想的Fabric，其原因在于它们支持RDMA。 </p>
+<h1 id="有哪些NVMe-over-Fabric技术"><a href="#有哪些NVMe-over-Fabric技术" class="headerlink" title="有哪些NVMe over Fabric技术"></a>有哪些NVMe over Fabric技术</h1><ul>
+<li><p>InfiniBand(IB)：从一开始就支持RDMA的新一代网络协议。由于这是一种新的网络技术，因此需要支持该技术的网卡和交换机。 </p>
+</li>
+<li><p>RDMA融合以太网(RoCE)：一种允许通过以太网进行RDMA的网络协议。其较低的网络头是以太网头，其上网络头(包括数据)是InfiniBand头。这允许在标准以太网基础架构(交换机)上使用RDMA。只有NIC应该是特殊的，并支持RoCE。 </p>
+</li>
+<li><p>互联网广域RDMA协议(iWARP)：允许通过TCP执行RDMA的网络协议。在IB和RoCE中存在功能，iWARP不支持这些功能。这允许在标准以太网基础架构(交换机)上使用RDMA。只有NIC应该是特殊的，并支持iWARP(如果使用CPU卸载)，否则所有iWARP堆栈都可以在SW中实现，并且丢失了大部分的RDMA性能优势。 </p>
+</li>
+</ul>
+<h1 id="RDMA在NVMe-over-Fabric具有先天优势？"><a href="#RDMA在NVMe-over-Fabric具有先天优势？" class="headerlink" title="RDMA在NVMe over Fabric具有先天优势？"></a>RDMA在NVMe over Fabric具有先天优势？</h1><p>那么为什么支持RDMA在选择NVMe over Fabric时就具有先天优势？这要从RDMA的功能和优势说起。 </p>
+<p>RDMA是一种新的内存访问技术，RDMA让计算机可以直接存取其他计算机的内存，而不需要经过处理器耗时的处理。RDMA将数据从一个系统快速移动到远程系统存储器中，而不对操作系统造成任何影响。RDMA技术的原理及其与TCP/IP架构的对比如下图所示。 </p>
+<p><img src="/pics/image-20210418130723528.png" alt="image-20210418130723528"></p>
+<p>因此，RDMA可以简单理解为利用相关的硬件和网络技术，服务器1的网卡可以直接读写服务器2的内存，最终达到高带宽、低延迟和低资源利用率的效果。如下图所示，应用程序不需要参与数据传输过程，只需要指定内存读写地址，开启传输并等待传输完成即可。RDMA的主要优势总结如下： </p>
+<ol>
+<li><p>Zero-Copy：数据不需要在网络协议栈的各个层之间来回拷贝，这缩短了数据流路径。 </p>
+</li>
+<li><p>Kernel-Bypass：应用直接操作设备接口，不再经过系统调用切换到内核态，没有内核切换开销。 </p>
+</li>
+<li><p>None-CPU：数据传输无须CPU参与，完全由网卡搞定，无需再做发包收包中断处理，不耗费CPU资源。 </p>
+</li>
+</ol>
+<p>这么多优势总结起来就是提高处理效率，减低时延。那如果其他网络Fabric可以通过类似RDMA的技术满足NVMe over Fabric的效率和时延等要求，是否也可以作为NVMe overFabric的Fabric呢？下面再看看NVMe-oF和NVMe的区别。 </p>
+<p>NVMe-oF和NVMe之间的<strong>主要区别是传输命令的机制</strong>。NVMe通过<strong>外围组件互连Express</strong>(PCIe)接口协议将请求和响应映射到主机中的共享内存。NVMe-oF使用<strong>基于消息的模型通过网络在主机和目标存储设备之间</strong>发送请求和响应。 </p>
+<p>NVMe-oF替代PCIe来扩展NVMe主机和NVMe存储子系统进行通信的距离。与使用本地主机的PCIe 总线的NVMe存储设备的延迟相比，NVMe-oF的最初设计目标是在通过合适的网络结构连接的NVMe主机和NVMe存储目标之间添加不超过10 微秒的延迟。 </p>
+<p>此外，在技术细节和工作机制上两者有很大不同，NVMe-oF是在NVMe(NVMe over PCIe)的基础上扩展和完善起来的，具体差异点如下： </p>
+<ul>
+<li><p>命名机制在兼容NVMe over PCIe的基础上做了扩展，例如：引入了SUBNQN等。 </p>
+</li>
+<li><p>术语上的变化，使用Capsule、Response Capsule来表示传输的报文 </p>
+</li>
+<li><p>扩展了Scatter Gather Lists (SGLs)支持In Capsule Data传输。此前NVMe over PCIe中的SGL不支持In Capsule Data传输。 </p>
+</li>
+<li><p>增加了Discovery和Connect机制，用于发现和连接拓扑结构中的NVM Subsystem </p>
+</li>
+<li><p>在Connection机制中增加了创建Queue的机制，删除了NVMe over PCIe中的创建和删除Queue的命令。 </p>
+</li>
+<li><p>在NVMe-oF中不存在PCIe架构下的中断机制。 </p>
+</li>
+<li><p>NVMe-oF不支持CQ的流控，所以每个队列的OutStanding Capsule数量不能大于对应CQ的Entry的数量，从而避免CQ被OverRun </p>
+</li>
+<li><p>NVMe-oF仅支持SGL，NVMe over PCIe 支持SGL/PRP </p>
+</li>
+</ul>
+<h1 id="博科为何一直推崇NVMe-Over-FC"><a href="#博科为何一直推崇NVMe-Over-FC" class="headerlink" title="博科为何一直推崇NVMe Over FC"></a>博科为何一直推崇NVMe Over FC</h1><p>先谈谈博科一直推崇的FC Fabric，FC-NVMe将NVMe命令集简化为基本的FCP指令。由于光纤通道专为存储流量而设计，因此系统中内置了诸如发现，管理和设备端到端验证等功能。 </p>
+<p>光纤通道是面向NVMe overFabrics(NVMe-oF)的Fabric传输选项，由NVMExpress Inc.(一家拥有100多家成员技术公司的非营利组织)开发的规范。其他NVMe传输选项包括以太网和InfiniBand上的远程直接内存访问(RDMA)。NVM Express Inc.于2016年6月5日发布了1.0版NVMe-oF。 </p>
+<p>国际信息技术标准委员会(INCITS)的T11委员会定义了一种帧格式和映射协议，将NVMe-oF应用到光纤通道。T11委员会于2017年8月完成了FC-NVMe标准的第一版，并将其提交给INCITS出版。 </p>
+<p>FC协议(FCP)允许上层传输协议，如NVMe，小型计算机系统接口(SCSI)和IBM专有光纤连接(FICON)的映射，以实现主机和外围目标存储设备或系统之间的数据和命令传输。 </p>
+<p>在大规模基于块闪存的存储环境最有可能采用NVMeover FC。FC-NVMe光纤通道提供NVMe-oF结构、可预测性和可靠性特性等与给SCSI提供的相同，另外，NVMe-oF流量和传统的基于SCSI的流量可以在同一FC结构上同时运行。 </p>
+<p><img src="/pics/image-20210418131212901.png" alt="image-20210418131212901"></p>
+<p>基于FC标准的NVMe定义了FC-NVMe协议层。NVMe over Fabrics规范定义了NVMe-oF协议层。NVMe规范定义了NVMe主机软件和NVM子系统协议层。 </p>
+<p>要求必须支持基于光纤通道的NVMe才能发挥潜在优势的基础架构组件，包括存储操作系统(OS)和网络适配器卡。FC存储系统供应商必须让其产品符合FC-NVMe的要求。目前支持FC-NVMe的主机总线适配器(HBA)的供应商包括Broadcom和Cavium。Broadcom和思科是主要的FC交换机供应商，目前博科的Gen 6代FC交换机已经支持NVMe-oF协议。 </p>
+<p>NVMe over fabric白皮书明确列出了光纤通道作为一个NVMeover Fabrics选择，也描述了理想的Fabrics需要具备可靠的、以Credit为基础的流量控制和交付机制。然而，基于Credit的流程控制机制是FC、PCIe传输原生能力。在NVMe的白皮书中并没有把RDMA列为“理想”NVMe overFabric的重要属性，也就是说RDMA除了只是一种实现NVMeFabric的方法外，没有什么特别的。 </p>
+<p>FC也提供零拷贝(Zero-Copy)技术支持DMA数据传输。RDMA通过从本地服务器传递Scatter-Gather List到远程服务器有效地将本地内存与远程服务器共享，使远程服务器可以直接读取或写入本地服务器的内存。 </p>
+<p>接下来，谈谈基于RDMA技术实现NVMe over fabric的Fabric技术，RDMA技术最早出现在Infiniband网络，用于HPC高性能计算集群的互联。基于InfiniBand的NVMe倾向于吸引需要极高带宽和低延迟的高性能计算工作负载。InfiniBand网络通常用于后端存储系统内的通信，而不是主机到存储器的通信。与FC一样，InfiniBand是一个需要特殊硬件的无损网络，它具有诸如流量和拥塞控制以及服务质量(QoS)等优点。但与FC不同的是，InfiniBand缺少发现服务自动将节点添加到结构中。 </p>
+<p>最后，谈谈NVMe/TCP协议选项(暂记为NVMe over TCP)，在几年前，NVMe Express组织计划支持传输控制协议(TCP)的传输选项(不同于基于TCP的iWARP)。近日NVM Express Inc.历时16个月发布了NVMe over TCP第一个版本。该Fabric标准的出现已经回答了是否满足承载NVMe协议标准的Fabric即可作为NVMe over fabric的Fabric的问题。 </p>
+<h1 id="NVMe-TCP技术分析"><a href="#NVMe-TCP技术分析" class="headerlink" title="NVMe/TCP技术分析"></a>NVMe/TCP技术分析</h1><p>但是TCP 协议会带来远高于本地PCIe访问的网络延迟，使得NVMe协议低延迟的目标遭到破坏。在没有采用RDMA技术的前提下，NVMe/TCP是采用什么技术达到类似RDMA技术的传输效果呢？下面引用杨子夜(Intel存储软件工程师)观点，谈谈促使了NVMe/TCP的诞生几个技术原因： </p>
+<ol>
+<li><p>NVMe虚拟化的出现：在NVMe虚拟化实现的前提下，NVMe-oF target那端并不一定需要真实的NVMe 设备，可以是由分布式系统抽象虚拟出来的一个虚拟NVMe 设备，为此未必继承了物理NVMe设备的高性能的属性 。那么在这一前提下，使用低速的TCP协议也未尝不可。 </p>
+</li>
+<li><p>向后兼容性：NVMe-oF协议，在某种程度上希望替换掉iSCSI 协议（iSCSI最初的协议是RFC3720，有很多扩展）。iSCSI协议只可以在以太网上运行，对于网卡没有太多需求，并不需要网卡一定支持RDMA。当然如果能支持RDMA， 则可以使用iSER协议，进行数据传输的CPU 资源卸载。 但是NVMe-oF协议一开始没有TCP的支持。于是当用户从iSCSI向NVMe-oF 转型的时候，很多已有的网络设备无法使用。这样会导致NVMe-oF协议的接受度下降。在用户不以性能为首要考量的前提下，显然已有NVMe-oF协议对硬件的要求，会给客户的转型造成障碍，使得用户数据中心的更新换代不能顺滑地进行</p>
+</li>
+<li><p>TCP OffLoading：虽然TCP协议在很大程度上会降低性能，但是TCP也可以使用OffLoading，或者使用Smart NIC或者FPGA。那么潜在的性能损失可得到一定的弥补。总的来说短期有性能损失，长期来讲协议对硬件的要求降低，性能可以改进。为此总的来讲，接受度会得到提升。 </p>
+</li>
+<li><p>相比Software RoCE：在没有TCP Transport的时候，用户在不具备RDMA网卡设备的时候。如果要进行NVMe-oF的测试，需要通过Software RoCE，把网络设备模拟成一个具有RDMA功能的设备，然后进行相应的测试。其真实实现是通过内核的相应模块，实际UDP 包来封装模拟RDMA协议。有了TCP transport协议，则没有这么复杂，用户可以采用更可靠的TCP协议来进行NVMe-oF的一些相关测试。 从测试部署来讲更加简单有效。 </p>
+</li>
+</ol>
+<p>NVMe/TCP(NVMe over TCP)的协议，在一定程度上借鉴了iSCSI的协议，例如iSCSI数据读写的传输协议。这个不太意外，因为有些协议的指定参与者，也是iSCSI协议的指定参与者。另外iSCSI协议的某些部分确实写得很好。 但是NVMe/TCP相比iSCSI协议更加简单，可以说是取其精华。 </p>
+<p>提到NVMe SSD，不得不提Fusion IO率先研制的PCIe SSD，10年前Fusion IO率先采用PCIe接口的方式研制了全球首款高性能SSD。该SSD采用服务器内置插卡的形式，和SATA/SAS等接口相比，PCIe具有极高的数据传输性能，解决了基于NAND Flash数据存储的接口瓶颈问题。在采用PCIe做SSD接口的过程中，数据传输采用了多队列的方式，从而可以实现单盘并发数据传输的目的，提高了数据接口效率。在操作系统内部，原生支持SAS/SATA接口，原生带有SATA/SAS盘的驱动程序。 </p>
+<p>但是，对于这种PCIe SSD，操作系统是没有原生驱动的，并且在软件栈上面也不采用传统的SCSI软件层，因此，这类PCIe SSD需要厂商自己提供特殊的驱动程序。PCIe SSD在历史上有两种产品类型，一种是Host Based SSD；另一种是Device Based SSD。这两种盘从用户角度来看，差别是Host Based SSD会占用主机端资源，SSD内部的数据管理软件都是运行在主机端。这种盘的优点在于盘本身的功耗比较低，盘上的硬件资源也比较少；缺点是占用系统资源，尤其是内存资源。另一种产品类型是Device Based PCIe SSD。这类产品的思路很简单，就是要将运行在主机端的NAND Flash存储管理软件卸载到SSD中去，这样可以减少主机端的资源占用率。这种盘的优点很明显，缺点是对SSD内部的控制器有更高要求，通常功耗比较大，并且SSD上需要更多的硬件资源，例如内存。在PCIe SSD的市场上，FusionIO、国内的宝存以及Memblaze都提供了这样的产品。 </p>
+<p>不管是Device Based还是Host Based PCIe SSD，都需要在主机端安装厂商自己提供的驱动程序，才可以使用该类型盘。这就带来了一个很大的问题，不同厂商提供的盘相互不兼容，需要不同的驱动软件，因此，一个伟大的NVMe标准产生了。 </p>
+<p>NVMe标准可以简单理解用来标准化PCIe SSD，使得不同厂商符合标准的盘都可以采用相同的驱动程序。需要注意的一点是，NVMe SSD是原来Device Based PCIe SSD的延伸。NVMe标准定义了SSD的访问命令及操作方式，并且定义了逻辑设备接口标准；和SATA体系类比，NVMe标准替代了SATA体系中的AHCI逻辑接口以及ATA/SCSI命令规范。 </p>
+<p>在一开始的时候，NVMe标准只是针对PCIe这种物理传输接口定义标准，随着该标准的进一步演进，物理接口不再局限于PCIe，将更多的Fabric引入到了NVMe体系架构中来，例如RDMA以太网。该类标准为NVMe家族中的NVMe over Fabric。从这一点可以看出NVMe SSD是PCIe SSD的演进，PCIe SSD采用私有协议；NVMe SSD采用标准协议。如今，市场上主流采用PCIe接口的SSD基本都符合NVMe标准，例如Intel、Samsung以及Memblaze的产品都可以直接采用操作系统中原生的驱动程序。 </p>
+
       
     </div>
 
@@ -627,7 +749,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/22/JVM_gc-2-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%9B%B8%E5%85%B3%E7%AE%97%E6%B3%95/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/11/store/NVMe/%E4%BA%94%E3%80%81NVMe%E5%9C%A8%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%BF%83%E7%9A%84%E4%BD%9C%E7%94%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -641,7 +763,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/22/JVM_gc-2-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%9B%B8%E5%85%B3%E7%AE%97%E6%B3%95/" class="post-title-link" itemprop="url">JVM_gc#2-垃圾回收相关算法</a>
+            <a href="/2020/10/11/store/NVMe/%E4%BA%94%E3%80%81NVMe%E5%9C%A8%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%BF%83%E7%9A%84%E4%BD%9C%E7%94%A8/" class="post-title-link" itemprop="url">五、NVMe在数据中心的作用</a>
         </h2>
 
         <div class="post-meta">
@@ -651,7 +773,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-22 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-22T09:34:33+08:00">2020-09-22</time>
+              <time title="创建时间：2020-10-11 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-11T23:58:13+08:00">2020-10-11</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -659,7 +781,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -674,39 +796,28 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>垃圾回收相关算法不多，主要分两个阶段：标记和清除。</p>
-<table>
-<thead>
-<tr>
-<th>算法阶段</th>
-<th></th>
-<th></th>
-<th></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>标记阶段</td>
-<td>引用计数算法</td>
-<td>可达性分析算法</td>
-<td></td>
-</tr>
-<tr>
-<td>清除阶段</td>
-<td>标记-清除算法</td>
-<td>复制算法</td>
-<td>标记-整理算法</td>
-</tr>
-</tbody></table>
-<p>垃圾回收是先标记，再根据情况进行清除。但未被标记也有抢救的机会——finalization机制。</p>
-<p>除此之外，还介绍了目前使用的分代收集、增量收集、分区收集。以及如何利用工具溯源。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/22/JVM_gc-2-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%9B%B8%E5%85%B3%E7%AE%97%E6%B3%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <p>工作负载现在通常在云中提供，存储必须处理这种新的数据存储方式。将数据带到处理器附近是趋势，这正是NVMe正在做的事情。 </p>
+<p>NVMe可在本地总线上工作，也可在光纤通道接口上工作。2014年，NVMe-oF标准被提议作为通信协议，允许一台计算机使用TCP / IP或光纤通道上的远程直接内存访问访问另一台计算机上的块级存储设备。NVM Express集团于2016年6月发布了该标准。现在可以为所有主要操作系统提供驱动程序。 </p>
+<p><img src="/pics/image-20210418125653545.png" alt="image-20210418125653545"></p>
+<p>数据中心的一项重要NVMe功能是支持多个租户同时使用多个队列访问设备。此功能可以在数据中心以扩展的方式部署NVMe设备。因此，NVMe可用作旧式SAN环境的替代品。 </p>
+<p>NVMe-oF充分利用数据中心能力，将NVMe提升到新的水平。它提供了一种通用架构，支持NVMe块存储协议构架在各种存储网络结构。因此，它可以扩展到多个NVMe设备，并可以达到扩展NVMe设备的距离。NVMe-oF也是存储和计算能力严格分离的绝佳选择，例如物联网环境。 </p>
+<p><img src="/pics/image-20210418130009886.png" alt="image-20210418130009886"></p>
+<p>固态硬盘已经上市多年。但性能受到限制，因为SSD通过为硬盘驱动器开发的SATA/SAS接口进行连接。SATA只有一个I / O队列，每个队列的队列深度相对较小，为32个命令。这些限制并未充分利用写入NAND闪存介质的并行功能。 </p>
+<p>另一方面，NVMe使用专为固态设备开发的控制器和驱动程序。它允许以与寻址内存类似的方式寻址磁盘，从而加快存储速度。这些驱动器可以轻松达到2 GBps的速度，这比当前一代SSD快4倍。NVMe适用于企业IT环境和最终用户。 </p>
+<p>NVMe极大地提高了速度，因为它使用PCIe进行连接。PCIe插槽直接连接到CPU，实现类似内存的访问，而SATA则必须使用更大的存储堆栈。PCIe还可实现更快的连接：8 GBps PCI连接可提供4 GBps的原始带宽。 </p>
+<p>NVMe工作的另一部分是为设备开发特定的驱动程序。这种方法使这些设备受益于PCIe接口提供的增加的访问速度。这样做可能会消除不适合在SSD设备上使用的SCSI命令堆栈。 </p>
+<p>队列大小的差异对性能也有决定性因素，与SATA的一个队列和每个队列32个命令相比，NVM允许65,535个队列，每个队列有65,535个命令。NVMe的所有优势已经导致数据中心的大规模采用。 </p>
+<p>NVMe-oF规范的主要优点是它可以让NVMe设备在远距离使用。尽管如此，设置远程NVMe访问仍然有点困难。Mellanox Technologies有一个配置指南，介绍如何配置Linux以访问远程NVMe，它也适用于NVMe-oF。 </p>
+<p><strong>要完成NVMe和NVMe-oF 远程访问，必须在NVMe服务器和客户端上加载Linux内核模块</strong>，然后可以将配置参数写入/ sys文件系统。这些参数将在服务器上配置IP地址并启用设备共享。这种方法的一个缺点是没有写入Linux / sys文件系统的任何内容都是持久的。 </p>
+<p>这显然是供应商有工作要做的领域。这可能正在发生，因为NVMe和NVMe-oF具有明显的存储优势，并且即将成为必备技术。 </p>
+<p>非易失性存储器专为闪存存储而设计，具有闪存先天优势。NVMe将数据移近处理器，简化操作，降低CPU开销并加速SSD，延迟更低，IOPS更高。 </p>
+<p>IDC最近预测，到2021年，超过一半的主存储收入将来自基于NVMe技术的存储。IDC分析师Eric Burgener在题为“NVMe Over Fabric”的报告中说：“企业了解这项技术才能采用最经济的方式将它集成到自己的环境中。” </p>
+<p>迄今，成本仍然是一个限制因素。但截至去年年底，NVMe技术的价格正在下降。在其最近的报告“NVM Express Spring 2018生态系统快照”中，G2M通信公司预测，NVMe企业级闪存设备将在2018年与SAS设备达到相同的价格。 </p>
+<p>据G2M称，过去六个月市场已经大幅增长。该技术研究机构称，其中有超过90家公司提供293种产品。 </p>
+<p>那么NVMe技术走向何方？该协议必须超越具有直接连接的NVM子系统的单个主机到分布式数据中心。这就是NVMe over Fabrics（NVMe-oF）的用武之地，它将NVMe扩展到以太网，InfiniBand和光纤通道。 </p>
+<p>NVMe-oF将命令映射到主机的共享内存。它有助于NVMe主机和网络连接的NVMe存储设备之间的通信。它扩展了可以访问基于NVMe技术的设备的距离，并可以扩展到更多的设备。 </p>
+<p>根据存储和网络分析公司Demartek最近的测试，与SCSI光纤通道协议相比，NVMe over Fiber Channel的IOPS提高了58％，延迟降低了34％。它加速了现有的工作负载，只需要进行软件升级。 </p>
+
       
     </div>
 
@@ -725,7 +836,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/21/JVM_gc-1-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%A6%82%E8%BF%B0/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/11/store/NVMe/%E5%9B%9B%E3%80%81NVMe%20SSD%E5%AD%98%E5%82%A8%E6%80%A7%E8%83%BD%E5%BD%B1%E5%93%8D%E5%9B%A0%E7%B4%A0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -739,7 +850,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/21/JVM_gc-1-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%A6%82%E8%BF%B0/" class="post-title-link" itemprop="url">JVM_gc#1-垃圾回收概述</a>
+            <a href="/2020/10/11/store/NVMe/%E5%9B%9B%E3%80%81NVMe%20SSD%E5%AD%98%E5%82%A8%E6%80%A7%E8%83%BD%E5%BD%B1%E5%93%8D%E5%9B%A0%E7%B4%A0/" class="post-title-link" itemprop="url">四、NVMe SSD存储性能影响因素</a>
         </h2>
 
         <div class="post-meta">
@@ -749,7 +860,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-21 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-21T09:34:33+08:00">2020-09-21</time>
+              <time title="创建时间：2020-10-11 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-11T23:58:13+08:00">2020-10-11</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -757,7 +868,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -772,15 +883,115 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>从本文开始，详细介绍jvm的垃圾回收。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/21/JVM_gc-1-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%A6%82%E8%BF%B0/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <p>NVMe SSD的性能时常捉摸不定，为此我们需要打开SSD的神秘盒子，从各个视角分析SSD性能影响因素，并思考从存储软件的角度如何最优化使用NVMe SSD，推进数据中心闪存化进程。本文从NVMe SSD的性能影响因素进行分析，并给出存储系统设计方面的一些思考。 </p>
+<h1 id="存储介质的变革"><a href="#存储介质的变革" class="headerlink" title="存储介质的变革"></a>存储介质的变革</h1><p>近几年存储行业发生了翻天覆地的变化，半导体存储登上了历史的舞台。和传统磁盘存储介质相比，半导体存储介质具有天然的优势。无论在可靠性、性能、功耗等方面都远远超越传统磁盘。目前常用的半导体存储介质是NVMe SSD，采用PCIe接口方式与主机进行交互，大大提升了性能，释放了存储介质本身的性能。通常NVMe SSD内部采用NAND Flash存储介质进行数据存储，该介质本身具有读写不对称性，使用寿命等问题。为此在SSD内部通过FTL（Flash Translation Layer）解决NAND Flash存在的问题，为上层应用软件呈现和普通磁盘相同的应用接口和使用方式。 </p>
+<p><img src="/pics/image-20210418000747245.png" alt="image-20210418000747245"></p>
+<p>如上图所示，随着半导体存储介质的发展，计算机系统的IO性能得到了飞速发展。基于磁介质进行数据存储的磁盘和处理器CPU之间一直存在着棘手的剪刀差性能鸿沟。随着存储介质的演进与革新，这种性能剪刀差将不复存在。从整个系统的角度来看，IO性能瓶颈正从后端磁盘往处理器和网络方向转移。如下图性能数据所示，在4KB访问粒度下，NVMe SSD和15K转速磁盘相比，每秒随机读IO处理能力提升了将近5000倍；每秒随机写IO处理能力提升了1000多倍。随着非易失性存储介质的进一步发展，半导体存储介质的性能将进一步提升，并且会具有更好的IO QoS能力。 </p>
+<p><img src="/pics/image-20210418000909493.png" alt="image-20210418000909493"></p>
+<p>存储介质的革命一方面给存储系统性能提升带来了福音；另一方面对存储系统的设计带来了诸多挑战。原有面向磁盘设计的存储系统不再适用于新型存储介质，面向新型存储介质需要重新设计更加合理的存储软件堆栈，发挥存储介质的性能，并且可以规避新介质带来的新问题。面向新型存储介质重构存储软件栈、重构存储系统是最近几年存储领域的热门技术话题。 </p>
+<p>在面向NVMe SSD进行存储系统设计时，首先需要对NVMe SSD本身的特性要非常熟悉，需要了解SSD性能的影响因素。在设计过程中需要针对SSD的特性通过软件的方式进行优化。本文对SSD进行简要介绍，并从性能影响因素角度出发，对NVMe SSD进行深入剖析，在此基础上给出闪存存储设计方面的一些思考。 </p>
+<h1 id="NAND-Flash介质发展"><a href="#NAND-Flash介质发展" class="headerlink" title="NAND Flash介质发展"></a>NAND Flash介质发展</h1><p>目前NVMe SSD主流采用的存储介质是NAND Flash。最近几年NAND Flash技术快速发展，主要发展的思路有两条：第一，通过3D堆叠的方式增加NAND Flash的存储密度；第二，通过增加单Cell比特数来提升NAND Flash的存储密度。3D NAND Flash已经成为SSD标配，目前主流发布的SSD都会采用3D NAND Flash技术工艺。从cell的角度来看，目前单个cell可以表示3bit，这就是通常所说的TLC NAND Flash。 </p>
+<p>今年单个cell的bit存储密度又提升了33%，可以表示4bit，向前演进至QLC NAND Flash。NAND Flash的不断演进，推动了SSD存储密度不断提升。截止到今天，单个3.5寸SSD盘可以做到128TB的容量，远远超过了磁盘的容量。下图是近几年NAND Flash技术的发展、演进过程。 </p>
+<p><img src="/pics/image-20210418001259457.png" alt="image-20210418001259457"></p>
+<p>从上图可以看出，NAND Flash在不断演进的过程中，一些新的非易失性内存技术也开始发展。Intel已经推出了AEP内存存储介质，可以预计，未来将会是非易失性内存和闪存共存的半导体存储时代。 </p>
+<h1 id="软件层面SSD多队列技术"><a href="#软件层面SSD多队列技术" class="headerlink" title="软件层面SSD多队列技术"></a>软件层面SSD多队列技术</h1><p>从软件接口的角度来看，NVMe SSD和普通的磁盘没有太多的区别，在Linux环境下都是标准块设备。由于NVMe SSD采用了最新的NVMe协议标准，因此从软件堆栈的角度来看，NVMe SSD的软件栈简化了很多。在NVMe标准中，和传统的SATA/SAS相比，一个重大的差别是引入了多队列机制。</p>
+<p>何为多队列技术？主机（X86 Server）与SSD进行数据交互的模型采用“生产者-消费者”模型，采用生产者-消费者队列进行数据交互。在原有的AHCI规范中，只定义了一个交互队列，那么主机与HDD之间的数据交互只能通过一个队列通信，多核处理器也只能通过一个队列与HDD进行数据交互。在磁盘存储时代，由于磁盘是慢速设备，所以一个队列也就够用了。 </p>
+<p>多个处理器核通过一个共享队列与磁盘进行数据交互，虽然处理器之间会存在资源竞争，但是相比磁盘的性能，处理器之间竞争所引入的开销实在是微乎其微，可以忽略。在磁盘存储时代，单队列有其他的好处，一个队列存在一个IO调度器，可以很好的保证提交请求的IO顺序最优化。 </p>
+<p>和磁盘相比，半导体存储介质具有很高的性能，AHCI原有的规范不再适用，原有的假设也已经不复存在，在此背景下NVMe规范诞生了。NVMe规范替代了原有的AHCI规范，并且软件层面的处理命令也进行了重新定义，不再采用SCSI/ATA命令规范集。在NVMe时代，外设和处理器之间的距离更近了，不再需要像SAS一样的面向连接的存储通信网络。相比于以前的AHCI、SAS等协议规范，NVMe规范是一种非常简化，面向新型存储介质的协议规范。该规范的推出，将存储外设一下子拉到了处理器局部总线上，性能大为提升。并且主机和SSD处理器之间采用多队列的设计，适应了多核的发展趋势，每个处理器核与SSD之间可以采用独立的硬件Queue Pair进行数据交互。 </p>
+<p>从软件的角度来看，<strong>每个CPU Core都可以创建一对Queue Pair和SSD进行数据交互。Queue Pair由Submission Queue与Completion Queue构成，通过Submission queue发送数据；通过Completion queue接受完成事件。SSD硬件和主机驱动软件控制queue的Head与Tail指针完成双方的数据交互。</strong> </p>
+<h1 id="深入理解SSD硬件"><a href="#深入理解SSD硬件" class="headerlink" title="深入理解SSD硬件"></a>深入理解SSD硬件</h1><p>和磁盘相比，NVMe SSD最大的变化在于存储介质发生了变化。目前NVMe SSD普遍采用3D NAND Flash作为存储介质。NAND Flash内部有多个存储阵列单元构成，采用floating gate或者charge trap的方式存储电荷，通过存储电荷的多少来保持数据存储状态。由于电容效应的存在、磨损老化、操作电压干扰等问题的影响，NAND Flash天生会存在漏电问题（电荷泄漏），从而导致存储数据发生变化。因此，从本质上讲，NAND Flash是一种不可靠介质，非常容易出现Bit翻转问题。SSD通过控制器和固件程序将这种不可靠的NAND Flash变成了可靠的数据存储介质。 </p>
+<p>为了在这种不可靠介质上构建可靠存储，SSD内部做了大量工作。在硬件层面，需要通过ECC单元解决经常出现的比特翻转问题。每次数据存储的时候，硬件单元需要为存储的数据计算ECC校验码；在数据读取的时候，硬件单元会根据校验码恢复被破坏的bit数据。ECC硬件单元集成在SSD控制器内部，代表了SSD控制器的能力。在MLC存储时代，BCH编解码技术可以解决问题，4KB数据中存在100bit翻转时可以纠正错误；在TLC存储时代，bit错误率大为提升，需要采用更高纠错能力的LDPC编解码技术，在4KB出现550bit翻转时，LDPC硬解码仍然可以恢复数据。下图对比了LDPC硬解码、BCH以及LDPC软解码之间的能力， 从对比结果可以看出，LDPC软解码具有更强的纠错能力，通常使用在硬解码失效的情况下。LDPC软解码的不足之处在于增加了IO的延迟。 </p>
+<p><img src="/pics/image-20210418002633187.png" alt="image-20210418002633187"></p>
+<p>在软件层面，SSD内部设计了FTL（Flash Translation Layer），该软件层的设计思想和Log-Structured File System设计思想类似。采用log追加写的方式记录数据，采用LBA至PBA的地址映射表记录数据组织方式。Log-structured系统最大的一个问题就是垃圾回收(GC)。因此，虽然NAND Flash本身具有很高的IO性能，但受限于GC的影响，SSD层面的性能会大受影响，并且存在十分严重的IO QoS问题，这也是目前标准NVMe SSD一个很重要的问题。 </p>
+<p>SSD内部通过FTL解决了NAND Flash不能Inplace Write的问题；采用Wear Leveling算法解决了NAND Flash磨损均衡问题；通过Data Retention算法解决了NAND Flash长时间存放漏电问题；通过Data Migration方式解决Tead Diatribe问题。FTL是NAND Flash得以大规模使用的核心技术，是SSD的重要组成部分。 </p>
+<p><img src="/pics/image-20210418002839545.png" alt="image-20210418002839545"></p>
+<p>NAND Flash内部本身具有很多并发单元，如上图所示，一个NAND Flash芯片由多个Target构成，每个Target包含多个Die。每个Die是一个独立的存储单元，一个Die由多个Plane构成，多个Plane之间共享一套操作总线，多个Plane可以组成一个单元并发操作，构建Multi-plane。一个Plane由若干个Block构成，每个Block是一个擦除单元，该单元的大小也决定了SSD软件层面的GC回收粒度。每个Block由多个page页构成，每个Page是最小写入（编程）单元，通常大小为16KB。SSD内部软件（固件）需要充分利用这些并发单元，构建高性能的存储盘。 </p>
+<p>一块普通NVMe SSD的物理硬件结构简单，由大量的NAND Flash构成，这些NAND Flash通过SOC（SSD控制器）进行控制，FTL软件运行在SOC内部，并通过多队列的PCIe总线与主机进行对接。为了提升性能，企业级SSD需要板载DRAM，DRAM资源一方面可以用来缓存数据，提升写性能；另一方面用来缓存FTL映射表。企业级SSD为了提升性能，通常采用Flat mapping的方式，需要占据较多的内存（0.1%）。 </p>
+<p>内存容量的问题也限制了大容量NVMe SSD的发展，为了解决内存问题，目前一种可行的方法是增大sector size。标准NVMe SSD的sector size为4KB，为了进一步增大NVMe SSD的容量，有些厂商已经开始采用16KB的sector size。16KB Sector size的普及应用，会加速大容量NVMe SSD的推广。 </p>
+<h1 id="影响NVMe-SSD的性能因素"><a href="#影响NVMe-SSD的性能因素" class="headerlink" title="影响NVMe SSD的性能因素"></a>影响NVMe SSD的性能因素</h1><p>NVMe SSD 厂商Spec给出的性能非常完美，前面也给出了NVMe SSD和磁盘之间的性能对比，NVMe SSD的性能的确比磁盘高很多。但在实际应用过程中，NVMe SSD的性能可能没有想象中的那么好，并且看上去不是特别的稳定，找不到完美的规律。和磁盘介质相比，SSD的性能和很多因素相关，分析SSD的性能影响因素，首先需要大体了解SSD构成的主要部分。如下图所示，其主要包括主机CPU、PCIe互连带宽、SSD控制器及FTL软件、后端NAND Flash带宽、NAND Flash介质。影响SSD性能的主要因素可以分成硬件、软件和客观环境三大部分，具体分析如下。 </p>
+<p><img src="/pics/image-20210418003231359.png" alt="image-20210418003231359"></p>
+<h2 id="硬件因素"><a href="#硬件因素" class="headerlink" title="硬件因素"></a>硬件因素</h2><ol>
+<li><p>NAND Flash本身。不同类型的NAND Flash本身具有不同的性能，例如SLC的性能高于MLC，MLC的性能优于TLC。选择不同的工艺、不同类别的NAND Flash，都会具有不同的性能。 </p>
+</li>
+<li><p>后端通道数（CE数量）及总线频率。后端通道数决定了并发NAND Flash的数量，决定了并发能力。不同的SSD控制器支持不同数量的通道数，也决定了SSD的后端吞吐带宽能力。NAND Flash Channel的总线频率也决定了访问Flash的性能。 </p>
+</li>
+<li><p>SSD控制器的处理能力。SSD控制器中会运行复杂的FTL（Flash Translation Layer）处理逻辑，将逻辑块读写映射转换成NAND Flash 读写请求。在大数据块读写时，对处理器能力要求不是很高；在小数据块读写时，对处理器能力要求极高，处理器能力很容易成为整个IO系统的性能瓶颈点。 </p>
+</li>
+<li><p>SSD控制器架构。通常SSD控制器采用SMP或者MPP两种架构，早期的控制器通常采用MPP架构，多个小处理器通过内部高速总线进行互连，通过硬件消息队列进行通信。内存资源作为独立的外设供所有的处理器进行共享。这种架构和基于消息通信的分布式系统类似。MPP架构的很大优势在于性能，但是编程复杂度较高；SMP架构的性能可扩展性取决于软件，编程简单，和在x86平台上编程相似。不同的控制器架构会影响到SSD的总体性能，在SSD设计时，会根据设计目标，选择不同类型的SSD控制器。 </p>
+</li>
+<li><p>内存支持容量。为了追求高性能，SSD内部的映射资源表会常驻内存，映射表的内存占用大小是盘容量的0.1%，当内存容量不够大时，会出现映射表换入换出的问题，影响到性能。 </p>
+</li>
+<li><p>PCIe的吞吐带宽能力。PCIe前端带宽体现了SSD的前端吞吐能力，目前NVMe SSD采用x4 lane的接入方式，上限带宽为3GB/s，当后端NAND Flash带宽和处理器能力足够时，前端PCIe往往会成为性能瓶颈点。NAND Flash具有很高的读性能，目前来看，SSD的读性能在很大程度上受限于PCIe总线，因此需要快速推进PCIe4.0标准。 </p>
+</li>
+<li><p>温度对性能造成影响。在NAND Flash全速运行的情况下，会产生较大的散热功耗，当温度高到一定程度时，系统将会处于不正常的工作状态，为此，SSD内部做了控温系统，通过温度检测系统来调整SSD性能，从而保证系统温度维持在阈值之内。调整温度会牺牲性能，本质上就是通过降低SSD性能来降温。因此，当环境温度过高时，会影响到SSD的性能，触发SSD内部的温度控制系统，调节SSD的性能。 </p>
+</li>
+<li><p>使用寿命对性能造成影响。NAND Flash在不断擦除使用时，Flash的bit error会不断上升，错误率的提升会影响到SSD的IO性能。 </p>
+</li>
+</ol>
+<h2 id="软件因素"><a href="#软件因素" class="headerlink" title="软件因素"></a>软件因素</h2><ol>
+<li><p>数据布局方式。数据布局方法需要充分考虑NAND Flash中的并发单元，如何将IO操作转换成NAND Flash的并发操作，这是数据布局需要考虑的问题。例如，采用数据交错的方式在多通道page上进行数据布局，通过这种方式可以优化顺序带宽。 </p>
+</li>
+<li><p>垃圾回收/wear leveling调度方法。数据回收、wear leveling、data retention等操作会产生大量的NAND Flash后端流量，后端流量直接反应了SSD的写放大系数，也直接体现在后端带宽的占用。垃圾回收等产生的流量也可以称之为背景流量，背景流量会直接影响到前端用户性能。因此需要对背景流量和用户流量之间进行合理调度，使得用户IO性能达到最佳。 </p>
+</li>
+<li><p>OP预留。为了解决坏块、垃圾回收等问题，在SSD内部预留了一部分空闲资源，这些资源被称之为OP（Overprovisioning）。OP越大，GC过程中平均搬移的数据会越少，背景流量会越小，因此，写放大降低，用户IO性能提升。反之，OP越小，性能会越低，写放大会越大。在SSD容量较小的时代，为了提升SSD的使用寿命，往往OP都设置的比较大。 </p>
+</li>
+<li><p>Bit error处理影响性能。在SSD内部采用多种机制来处理NAND Flash所产生的Bit error。ECC纠错、read retry、soft LDPC以及RAIN都是用来纠正bit翻转导致的错误。当Bit错误率增加时，软件处理的开销越大，在bit控制在一定范围之内，完全可以通过硬件进行纠正。一旦软件参与到bit纠正的时候，会引入较大的性能开销。 </p>
+</li>
+<li><p>FTL算法。FTL算法会影响到SSD性能，对于不同用途的SSD，FTL的设计与实现是完全不同的，企业级SSD为了追求高性能，通常采用Flat mapping的方式，采用大内存缓存映射表；消费级SSD为了追求低成本，通常采用元数据换入换出的方式，并且采用pSLC+TLC的组合方式进行分层存储，也可以采用主机端内存缓存元数据信息，但是这些方式都会影响到性能。 </p>
+</li>
+<li><p>IO调度算法。NAND Flash具有严重的性能不对称性，Flash Erase和Program具有ms级延迟，Flash read的延迟在us级。因此，如何调度Erase、Program以及read是SSD后端设计需要考虑的问题。另外，前端IO以及背景IO之间的调度也是需要权衡考虑，通过IO调度可以达到最佳性能表现。在IO调度过程中，还需要利用NAND Flash的特性，例如Program Suspension，通过这些特性的利用，最优化SSD前端IO性能。 </p>
+</li>
+<li><p>驱动软件。驱动软件运行在主机端，通常分为内核态和用户态两大类，内核态驱动会消耗较多的CPU资源，存在频繁上下文切换、中断处理，因此性能较低；用户态驱动通常采用Polling IO处理模式，去除了上下文切换，可以充分提升CPU效率，提升整体IO性能。 </p>
+</li>
+<li><p>IO Pattern对性能产生影响。IO Pattern影响了SSD内部的GC数据布局，间接影响了GC过程中的数据搬移量，决定了后端流量。当IO Pattern为全顺序时，这种Pattern对SSD内部GC是最为友好的，写放大接近于1，因此具有最好的性能；当IO Pattern为小块随机时，会产生较多的GC搬移数据量，因此性能大为下降。在实际应用中，需要通过本地文件系统最优化IO Pattern，获取最佳性能。 </p>
+</li>
+</ol>
+<h2 id="客观因素"><a href="#客观因素" class="headerlink" title="客观因素"></a>客观因素</h2><ol>
+<li><p>使用时间越长会导致SSD性能变差。使用时间变长之后，SSD内部NAND Flash的磨损会加重，NAND Flash磨损变大之后会导致bit错误率提升。在SSD内部存在一套完整的bit错误恢复机制，由硬件和软件两大部分构成。当bit错误率达到一定程度之后，硬件机制将会失效。硬件机制失效之后，需要通过软件（Firmware）的方式恢复翻转的bit，软件恢复将会带来较大的延迟开销，因此会影响到SSD对外表现的性能。在有些情况下，如果一块SSD在掉电情况下放置一段时间之后，也可能会导致性能变差，原因在于SSD内部NAND Flash中存储电荷的漏电，放置一段时间之后导致bit错误率增加，从而影响性能。SSD的性能和时间相关，本质上还是与NAND Flash的比特错误率相关。 </p>
+</li>
+<li><p>环境温度也会对性能造成影响。为了控制SSD温度不能超过上限值，在SSD内部设计有一套温度负反馈机制，该机制通过检测的温度对NAND Flash后端带宽进行控制，达到降低温度的效果。如果一旦温度负反馈机制开始工作，那么NAND Flash后端带宽将会受到限制，从而影响前端应用IO的性能。 </p>
+</li>
+</ol>
+<p>下面从软件的角度出发，重点阐述GC以及IO Pattern对SSD性能的影响。 </p>
+<h3 id="GC对性能的影响"><a href="#GC对性能的影响" class="headerlink" title="GC对性能的影响"></a>GC对性能的影响</h3><p>SSD内部有一个非常厚重的软件层，该软件层用来解决NAND Flash的问题，采用log-structured的方式记录数据。Log-structured方式引入了GC的问题，对于前端业务来讲，GC流量就是背景噪声。GC流量不是时时刻刻存在的，因此，SSD对外体现性能大幅度波动。当SSD为空盘时，性能会非常好，为最佳性能；当SSD被用过一段时间之后，性能会大幅降低。其中GC起到了很重要的作用。企业级SSD在发布Spec的时候，都会发布SSD盘的稳态性能。在性能测试的时候，需要对盘进行老化预处理。通常预处理的方法是顺序写满盘，然后再随机两遍写盘，预处理完成之后，再对盘进行随机读写测试，得到Spec中定义的值。稳态值基本可以认为是盘的下限性能。 </p>
+<p>在稳态情况下，SSD内部的GC会全速运行，会占用较多的NAND Flash后端带宽。背景流量和前端数据流的比例也就体现了SSD盘的写放大系数，写放大系数越大，背景流量占用带宽越多，SSD对外体现的前端性能也就越差。写放大系数很多因素相关，例如OP、应用IO Pattern等。如果应用IO Pattern比较好，那么可以降低写放大系数，背景噪声流就会减少，前端业务的性能会提升。例如，在SSD完全顺序写入的情况下，写放大系数可以接近于1，此时GC产生的数据流很少，背景流量基本没有，后端带宽基本被业务数据流占用，因此对外体现的性能会很好。 </p>
+<p>GC是影响性能的重要因素，除了影响性能之外，GC会增大写放大，对SSD的使用寿命产生影响。从软件层面的角度考虑，可以通过优化应用IO Pattern的方式优化SSD内部GC，从而进一步提升SSD的性能，优化使用寿命。对于下一代更为廉价的QLC SSD介质，就需要采用这种优化思路，否则无法很好的满足实际业务的应用需求。 </p>
+<h3 id="IO-Pattern对性能的影响"><a href="#IO-Pattern对性能的影响" class="headerlink" title="IO Pattern对性能的影响"></a>IO Pattern对性能的影响</h3><p>IO Pattern会对SSD的性能产生严重影响，主要表现在如下几个方面： </p>
+<ol>
+<li><p>不同的IO Pattern会产生不同的写放大系数，不同的写放大系数占用后端NAND Flash带宽不同。当前端应用对SSD采用完全顺序的方式进行写入时，此时是最佳的IO Pattern，对于SSD而言写放大系数接近1，SSD内部的背景流量基本可以忽略，前端性能达到最佳。在实际应用中，很难采用这种完全顺序的数据写模型，但可以通过优化逼近顺序写入。 </p>
+</li>
+<li><p>不同请求大小的IO之间会产生干扰；读写请求之间会产生干扰。小请求会受到大请求的干扰，从而导致小请求的延迟增加，这个比较容易理解，在HDD上同样会存在这种情况。由于NAND Flash介质存在严重的读写不对称性，因此读写请求之间也会互相干扰，尤其是写请求对读请求产生严重的性能影响。 </p>
+</li>
+</ol>
+<h4 id="顺序写入Pattern对SSD性能优化的奥秘"><a href="#顺序写入Pattern对SSD性能优化的奥秘" class="headerlink" title="顺序写入Pattern对SSD性能优化的奥秘"></a>顺序写入Pattern对SSD性能优化的奥秘</h4><p>在针对闪存系统的设计中，需要考虑IO Pattern对性能产生的影响，通过软件的优化来最优化SSD的使用。在实际应用中完全顺序写入的IO Pattern基本上是不存在的，除非用作顺序写入的日志设备。对于顺序写入优化性能这个结论，需要从SSD内部实现来深入理解，知道根源之后，可以采用合理的方式来逼近顺序写入的模式，从而最优化SSD的性能。 </p>
+<p>SSD内部采用log-structured的数据记录模式，并发写入的IO数据按照时间顺序汇聚成大数据块，合并形成的大数据块以Page stripe的方式写入NAND Flash。多个Page stripe会被写入同一个GC单元（Chunk or Superblock），当一个GC单元被写完成之后，该GC单元进入sealed模式（只读），分配新的GC单元写新的数据。在这种模式下，如果多个业务的数据流并发随机的往SSD中写入数据，那么多个应用的数据就会交错在一起被存储到同一个GC单元中。如下图所示，不同应用的数据生命周期不同，当需要回收一个GC单元的时候，会存在大量数据的迁移，这些迁移的数据就会形成写放大，影响性能和使用寿命。 </p>
+<p><img src="/pics/image-20210418123848764.png" alt="image-20210418123848764"></p>
+<p>不同应用的数据交错存储在同一个GC单元，本质上就是不同冷热程度的数据交错存储的问题。从GC的角度来讲，相同冷热程度的数据存储在同一个GC单元上是最佳的，为此三星推出了Multi-stream SSD，该SSD就允许不同应用的数据存储到不同的Stream单元（GC单元），从而提升GC效率，降低写放大。Multi-stream是一种显式的设计方式，需要更改SSD接口以及应用程序。从IO Pattern的角度考虑，可以通过顺序大块的方式也可以逼近类似的效果。 </p>
+<p>假设操作SSD只存在一个线程，不同的应用都采用大数据块的方式写入数据，那么在一个时间片段内只存在一个应用的数据往SSD中写入数据，那么在一个GC单元内存储的数据会变得有序和规则。如下图所示，采用上述方法之后，一个GC单元内存储的数据将会变得冷热均匀。在GC过程中会大大减少数据的搬移，从而减少背景流量。 </p>
+<p><img src="/pics/image-20210418123916495.png" alt="image-20210418123916495"></p>
+<p>在实际应用中，上述IO Pattern很难产生，主要是应用很难产生非常大粒度的请求。为此在存储系统设计过程中，可以引入Optane高性能存储介质作为SSD的写缓存。前端不同业务的写请求首先写到Optane持久化介质中，在Optane持久化介质中聚合形成大数据块。一旦聚合形成大数据块之后，再写入SSD，通过这种方式可以最大程度的逼近SSD顺序写入过程，提升SSD的性能和使用寿命。 </p>
+<h4 id="读写冲突Pattern对性能的影响"><a href="#读写冲突Pattern对性能的影响" class="headerlink" title="读写冲突Pattern对性能的影响"></a>读写冲突Pattern对性能的影响</h4><p>如下图所示，NAND Flash介质具有很强的读写不对称性。Block Erase和Page Program的延迟会远远高于Page Read所耗费的时间。那么在这种情况下，如果read请求在同一个Flash Channel上和Erase、Program操作冲突，那么read操作将会被Erase／program操作影响。这是在读写混合情况下，读性能会受到影响的重要因素。 </p>
+<p><img src="/pics/image-20210418123931101.png" alt="image-20210418123931101">在实际应用过程中，经常会发现应用的测试结果和SSD Spec对不上，会比Spec给出的值要来的低。Spec给出的值通常为纯读或者纯写情况下的性能指标，在读写混合的场景下，性能表现和Spec给出的值就会存在非常大的出入。 </p>
+<p>对于不同的SSD，通过测试可以发现在读写混合情况下的性能表现差距会比较大。在SSD处于稳态条件下，应用随机读的情况下，如果引入一个压力不是很大的顺序写，那么会发现不同SSD的抗干扰能力是不同的。有些SSD在写干扰的情况下，读性能会急剧下降，延迟快速上升，QoS性能得不到保证。下图是两个SSD在相同情况下的测试结果，从结果来看，有些SSD的抗写干扰能力比较强，读性能不会急剧下降。 </p>
+<p><img src="/pics/image-20210418123945128.png" alt="image-20210418123945128"></p>
+<p>为什么有些SSD会具备比较强的抗写干扰能力呢？其中的奥秘就在于SSD内部的IO调度器。IO调度器会对write、read 和Erase请求进行调度处理，该调度器算法的不同就会表现出不同的抗干扰能力。目前很多NAND Flash可以支持Program／Erase Suspension的功能，在IO调度处理的过程中，为了提升读性能，降低读请求延迟，可以采用Suspension命令对Program／Erase命令暂停，对read请求优先调度处理。 </p>
+<p>读写冲突是SSD内部影响IO QoS的重要因素。在SSD内部通过IO调度器的优化可以提升SSD性能的QoS能力，但是还是无法与存储软件结合来协同优化QoS。为了达到最佳的SSD性能QoS，需要关注Openchannel技术。Openchannel其实只是一种软硬件层次划分的方法，通常来讲，SSD内部的逻辑可以划分为面向NAND资源的物理资源管理层以及面向数据布局的资源映射层。物理资源管理由于和NAND Flash密切相关，因此可以放到SSD内部。 </p>
+<p>传统的NVMe SSD需要对外暴露标准的块设备接口，因此需要在SSD内部实现资源映射层。从端至端的角度来看，资源映射层可以与存储软件层结合起来，为此将资源映射层从SSD内部剥离出来，集成至存储软件层。一旦资源映射层从SSD内部剥离之后，需要定义一个新的SSD接口，其中的一种接口方式就是Openchannel。 </p>
+<p>盘古分布式存储针对SSD QoS问题进行了大量研究，提出了Object SSD的概念，Object SSD也是一种新的SSD接口方式，其采用对象方式对SSD进行读写删操作，每个对象采用Append write操作方式。这种接口方式可以很好的与分布式存储无缝结合。采用Object SSD之后，SSD内部的大量工作被简化，IO的调度会更加灵活，存储软件与SSD协同配合，达到IO性能的最优化，以及QoS的最大化。 </p>
+<p><img src="/pics/image-20210418124004020.png" alt="image-20210418124004020"></p>
+<h2 id="SSD性能分析模型"><a href="#SSD性能分析模型" class="headerlink" title="SSD性能分析模型"></a>SSD性能分析模型</h2><p>SSD内部的数据流分成两大类，一类为前端用户数据流；另一类为内部背景数据流。前端用户数据流和背景数据流会汇聚成NAND Flash后端流量。当背景数据流不存在时，NAND Flash带宽会被用户数据流全部占据，此时SSD对外表现的性能达到最佳。当SSD具有较大写放大时，会产生很大的背景数据流，背景流会抢占NAND Flash带宽，导致前端用户IO性能降低。为了稳定前端IO性能，在SSD内部的调度器会均衡前端和背景流量，保证前端性能的一致性。背景流量的占比反应了SSD的写放大系数，因此，站在NAND Flash带宽占用的角度可以分析SSD在稳态情况下的性能。 </p>
+<p>在此，假设写放大系数为WA，顺序写情况下的总带宽数为B，用户写入流量（随机写入流量）为U。那么，由于GC写放大造成的背景流量为：(WA - 1)* U </p>
+<p>写放大流量为一读一写，都会占用带宽，因此，总带宽可以描述为： </p>
+<p>2 (WA - 1) U + U = B </p>
+<p>因此，可以得到： </p>
+<p>U = B / (2(WA - 1) + 1) = B / (2 WA - 1) </p>
+<p>上述公式表述了前端用户流量和NAND Flash总带宽、写放大系数之间的关系。 </p>
+<p>根据Spec，Intel P4500的顺序写带宽为1.9GB/s，按照上述公式，在随机访问模式下的带宽为: 1900 / (2 * 4 - 1) = 270MB/s，IOPS为67K，根据该公式推导的结果和Spec给出的结果相同。 </p>
+<p>下图是Intel P4500和Samsung PM963随机写延迟和推导公式之间的对比。结果非常吻合。 </p>
+<p><img src="/pics/image-20210418124033423.png" alt="image-20210418124033423"></p>
+<p>由此可以推出，随机写性能由SSD内部后端带宽以及写放大系数来决定。因此，从存储软件的角度出发，我们可以通过优化IO Pattern的方式减小写放大系数，从而可以提升SSD的随机写性能。 </p>
+<h1 id="技术小结"><a href="#技术小结" class="headerlink" title="技术小结"></a>技术小结</h1><p>闪存存储技术正在飞速发展，闪存介质、SSD控制器、存储系统软件、存储硬件平台都在围绕闪存日新月异的发展。闪存给数据存储带来的价值显而易见，数据中心闪存化是重要发展趋势。NVMe SSD性能受到很多因素的影响，在软件层面可以通过IO Pattern优化SSD的性能，使得整体存储系统的性能达到最佳 </p>
+
       
     </div>
 
@@ -799,7 +1010,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/10/store/NVMe/%E4%B8%89%E3%80%81NVMe%E8%A7%84%E8%8C%83%E5%92%8C%E6%A6%82%E8%A6%81/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -813,7 +1024,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/" class="post-title-link" itemprop="url">JVM_jmm#11-对象实例化和StringTable</a>
+            <a href="/2020/10/10/store/NVMe/%E4%B8%89%E3%80%81NVMe%E8%A7%84%E8%8C%83%E5%92%8C%E6%A6%82%E8%A6%81/" class="post-title-link" itemprop="url">三、NVMe规范和概要</a>
         </h2>
 
         <div class="post-meta">
@@ -823,7 +1034,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-20 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-20T09:34:33+08:00">2020-09-20</time>
+              <time title="创建时间：2020-10-10 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-10T23:58:13+08:00">2020-10-10</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -831,7 +1042,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -846,15 +1057,112 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>解决jmm中最重要也是最难的两个问题：1. 对象实例化时内存的布局和访问定位；2. StringTable的机制</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/20/JVM_jmm-11-%E5%AF%B9%E8%B1%A1%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%92%8CStringTable/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <p>规范分为了几个大部分：PCIe寄存器，控制器寄存器，存储结构，Admin命令集，NVM命令集，控制器架构，还有一些NVMe特征的说明以及错误报告与恢复机制的阐述。 </p>
+<p>PCIe 寄存器部分主要描述了要支持NVMe 功能，PCIe 的各个寄存器（PCI 头寄存器、PCI 功能寄存器、PCI 扩展功能寄存器）该如何配置是由厂商设置好的，在进行NVMe 驱动编写时不需要初始化。在硬件形态上，和传统SCSI 盘比较，NVMe 子系统直接通过PCIe 总线和主机连接，路径中不再需要HBA 卡，降低了系统开销。 </p>
+<h1 id="NVMe子系统内部组成"><a href="#NVMe子系统内部组成" class="headerlink" title="NVMe子系统内部组成"></a>NVMe子系统内部组成</h1><ul>
+<li>至少一个PCIe port, 用于外部连接</li>
+<li>至少一个NVMe controller，该controller 是实现了NVMe 逻辑的PCI function</li>
+<li>名字空间标识（NSID）即LUN 号</li>
+<li>名字空间（NS）即LBA</li>
+<li>NAND Flash 介质 （下图未标出） </li>
+</ul>
+<p><img src="/pics/image-20210417224639067.png" alt="image-20210417224639067"></p>
+<p>和传统SCSI 体系比较，在主机侧，NVMe 子系统减少了IO 调度层，单独的命令层，IO 路径更短，为低延迟提供了保障。 </p>
+<p><img src="/pics/image-20210417224751396.png" alt="image-20210417224751396"></p>
+<p>如图，NVMe存储设备涉及的主机侧软件栈包括：NVMe驱动，虚拟块管理层，文件系统层。 </p>
+<p>NVMe规范重新设计定义了I/O队列机制及相应的仲裁机制，较传统的SCSI体系软件栈减少了实现排队功能的通用IO的调度层 </p>
+<p>NVMe驱动同时实现了底层传输和设备操作命令，较传统SCSI体系减少了单独的命令层 </p>
+<p><img src="/pics/image-20210417224848883.png" alt="image-20210417224848883"></p>
+<p>NVMe规范主要包含优化的控制器寄存器接口、命令集、IO队列管理. </p>
+<h1 id="NVMe工作原理"><a href="#NVMe工作原理" class="headerlink" title="NVMe工作原理"></a>NVMe工作原理</h1><ul>
+<li>通过配置设备BAR寄存器地址将NVMe设备的控制器状态寄存器映射到内存空间，这样对映射空间的所有操作将直接体现到NVMe设备内部寄存器的操作，通过寄存器达到对设备控制和状态读取</li>
+<li>在主机内存空间分配I/O请求队列，I/O请求放入请求队列</li>
+<li>在主机内存空间分配数据缓冲区，I/O请求需要传输数据时， 通过DMA和设备进行数据传输 </li>
+</ul>
+<h1 id="NVMe支持的关键特性"><a href="#NVMe支持的关键特性" class="headerlink" title="NVMe支持的关键特性"></a>NVMe支持的关键特性</h1><ul>
+<li><p>支持多达64K个IO队列，每个队列深度可达64K个命令 </p>
+</li>
+<li><p>每个IO队列可以定义优先级，支持相应的仲裁策略 </p>
+</li>
+<li><p>每个NVMe命令长度为64B，可以完全包含4KB读命令的所有信息，保证了随机小IO操作的有效性 </p>
+</li>
+<li><p>支持有效的和不断改进的命令集 </p>
+</li>
+<li><p>支持MSI/MSI-X及中断聚合 </p>
+</li>
+<li><p>支持多个namespace(LUN) </p>
+</li>
+<li><p>有效的支持IO虚拟化架构(SR-IOV) </p>
+</li>
+<li><p>完善的异常处理和设备管理机制 </p>
+</li>
+<li><p>支持端到端的数据保护(兼容T10的DIF和DIX标准) </p>
+</li>
+<li><p>支持多路径和命名空间共享 </p>
+</li>
+</ul>
+<h1 id="NVMe寄存器"><a href="#NVMe寄存器" class="headerlink" title="NVMe寄存器"></a>NVMe寄存器</h1><p><img src="/pics/image-20210417231931338.png" alt="image-20210417231931338"></p>
+<ul>
+<li><p>NVMe Controller是一种PCIe设备，其具备很多PCIe的设备公共的PCI 总线寄存器，NVMe规范定义了当一个PCIe设备为NVMe时这些总线寄存器的属性（可读，可读可写，代表的含义）和重置取值。 </p>
+</li>
+<li><p>NVMe规范还定义了一类NVMe特有的寄存器，这部分寄存器称为控制器寄存器，NVMe设备运行期间需要将这部分寄存器一一映射到主机内存空间，以便主机驱动对NVMe controller进行操作 </p>
+</li>
+<li><p>通过对公共PCI总线寄存器的访问，可以完成为NVMe内存映射的控制寄存器的空间分配，寄存器基址指定，内存中数据缓冲区指针地址等重要操作。 </p>
+</li>
+<li><p>映射到内存空间的控制器寄存器定义了NVMe Controller支持的最大最小page size、I/O仲裁策略、最大队列深度等重要参数 </p>
+</li>
+</ul>
+<h1 id="NVMe队列机制"><a href="#NVMe队列机制" class="headerlink" title="NVMe队列机制"></a>NVMe队列机制</h1><p>独特的队列机制大幅提升了NVMe子系统的并行处理能力，提高了系统性能 </p>
+<p><img src="/pics/image-20210417235337829.png" alt="image-20210417235337829"></p>
+<p>高效的尤其适用多核CPU场景的队列机制 </p>
+<ul>
+<li><p>队列在主机Host内存空间分配 </p>
+</li>
+<li><p>每个CPU核支持一个或多个命令提交队列，命令完成队列，MSI-X中断机制，相互之间隔离（传统SCSI体系未针对多核CPU进行优化，所有I/O请求都放入同一个队列中） </p>
+</li>
+<li><p>使用中断聚合进行性能优化 </p>
+</li>
+<li><p>最多支持64K个I/O队列，每个队列最多支持64K个命令（SCSI只有一个队列，队列中最多支持32个命令） </p>
+</li>
+<li><p>核之间没有互锁机制 </p>
+</li>
+<li><p>队列到达NVMe Controller后，Controller根据选定的仲裁机制选择队列（传统SCSI体系因为只有一个队列，因此不需要队列仲裁机制） </p>
+</li>
+</ul>
+<h1 id="NVMe典型业务命令处理流程"><a href="#NVMe典型业务命令处理流程" class="headerlink" title="NVMe典型业务命令处理流程"></a>NVMe典型业务命令处理流程</h1><ol>
+<li><p>主机在内存空间中的特定命令提交队列中创建一个待执行命令。 </p>
+</li>
+<li><p>主机更新该命令提交队列的队尾门铃寄存器，寄存器中存放新的指向队尾入口entry 的指针。 通过该操作指示NVMe控制器一个新的待执行的命令被提交。 </p>
+</li>
+<li><p>NVMe 控制器从位于主机内存中的命令提交队列中取出该命令待后续执行。 </p>
+</li>
+<li><p>NVMe控制器进行命令仲裁，从已经获取的多个命令中根据根据仲裁机制选择下次要执行的命令。 </p>
+</li>
+<li><p>当命令执行完成后，NVMe控制器向相关的命令完成队列中写入一个命令完成入口entry。该完成entry中包含相关的命令提交队列和命令的标识信息。 </p>
+</li>
+<li><p>NVMe控制器向主机发送中断请求，指示主机有一个命令完成入口entry需要处理。注：是否每条命令完成后都向主机发送中断请求还取决于NVMe控制器是否采用了中断聚合机制。 </p>
+</li>
+<li><p>主机处理命令完成队列中的命令完成入口entry。该处理中包括根据错误提示需要的错误处理。 </p>
+</li>
+<li><p>主机更新命令完成队列的队首门铃寄存器，指示上述命令完成入口entry已经得到处理。 </p>
+</li>
+</ol>
+<h1 id="NVMe设备也可应用于SCSI体系中"><a href="#NVMe设备也可应用于SCSI体系中" class="headerlink" title="NVMe设备也可应用于SCSI体系中"></a>NVMe设备也可应用于SCSI体系中</h1><ul>
+<li><p>由于现有的大量应用程序和软件基础设施基于T10定义的SCSI体系构建，为了使现有SCSI体系无缝过渡到NVMe，保护既有投资， NVMe工作组还定义了SCSI协议到NVMe协议的转换规范 </p>
+</li>
+<li><p>如下图，遵从该规范，通过在主机驱动中增加SCSI-NVMe转换层，就可以使NVMe设备应用于SCSI体系结构中 </p>
+</li>
+</ul>
+<p><img src="/pics/image-20210418000438514.png" alt="image-20210418000438514"></p>
+<p>NVMe规范主要定义了两部分内容，包括： </p>
+<ul>
+<li><p>SCSI命令到NVMe命令的转换匹配（SCSI定义了针对各种类型设备的命令集，如流式设备，这部分命令并不适用NVMe设备，因此不提供这部分命令的转换匹配） </p>
+</li>
+<li><p>NVMe状态到SCSI状态的匹配转换 </p>
+</li>
+</ul>
+<p><img src="/pics/image-20210418000537545.png" alt="image-20210418000537545"></p>
+
       
     </div>
 
@@ -873,7 +1181,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/19/JVM_jmm-10-%E7%9B%B4%E6%8E%A5%E5%86%85%E5%AD%98/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/09/store/NVMe/%E4%BA%8C%E3%80%81NVMe%E7%9A%84%E5%87%A0%E4%B8%AA%E9%87%8D%E8%A6%81%E6%A6%82%E5%BF%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -887,7 +1195,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/19/JVM_jmm-10-%E7%9B%B4%E6%8E%A5%E5%86%85%E5%AD%98/" class="post-title-link" itemprop="url">JVM_jmm#10-直接内存</a>
+            <a href="/2020/10/09/store/NVMe/%E4%BA%8C%E3%80%81NVMe%E7%9A%84%E5%87%A0%E4%B8%AA%E9%87%8D%E8%A6%81%E6%A6%82%E5%BF%B5/" class="post-title-link" itemprop="url">二、NVMe的几个重要概念</a>
         </h2>
 
         <div class="post-meta">
@@ -897,7 +1205,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-09-19 09:34:33" itemprop="dateCreated datePublished" datetime="2020-09-19T09:34:33+08:00">2020-09-19</time>
+              <time title="创建时间：2020-10-09 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-09T23:58:13+08:00">2020-10-09</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -905,7 +1213,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
                 </span>
             </span>
 
@@ -920,15 +1228,21 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>直接内存就是堆外空间的内存区域。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/19/JVM_jmm-10-%E7%9B%B4%E6%8E%A5%E5%86%85%E5%AD%98/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+          <p><strong>命名空间（Namespace简称NS）</strong>是一定量的NVM（non-volatile memory），这些NVM可被格式化为许多个逻辑块。一个NVMe控制器能支持多个由不同命名空间ID（简称NSID）标识的NS。在系统向某个NS提交IO命令之前，这个NS必须与某个控制器关联。若NVM子系统支持NS管理，则NVM子系统内的NSID必须是唯一的（不管NS连接的是哪个控制器）；若不支持，则不要求私有NS的ID唯一。 </p>
+<p>NVM子系统包括n个控制器，m个命名空间，s个PCIe端口，一个NVM介质以及一个接口连接控制器与该介质。 </p>
+<p>NVMe是基于成对的Submission Queue(简称SQ)和Completion Queue(简称CQ)机制，它们存在于主机内存里。Submission Queue中由系统放置命令，Completion Queue中由控制器放置完成信息。Admin Submission Queue和对应的Admin Completion Queue用来管理和控制主控器（如创建和删除IO队列，终止命令等），只有属于Admin Command Set的命令才会被提交到Admin Submission Queue。Admin Queue的ID都是0。IO Submission Queues和对应的IO Completion Queues用来处理IO命令，规范定义了一种IO Command Set，叫做NVM Command Set，与IO队列一起使用。系统在创建Submission Queue前必须先创建相关的Completion Queue，删除也要先于相关的Completion Queue。 </p>
+<p>下面两张图展示了主机、主控器与队列之间的配合关系。由系统创建队列，最大数目可到主控器支持的上限。通常情况下是根据主机的配置和预期的工作负载来创建，并将一对队列绑定到一个核上，避免使用锁与更多的核间数据传递。从下面两张图中可以看出Admin永远是1对1的，而IO队列可以是多个SQ对应一个CQ。 </p>
+<p><img src="/pics/image-20210417223452315.png" alt="image-20210417223452315"></p>
+<p><img src="/pics/image-20210417223513059.png" alt="image-20210417223513059"></p>
+<p>每个SQ都是一个有着固定“槽位”大小的循环缓冲区，系统用它来提交命令来等待控制器执行。当系统提交了一批新的等待执行的命令时，系统将更新SQ尾部Doorbell寄存器通知主控器，这时主控器将重写主控器内部对应SQ尾部的值。主控器从SQ中顺序取出64字节的命令，但之后对命令的执行可能是任何顺序。内存中将分配PRP（Physical Region Page）条目或Scatter Gather Lists（SGL）用于数据传输，每个命令包括两个PRP条目或一个SGL部分。如果需要更多的 PRP条目则需要提供一个指向PRP链表的指针，而对于SGL则在SGL部分提供一个指向下一个SGL部分的指针。 </p>
+<p>每个CQ也都是一个有着固定“槽位”大小的循环缓冲区，控制器用它来投递已完成命令的状态信息。一个已完成的命令由相关的SQ ID和CQ ID唯一标识，SQ和CQ的ID由系统分配。系统在处理好CQ条目后会释放该CQ条目并更新CQ的头指针。在CQ条目中，有一bit（Phase简称P）是用来表示该条目是否是刚刚投递来的，这样做可以帮助系统决定该新条目是前一轮还是当前一轮的完成通知。每次处理CQ时，遍历完所有CQE条目后，控制器都会将phase值取反。 </p>
+<p>多路径IO指的是一个主机和一个命名空间之间存在多条完全独立的PCIe路径。命名空间共享指的是多个主机可以通过不同的NVMe控制器接入同一个命名空间。两种特性都要求NVM子系统包含多个控制器。下面的三个图展示了这两种特性。(1)是没有多路径IO和命名空间共享的情况，NVMe控制器下的NSID互不相同。(2)是有命名空间共享没有多路径IO的情况，两个控制器用一个PCIe端口（一个为Func0一个为Func1），共享一个命名空间（在控制器内必须用相同的ID）。当共享命名空间的控制器存在并发访问该命名空间时，应设置控制器支持原子操作，并可采用不同的优先级。(3)是有多路径IO和命名空间共享的情况，这样的情境中，两个PCIe端口是完全独立的。 </p>
+<p><img src="/pics/image-20210417224103105.png" alt="image-20210417224103105"></p>
+<p><img src="/pics/image-20210417224047866.png" alt="image-20210417224047866"></p>
+<p><img src="/pics/image-20210417224219181.png" alt="image-20210417224219181"></p>
+<p>NVMe对SR-IOV的支持示意图（不一定只有一个PCIe端口）如下。图中可看出NVM子系统只有一个物理Func0，其余4个均为虚拟Func。每个虚拟Func都有一个与之关联的NVMe控制器，且每个控制器有一个私有的命名空间和同一个共享的命名空间。通过这样的方法，实现了PCIe的扩展，允许上层运行的虚拟机能够高效的共享PCIe的硬件资源。 </p>
+<p><img src="/pics/image-20210417224310660.png" alt="image-20210417224310660"></p>
+
       
     </div>
 
@@ -946,7 +1260,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1014,20 +1328,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-count">261</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">25</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-count">142</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

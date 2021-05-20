@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文以ReentrantLock的调用为例，说明AbstractQueuedSynchronizer提供的独占功能。本文结构如下：  以ReentrantLock的公平策略为例，分析AbstractQueuedSynchronizer的独占功能 以ReentrantLock的非公平策略为例，分析AbstractQueuedSynchronizer的独占功能 分析AbstractQueuedSync">
+<meta property="og:type" content="article">
+<meta property="og:title" content="juc_locks框架#3-AQS独占的实现">
+<meta property="og:url" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="本文以ReentrantLock的调用为例，说明AbstractQueuedSynchronizer提供的独占功能。本文结构如下：  以ReentrantLock的公平策略为例，分析AbstractQueuedSynchronizer的独占功能 以ReentrantLock的非公平策略为例，分析AbstractQueuedSynchronizer的独占功能 分析AbstractQueuedSync">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913134347368.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913134433020.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913134513464.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913134813647.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913134856108.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913134954741.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913135111399.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913135202710.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913135216218.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913135318785.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913135522808.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141016666.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141029063.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141206999.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141318357.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141345749.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141541136.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141601099.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141715803.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141820931.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141842224.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913141901777.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913143010516.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913143022762.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913143513767.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913143534093.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913143548603.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913143632755.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913144146204.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913144231036.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913144353888.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913145742089.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913145755731.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913145919947.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913150352088.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913163447829.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913163516545.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913163548081.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913163619814.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913163652870.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913163702939.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913163722748.png">
+<meta property="article:published_time" content="2020-08-15T01:34:33.000Z">
+<meta property="article:modified_time" content="2020-08-15T01:34:33.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="深入并发">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/image-20200913134347368.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>juc_locks框架#3-AQS独占的实现 | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/15/old/juc_locks%E6%A1%86%E6%9E%B6-3-AQS%E7%8B%AC%E5%8D%A0%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          juc_locks框架#3-AQS独占的实现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-15 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-15T09:34:33+08:00">2020-08-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文以ReentrantLock的调用为例，说明AbstractQueuedSynchronizer提供的独占功能。<br>本文结构如下：</p>
+<ol>
+<li>以ReentrantLock的公平策略为例，分析AbstractQueuedSynchronizer的独占功能</li>
+<li>以ReentrantLock的非公平策略为例，分析AbstractQueuedSynchronizer的独占功能</li>
+<li>分析AbstractQueuedSynchronizer的锁中断、限时等待等功能</li>
+</ol>
+<a id="more"></a>
+
+<h1 id="ReentrantLock的公平策略原理"><a href="#ReentrantLock的公平策略原理" class="headerlink" title="ReentrantLock的公平策略原理"></a>ReentrantLock的公平策略原理</h1><p>本节对ReentrantLock公平策略的分析基于以下示例：</p>
+<blockquote>
+<p>假设现在有3个线程：ThreadA、ThreadB、ThreadC，一个公平的独占锁，3个线程会依次尝试去获取锁：<code>ReentrantLock lock=new ReentrantLock(true);</code></p>
+</blockquote>
+<p>线程的操作时序如下：</p>
+<pre><code>//ThreadA    lock
+
+//ThreadB    lock
+
+//ThreadC    lock
+
+//ThreadA    release
+
+//ThreadB    release
+
+//ThreadC    release</code></pre><h2 id="ThreadA首先获取到锁"><a href="#ThreadA首先获取到锁" class="headerlink" title="ThreadA首先获取到锁"></a>ThreadA首先获取到锁</h2><p>ThreadA首先调用ReentrantLock的<strong>lock</strong>方法，我们看下该方法的内部：<br><img src="image-20200913134347368.png" alt="image-20200913134347368"></p>
+<p>最终其实调用了FairSync的lock方法：<br><img src="image-20200913134433020.png" alt="image-20200913134433020"></p>
+<p><strong>acquire</strong>方法来自AQS：<br><img src="image-20200913134513464.png" alt="image-20200913134513464"></p>
+<p>其中<strong>tryAcquire</strong>方法需要AQS的子类自己去实现，我们来看下ReentrantLock中的实现：<br><img src="image-20200913134813647.png" alt="image-20200913134813647"></p>
+<p>可以看到，在ReentrantLock中，同步状态State的含义如下：</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>资源的定义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>表示锁可用</td>
+</tr>
+<tr>
+<td>1</td>
+<td>表示锁被占用</td>
+</tr>
+<tr>
+<td>大于1</td>
+<td>表示锁被占用，且值表示同一线程的重入次数</td>
+</tr>
+</tbody></table>
+<p>ThreadA是首个获取锁的线程，所以上述方法会返回true，第一阶段结束。（ThreadA一直保持占有锁的状态）<br>此时，AQS中的等待队列还是空：<br><img src="image-20200913134856108.png" alt="image-20200913134856108"></p>
+<h2 id="ThreadB开始获取锁"><a href="#ThreadB开始获取锁" class="headerlink" title="ThreadB开始获取锁"></a>ThreadB开始获取锁</h2><p>终于，ThreadB要登场了，一样，ThreadB先去调用lock方法，最终调用AQS的acquire方法：<br><img src="image-20200913134954741.png" alt="image-20200913134954741"></p>
+<p><strong>tryAcquire</strong>方法肯定是返回false（因为此时ThreadA占有着锁）。<br>接下来看下<strong>addWaiter</strong>方法，这个方法其实就是将当前调用线程包装成一个【独占结点】，添加到等待队列尾部。<br><img src="image-20200913135111399.png" alt="image-20200913135111399"></p>
+<p>这里关键是enq方法，因为并发插入的情况存在，所以该方法设计成了自旋操作，保证结点能成功插入，具体步骤如下：<br>①当队列为空的时候，先创建一个dummy头结点；<br><img src="image-20200913135202710.png" alt="image-20200913135202710" style="zoom:67%;" /></p>
+<p>②进入下一次循环，插入队尾结点。<br><img src="image-20200913135216218.png" alt="image-20200913135216218"></p>
+<p>好了，ThreadB已经被包装成结点插入队尾了，接下来会调用<strong>acquireQueued</strong>方法，这也是AQS中最重要的方法之一：<br><img src="image-20200913135318785.png" alt="image-20200913135318785"></p>
+<blockquote>
+<p>在AQS中，等待队列中的线程都是阻塞的，当某个线程被唤醒时，只有该线程是首结点（线程）时，才有权去尝试获取锁。</p>
+</blockquote>
+<p>上述方法中，将ThreadB包装成结点插入队尾后，先判断ThreadB是否是首结点（注意不是头结点，头结点是个dummy结点），发现确实是首结点（node.predecessor==head），于是调用tryAcquire尝试获取锁，但是获取失败了（此时ThreadA占有着锁），就要判断是否需要阻塞当前线程。</p>
+<p>判断是否需要阻塞线程：<br><img src="image-20200913135522808.png" alt="image-20200913135522808"></p>
+<p>注意，对于独占功能，只使用了3种结点状态：</p>
+<table>
+<thead>
+<tr>
+<th>结点状态</th>
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CANCELLED</td>
+<td>1</td>
+<td>取消。表示后驱结点被中断或超时，需要移出队列</td>
+</tr>
+<tr>
+<td>SIGNAL</td>
+<td>-1</td>
+<td>发信号。表示后驱结点被阻塞了（当前结点在入队后、阻塞前，应确保将其prev结点类型改为SIGNAL，以便prev结点取消或释放时将当前结点唤醒。）</td>
+</tr>
+<tr>
+<td>CONDITION</td>
+<td>-2</td>
+<td>Condition专用。表示当前结点在Condition队列中，因为等待某个条件而被阻塞了</td>
+</tr>
+</tbody></table>
+<p>对于在等待队列中的线程，如果要阻塞它，需要确保将来有线程可以唤醒它，AQS中通过将前驱结点的状态置为SIGNAL:-1来表示将来会唤醒当前线程，当前线程可以安心的阻塞。</p>
+<p>看下图或许比较好理解：<br>①插入完ThreadB后，队列的初始状态如下：<br><img src="image-20200913141016666.png" alt="image-20200913141016666"></p>
+<p>②虽然ThreadB是队首结点，但是它拿不到锁（被ThreadA占有着），所以ThreadB会阻塞，但在阻塞前需要设置下前驱的状态，以便将来可以唤醒我：<br><img src="image-20200913141029063.png" alt="image-20200913141029063"></p>
+<p>至此，ThreadB的执行也暂告一段落了（安心得在等待队列中睡觉）。</p>
+<blockquote>
+<p>注意：补充一点，如果ThreadB在阻塞过程中被中断，其实是不会抛出异常的，只会在acquireQueued方法返回时，告诉调用者在阻塞器件有没被中断过，具体如果处理，要不要抛出异常，取决于调用者，这其实是一种延时中断机制。<br><img src="image-20200913141206999.png" alt="image-20200913141206999"></p>
+</blockquote>
+<h2 id="ThreadC开始获取锁"><a href="#ThreadC开始获取锁" class="headerlink" title="ThreadC开始获取锁"></a>ThreadC开始获取锁</h2><p>终于轮到ThreadC出场了，ThreadC的调用过程和ThreadB完全一样，同样拿不到锁，然后加入到等待队列队尾：<br><img src="image-20200913141318357.png" alt="image-20200913141318357"></p>
+<p>然后，ThreadC在阻塞前需要把前驱结点的状态置为SIGNAL：-1，以确保将来可以被唤醒：<br><img src="image-20200913141345749.png" alt="image-20200913141345749"></p>
+<p>至此，ThreadC的执行也暂告一段落了（安心得在等待队列中睡觉）。</p>
+<h2 id="ThreadA释放锁"><a href="#ThreadA释放锁" class="headerlink" title="ThreadA释放锁"></a>ThreadA释放锁</h2><p>ThreadA终于使用完了临界资源，要释放锁了，来看下ReentrantLock的<strong>unlock</strong>方法：</p>
+<p><img src="image-20200913141541136.png" alt="image-20200913141541136"></p>
+<p>unlock内部调用了AQS的release方法，传参1：<br><img src="image-20200913141601099.png" alt="image-20200913141601099"></p>
+<p>尝试释放锁的操作<strong>tryRelease</strong>：<br><img src="image-20200913141715803.png" alt="image-20200913141715803"></p>
+<p>释放成功后，调用<strong>unparkSuccessor</strong>方法，唤醒队列中的首结点：<br><img src="image-20200913141820931.png" alt="image-20200913141820931"></p>
+<p>此时，队列状态为：<br><img src="image-20200913141842224.png" alt="image-20200913141842224"></p>
+<h2 id="ThreadB唤醒后继续执行"><a href="#ThreadB唤醒后继续执行" class="headerlink" title="ThreadB唤醒后继续执行"></a>ThreadB唤醒后继续执行</h2><p>好了，队首结点（ThreadB）被唤醒了。<br>ThreadB会继续从以下位置开始执行，先返回一个中断标识，用于表示ThreadB在阻塞期间有没被中断过：<br><img src="image-20200913141901777.png" alt="image-20200913141901777"></p>
+<p>然后ThreadB又开始了自旋操作，被唤醒的是队首结点，所以可以尝试tryAcquire获取锁，此时获取成功（ThreadA已经释放了锁）。<br>获取成功后会调用setHead方法，将头结点置为当前结点，并清除线程信息：<br><img src="image-20200913143010516.png" alt="image-20200913143010516"><br><img src="image-20200913143022762.png" alt="image-20200913143022762"></p>
+<p>最终的队列状态如下：<br><img src="image-20200913143513767.png" alt="image-20200913143513767" style="zoom: 67%;" /></p>
+<h2 id="ThreadB释放锁"><a href="#ThreadB释放锁" class="headerlink" title="ThreadB释放锁"></a>ThreadB释放锁</h2><p>ThreadB也终于使用完了临界资源，要释放锁了，过程和ThreadA释放时一样，释放成功后，会调用<strong>unparkSuccessor</strong>方法，唤醒队列中的首结点：<br><img src="image-20200913143534093.png" alt="image-20200913143534093"></p>
+<p>队首结点（ThreadC）被唤醒后，继续从原来的阻塞处向下执行，并尝试获取锁，获取成功，最终队列状态如下：<br><img src="image-20200913143548603.png" alt="image-20200913143548603"></p>
+<h2 id="ThreadC释放锁"><a href="#ThreadC释放锁" class="headerlink" title="ThreadC释放锁"></a>ThreadC释放锁</h2><p>ThreadC也终于使用完了临界资源，要释放锁了。释放成功后，调用unparkSuccessor方法，唤醒队列中的首结点：<br>此时队列中只剩下一个头结点（dummy），所以这个方法其实什么都不做。最终队列的状态就是只有一个dummy头结点。<br><img src="image-20200913143632755.png" alt="image-20200913143632755"></p>
+<p>至此，AQS的独占功能已经差不多分析完了，剩下还有几个内容没分析：</p>
+<ol>
+<li>锁中断功能</li>
+<li>限时等待功能</li>
+<li>Conditon等待功能</li>
+</ol>
+<p>这些功能将在后续章节陆续分析。</p>
+<h1 id="ReentrantLock的非公平策略原理"><a href="#ReentrantLock的非公平策略原理" class="headerlink" title="ReentrantLock的非公平策略原理"></a>ReentrantLock的非公平策略原理</h1><p>ReenrantLock非公平策略的内部实现和公平策略没啥太大区别：<br>非公平策略和公平策略的最主要区别在于：</p>
+<ol>
+<li>公平锁获取锁时，会判断等待队列中是否有线程排在当前线程前面。只有没有情况下，才去获取锁，这是公平的含义。<br><img src="image-20200913144146204.png" alt="image-20200913144146204"></li>
+<li>非公平锁获取锁时，会立即尝试修改同步状态，失败后再调用AQS的acquire方法。<br><img src="image-20200913144231036.png" alt="image-20200913144231036"><br>acquire方法会转调非公平锁自身的tryAcquire方法，其实最终是调了nofairTryAcquire方法，而该方法相对于公平锁，只是少了“队列中是否有其它线程排在当前线程前”这一判断：<br><img src="image-20200913144353888.png" alt="image-20200913144353888"></li>
+</ol>
+<h1 id="AQS对中断的支持"><a href="#AQS对中断的支持" class="headerlink" title="AQS对中断的支持"></a>AQS对中断的支持</h1><p>还是以ReentrantLock为例，来看下AQS是如何实现锁中断和超时的。<br>我们知道ReentrantLock的<strong>lockInterruptibly</strong>方法是会响应中断的。（线程如果在阻塞过程中被中断，会抛出InterruptedException异常）</p>
+<p>该方法调用了AQS的<strong>acquireInterruptibly</strong>方法：<br><img src="image-20200913145742089.png" alt="image-20200913145742089"></p>
+<p>上述代码会先去尝试获取锁，如果失败，则调用doAcquireInterruptibly方法，如下：<br><img src="image-20200913145755731.png" alt="image-20200913145755731"></p>
+<p>很眼熟有木有？看下和<strong>acquireQueued</strong>方法的对比，唯一的区别就是：<br>当调用线程获取锁失败，进入阻塞后，如果中途被中断，<strong>acquireQueued</strong>只是用一个标识记录线程被中断过，而<strong>doAcquireInterruptibly</strong>则是直接抛出异常。<br><img src="image-20200913145919947.png" alt="image-20200913145919947"></p>
+<h1 id="AQS对限时等待的支持"><a href="#AQS对限时等待的支持" class="headerlink" title="AQS对限时等待的支持"></a>AQS对限时等待的支持</h1><p>Lock接口中有一个方法：<strong>tryLock</strong>，用于在指定的时间内尝试获取锁，获取不到就返回。<br>ReentrantLock实现了该方法，可以看到，该方法内部调用了AQS的<strong>tryAcquireNanos</strong>方法：<br><img src="image-20200913150352088.png" alt="image-20200913150352088"></p>
+<p><strong>tryAcquireNanos</strong>方法是响应中断的，先尝试获取一次锁，失败则调用<strong>doAcquireNanos</strong>方法进行超时等待：<br><img src="image-20200913163447829.png" alt="image-20200913163447829"></p>
+<p>关键是<strong>doAcquireNano</strong>方法，和<strong>acquireQuqued</strong>方法类似，又是一个自旋操作，在超时前不断尝试获取锁，获取不到则阻塞（加上了等待时间的判断）。该方法内部，调用了<code>LockSupport.parkNanos</code>来超时阻塞线程：<br><img src="image-20200913163516545.png" alt="image-20200913163516545"></p>
+<p><code>LockSupport.parkNanos</code>内部其实通过Unsafe这个类来操作线程的阻塞，底层是一个native方法：<br><img src="image-20200913163548081.png" alt="image-20200913163548081"></p>
+<p>如果当前线程在指定时间内获取不到锁，除了返回false外，最终还会执行<strong>cancelAcquire</strong>方法：<br><img src="image-20200913163619814.png" alt="image-20200913163619814"></p>
+<hr>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>为了便于理解还是以3个线程为例：</p>
+<blockquote>
+<p>假设现在有3个线程：ThreadA、ThreadB、ThreadC，一个公平的独占锁，3个线程会依次尝试去获取锁，不过此时加上了限时等待：ThreadB等待10s，ThreadA等待20s。</p>
+</blockquote>
+<pre><code>ReentrantLock lock=new ReentrantLock(true);
+
+//ThreadA    tryLock
+
+//ThreadB    tryLock, 10s
+
+//ThreadC    tryLock, 20s
+
+//ThreadA    release
+
+//ThreadB    release
+
+//ThreadC    release</code></pre><p><strong><em>1. ThreadA首先获取到锁，ThreadB和ThreadC依次尝试去获取锁\</em></strong><br>ThreadB和ThreadC经过两轮自旋操作后，等待队列的情况如下：<br><img src="image-20200913163652870.png" alt="image-20200913163652870"></p>
+<p><strong><em>2. ThreadB先到超时时间\</em></strong><br>调用了<strong>cancelAcquire</strong>方法取消操作，队列状态变成：<br><img src="image-20200913163702939.png" alt="image-20200913163702939"></p>
+<p><strong><em>3. ThreadC到达超时时间\</em></strong><br>调用了<strong>cancelAcquire</strong>方法取消操作，队列状态变成：<br><img src="image-20200913163722748.png" alt="image-20200913163722748"></p>
+<p>在退出<strong>cancelAcquire</strong>后，原来ThreadB和ThreadC对应的结点会被JVM垃圾回收器回收。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本章从ReentrantLock入手，分析AQS的独占功能的内部实现细节。下一章，从CountDownLatch入手，看下AQS的共享功能如何实现。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+              <a href="/tags/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" rel="tag"># 深入并发</a>
+              <a href="/tags/juc/" rel="tag"># juc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/14/old/juc_locks%E6%A1%86%E6%9E%B6-2-AQS%E4%BB%8B%E7%BB%8D/" rel="prev" title="juc_locks框架#2-AQS介绍">
+      <i class="fa fa-chevron-left"></i> juc_locks框架#2-AQS介绍
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/16/old/juc_locks%E6%A1%86%E6%9E%B6-4-AQS_condition%E7%AD%89%E5%BE%85/" rel="next" title="juc_locks框架#4-AQS_condition等待">
+      juc_locks框架#4-AQS_condition等待 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ReentrantLock的公平策略原理"><span class="nav-text">ReentrantLock的公平策略原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadA首先获取到锁"><span class="nav-text">ThreadA首先获取到锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadB开始获取锁"><span class="nav-text">ThreadB开始获取锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadC开始获取锁"><span class="nav-text">ThreadC开始获取锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadA释放锁"><span class="nav-text">ThreadA释放锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadB唤醒后继续执行"><span class="nav-text">ThreadB唤醒后继续执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadB释放锁"><span class="nav-text">ThreadB释放锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadC释放锁"><span class="nav-text">ThreadC释放锁</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ReentrantLock的非公平策略原理"><span class="nav-text">ReentrantLock的非公平策略原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AQS对中断的支持"><span class="nav-text">AQS对中断的支持</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AQS对限时等待的支持"><span class="nav-text">AQS对限时等待的支持</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#示例"><span class="nav-text">示例</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

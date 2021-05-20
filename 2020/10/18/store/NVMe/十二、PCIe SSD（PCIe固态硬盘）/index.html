@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="PCIe SSD（PCIe 固态驱动器）是一种高速扩展卡，可将计算机连接到其外围设备。PCIe或Peripheral Component Interconnect Express是串行扩展总线标准。PCIe 插槽可以根据连接到它的双向通道的数量而具有不同的大小。PCIe SSD 存储是服务器端闪存部署的替代方案。  PCIe SSD 直接在服务器主板上集成闪存。每个PCIe 设备通过其自己的串行链">
+<meta property="og:type" content="article">
+<meta property="og:title" content="十二、PCIe SSD（PCIe固态硬盘）">
+<meta property="og:url" content="http://yoursite.com/2020/10/18/store/NVMe/%E5%8D%81%E4%BA%8C%E3%80%81PCIe%20SSD%EF%BC%88PCIe%E5%9B%BA%E6%80%81%E7%A1%AC%E7%9B%98%EF%BC%89/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="PCIe SSD（PCIe 固态驱动器）是一种高速扩展卡，可将计算机连接到其外围设备。PCIe或Peripheral Component Interconnect Express是串行扩展总线标准。PCIe 插槽可以根据连接到它的双向通道的数量而具有不同的大小。PCIe SSD 存储是服务器端闪存部署的替代方案。  PCIe SSD 直接在服务器主板上集成闪存。每个PCIe 设备通过其自己的串行链">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/pics/image-20210418143132914.png">
+<meta property="article:published_time" content="2020-10-18T15:58:13.000Z">
+<meta property="article:modified_time" content="2020-10-18T15:58:13.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="Store">
+<meta property="article:tag" content="NVMe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/pics/image-20210418143132914.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/10/18/store/NVMe/%E5%8D%81%E4%BA%8C%E3%80%81PCIe%20SSD%EF%BC%88PCIe%E5%9B%BA%E6%80%81%E7%A1%AC%E7%9B%98%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>十二、PCIe SSD（PCIe固态硬盘） | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/18/store/NVMe/%E5%8D%81%E4%BA%8C%E3%80%81PCIe%20SSD%EF%BC%88PCIe%E5%9B%BA%E6%80%81%E7%A1%AC%E7%9B%98%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          十二、PCIe SSD（PCIe固态硬盘）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10-18 23:58:13" itemprop="dateCreated datePublished" datetime="2020-10-18T23:58:13+08:00">2020-10-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Store/" itemprop="url" rel="index"><span itemprop="name">Store</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>PCIe SSD（PCIe 固态驱动器）是一种高速扩展卡，可将计算机连接到其外围设备。PCIe或Peripheral Component Interconnect Express是串行扩展总线标准。PCIe 插槽可以根据连接到它的双向通道的数量而具有不同的大小。PCIe SSD 存储是服务器端闪存部署的替代方案。 </p>
+<p>PCIe SSD 直接在服务器主板上集成闪存。每个PCIe 设备通过其自己的串行链路连接到主机，无需共享总线。点对点架构可降低延迟并提高服务器和存储阵列之间的数据传输速率。 </p>
+<p>PCIe SSD是常见四种SSD 外形之一。通常，基于PCIe的固态存储比基于服务器的串行ATA（SATA），串行连接SCSI（SAS）或光纤通道SSD 具有更好的性能。 </p>
+<p>基于PCIe的设备的格式规范由PCI特别兴趣小组（PCI-SIG）开发和维护。PCIe 3.0于2010年11月发布。当前版本PCIe 4.0在2017年发布。 </p>
+<p><img src="/pics/image-20210418143132914.png" alt="image-20210418143132914"></p>
+<p>针对非易失性存储器（NVMe）规范设计的PCIe SSD正在支持。NVMe协议提供用于访问PCIe SSD的优化命令集。NVMe利用PCIe 3.0的并行性来加速性能。 </p>
+<p>PCI-SIG还为M.2固态硬盘制定了标准，这是一种专为内置扩展卡设计的小巧外形。M.2规范取代了mSATA规格。M.2 SSD配备四个PCIe 3.0 带宽通道。 </p>
+<h1 id="PCIe-SSD与SATA-SSD"><a href="#PCIe-SSD与SATA-SSD" class="headerlink" title="PCIe SSD与SATA SSD"></a>PCIe SSD与SATA SSD</h1><p>如前所述，PCIe连接的SSD可避免与SATA或SAS连接的SSD相关的瓶颈。每个SSD的PCIe通道数决定了数据传输的速度。基于PCIe 3.0规范构建的16通道设备每秒可支持大约32 千兆字节。相比之下，使用SATA III控制器构建的SSD 提供的最大传输速率约为每秒600 兆字节。 </p>
+<p>PCIe驱动器供应商仅逐步实施3.0规范。大多数供应商仍在发布基于PCIe 2.0的产品。 </p>
+<p>SATA v3.2规范定义了SATA Express连接器，用于同时支持SATA和PCIe 协议的主机和设备连接器。 </p>
+<h1 id="PCIe-SSD的缺点"><a href="#PCIe-SSD的缺点" class="headerlink" title="PCIe SSD的缺点"></a>PCIe SSD的缺点</h1><p>PCIe多用途总线将各种数据传送到处理器。尽管PCIe固有的固有性能优势，但其每GB的成本比传统固态硬盘更高。 </p>
+<p>缺少标准存储命令是另一个缺点。PCIe SSD设备制造商都需要编写和定制相应操作系统的软件驱动程序。 </p>
+<h1 id="PCIe闪存的未来"><a href="#PCIe闪存的未来" class="headerlink" title="PCIe闪存的未来"></a>PCIe闪存的未来</h1><p>在可预见的未来，PCIe闪存将在企业数据中心与传统SSD和非易失性存储器技术共存。据行业分析师称，采用基于闪存的双列直插式内存模块卡的非易失性存储可能会在企业采用中挑战PCIe闪存。 </p>
+<p>了解PCIe SSD的优缺点，NAND闪存的工作原理，PCIe SSD的典型使用案例，以及该领域的供应商和产品。有助于全面学习PCIe相关知识。 </p>
+<p>PCI Express或PCIe是计算机主板互连，用于扩展服务器的性能，功能或连接。HBA，NIC，图形加速器卡和RAM扩展模块是常见的例子。NAND闪存形式的固态存储设备是PCIe互连的新应用。下面将详细介绍PCIe SSD：以下主要介绍板载SSD的PCIe卡(为服务器提供内部存储)，而不是通过PCIe接口卡连接的外部 SSD阵列。 </p>
+<p>基于闪存的SSD的使用越来越多，因为磁盘存储无法跟上CPU性能; 硬盘转速在近十年内没有增加。尽管一些性能改进来自数据密度的增加（每次轮换的数据更多），但事实仍然是基于硬盘的存储无法足够快地从CPU获取数据以利用不断改进的处理器。内存（DRAM）太昂贵，无法提供所需的容量，因此已经开发了闪存存储来填补这一空白。闪存的性能比硬盘驱动器更接近DRAM，但每两千兆字节的成本介于两者之间，闪存为旋转磁盘存储提供了一种可行的替代方案。 </p>
+<p>PCIe提供了一个高效的平台，可将此闪存集成到计算环境中，将其放在服务器主板上，并将其（物理上和逻辑上）移近服务器计算引擎。与外部设备（例如具有SSD的传统磁盘阵列而不是硬盘驱动器，专用SSD阵列或缓存设备）相比，PCIe卡存储上的闪存可以绕过直接连接的外部设备所具有的阵列控制器，接口协议和布线。它们还消除了SAN连接阵列的交换机和网络连接。 </p>
+<h1 id="NAND闪存如何工作"><a href="#NAND闪存如何工作" class="headerlink" title="NAND闪存如何工作"></a>NAND闪存如何工作</h1><p>作为数据记录介质，NAND闪存具有许多需要特殊处理的特性。这些过程表示由驻留在PCIe卡上的闪存控制器或服务器CPU执行的开销。通常，它们与闪存写入操作相关联，但也处理可靠性过程，如纠错和更换坏闪存块。 </p>
+<p>当数据写入闪存时，必须在每次写入之前擦除旧数据，以便为新数据腾出空间。此外，此闪存擦除必须以块的形式发生，而不是像HDD那样在字节级发生。这意味着当删除一部分数据时，必须擦除它所在的整个块，并且必须将未标记为删除的字节复制到另一个位置。 </p>
+<p>与磁盘基板不同，NAND闪存具有有限的寿命，这意味着它只能被写入并擦除一定次数。响应这种情况，闪存控制器在所有可用块上扩展数据写入，以便整个芯片以更均匀的速率老化。这种称为“磨损均衡”的工艺可以最大限度地延长NAND基板的使用寿命，从而最大限度地延长NAND基板的使用寿命。 </p>
+<p>PCIe卡上的闪存使SSD最接近服务器内的CPU内存复合体，并提供比外部SSD设备更低的潜在延迟。PCIe是双向的，这意味着读取和写入可以同时发生，并且它消除了SAS，SATA或FC存储的协议转换。所有这些加起来比使用这些协议的外部设备更快的I / O，并且通常还必须与RAID功能和存储功能共享CPU。显然，网络连接的闪存存储系统将额外的网络延迟放入等式中。 </p>
+<p>由于它是专用的专用存储设备，因此PCIe SSD卡最易于安装和使用。外部系统，尤其是连接到存储网络并与其他主机共享的系统，通常实现起来更复杂。这些大容量存储设备代表了更大的投资，并且通常涉及存储分层和缓存等策略，以提高SSD利用率。 </p>
+<p>作为内部总线连接卡，PCIe SSD设备在安装或更换时会导致重新启动，从而使扩展或服务更具破坏性。此外，由于它们使用PCIe插槽，因此可能会减少其他PCIe设备的数量，例如可以使用的网络适配器（或其他SSD卡）。作为专用存储，PCIe SSD无法与其他服务器共享，这有助于降低这种高价容量的成本。 </p>
+<h1 id="PCIe-SSD用例和产品"><a href="#PCIe-SSD用例和产品" class="headerlink" title="PCIe SSD用例和产品"></a>PCIe SSD用例和产品</h1><p>PCIe SSD是I / O密集型应用程序的理想选择，如Web 2.0，社交网络，OLTP，活动数据库等。它还可以为需要大型，快速缓冲区域的本地化应用程序问题提供快速性能改进，例如视频编辑，财务建模，模拟和数据采集。与外部或网络连接阵列的潜在复杂性相比，这种直连存储（DAS）实施也可能吸引初次使用SSD的用户。这种外形尺寸也非常适合OEM将SSD和服务器作为升级选项。 </p>
+<p>Texas Memory Systems将闪存控制器放在PCIe卡上，因此它不会影响服务器CPU或内存资源来处理前面提到的写入开销。根据营销总监Levi Norman的说法，“NAND闪存返回错误;您只需管理它.Dexory Memory Systems将PCIe卡设计为系统，具有板载RAM和CPU，使其具有执行更高效I / O的智能和提高性能，特别是对于大量使用的应用程序。“ </p>
+<p>Fusion-io技术营销高级主管Mitch Crane表示，“其他人都在努力让闪存看起来像磁盘驱动器;我们让它看起来就像是内存。” 他说Fusion-io的产品使用物理内存地址和DMA来处理闪存更像系统内存而不是存储。Fusion-io产品不会在卡上执行闪存开销功能，Crane称这会增加复杂性和失败的可能性。 </p>
+<p>LSI的PCIe SSD解决方案采用了一种不同的方法。它的卡包括六个SSD驱动器模块，以及作为PCIe和这些模块之间接口的SAS / SATA桥接器。闪存控制器功能由SSD模块本身处理。该公司的主要产品经理JB Baker表示，“在解决方案架构中使用SAS控制器可以使LSI在未来的设计中具有灵活性，可以考虑将端口连接到外部SAS / SATA设备，从而使用户能够扩展和扩展系统。 “ </p>
+<h1 id="关于PCIe的SSD产品建议"><a href="#关于PCIe的SSD产品建议" class="headerlink" title="关于PCIe的SSD产品建议"></a>关于PCIe的SSD产品建议</h1><p>虽然基于PCIe的SSD产品较新，并且目前占SSD总市场的一小部分，但它们肯定是一个热门话题。据Gartner称，基于PCIe的固态硬盘的市场份额在2009年占固态出货量的6％，预计到2013年将是所有固态硬盘供应商推出产品的四倍。从性能角度来看，PCIe SSD代表了一种快速有效的方法，可将闪存性能应用于服务器IOPS问题。虽然性能是SSD的关键驱动因素，但实际里程可能会因所选PCIe解决方案和环境而异。但性能是集成商习惯与客户讨论的讨论。另一个是实施。 </p>
+<p>从业人员发现，从他们的SSD投资中获得他们需要的那种利用率说起来容易做起来难。将SSD添加到现有阵列或放入专用SSD设备可能是一个复杂而昂贵的解决</p>
+<p>方案。作为SSD的较小的本地化实现，PCIe卡可以更容易获得批准，更容易投入并更快地显示预期的性能改进。 </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Store/" rel="tag"># Store</a>
+              <a href="/tags/NVMe/" rel="tag"># NVMe</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/17/store/NVMe/%E5%8D%81%E4%B8%80%E3%80%81U.2%20SSD%EF%BC%88%E5%8E%9FSFF-8639%EF%BC%89/" rel="prev" title="十一、U.2 SSD（原SFF-8639）">
+      <i class="fa fa-chevron-left"></i> 十一、U.2 SSD（原SFF-8639）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/19/store/NVMe/%E5%8D%81%E4%B8%89%E3%80%81%E9%80%89%E6%8B%A9%E7%AC%AC%E5%85%AD%E4%BB%A3%E5%85%89%E7%BA%A4%E9%80%9A%E9%81%93%E7%BD%91%E7%BB%9C%E7%9A%84%E4%B8%89%E4%B8%AA%E5%8E%9F%E5%9B%A0/" rel="next" title="十三、选择第六代光纤通道网络的三个原因">
+      十三、选择第六代光纤通道网络的三个原因 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PCIe-SSD与SATA-SSD"><span class="nav-text">PCIe SSD与SATA SSD</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PCIe-SSD的缺点"><span class="nav-text">PCIe SSD的缺点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PCIe闪存的未来"><span class="nav-text">PCIe闪存的未来</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NAND闪存如何工作"><span class="nav-text">NAND闪存如何工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PCIe-SSD用例和产品"><span class="nav-text">PCIe SSD用例和产品</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#关于PCIe的SSD产品建议"><span class="nav-text">关于PCIe的SSD产品建议</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

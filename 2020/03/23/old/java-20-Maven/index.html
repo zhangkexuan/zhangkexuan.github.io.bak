@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Maven 是一个项目管理工具,使用Maven可以解决jar包冲突，简化项目的单元测试、打包、生成报表，甚至帮你部署……">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java#20-Maven">
+<meta property="og:url" content="http://yoursite.com/2020/03/23/old/java-20-Maven/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="Maven 是一个项目管理工具,使用Maven可以解决jar包冲突，简化项目的单元测试、打包、生成报表，甚至帮你部署……">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585563404016.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585563508558.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585563603797.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585563784277.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585563974211.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585564083896.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585564141905.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585564169257.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585564254101.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585564273857.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585564392080.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585564740507.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585564902672.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585565910350.png">
+<meta property="article:published_time" content="2020-03-23T01:34:33.000Z">
+<meta property="article:modified_time" content="2020-03-23T01:34:33.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="javaweb">
+<meta property="article:tag" content="Maven">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/03/23/old/java-20-Maven/1585563404016.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/23/old/java-20-Maven/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>java#20-Maven | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/23/old/java-20-Maven/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          java#20-Maven
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-23 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-23T09:34:33+08:00">2020-03-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">web基础</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Maven 是一个项目管理工具,使用Maven可以解决jar包冲突，简化项目的单元测试、打包、生成报表，甚至帮你部署……</p>
+<a id="more"></a>
+
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><h2 id="什么是Maven"><a href="#什么是Maven" class="headerlink" title="什么是Maven"></a>什么是Maven</h2><p>Maven 的正确发音是[mevən],而不是“马瘟”以及其他什么瘟。Maven 在美国是一个口语化的词语,代表专家、内行的意思。<br>一个对 Maven 比较正式的定义是这么说的:Maven 是一个项目管理工具,它包含了一个项目对象模型 (POM:Project Object Model),一组标准集合,一个项目生命周期(Project Lifecycle),一个依赖管理系统(Dependency Management System), 和用来运行定义在生命周期阶段(phase)中插件(plugin)目标(goal)的逻辑。</p>
+<h2 id="Maven能解决什么问题"><a href="#Maven能解决什么问题" class="headerlink" title="Maven能解决什么问题"></a>Maven能解决什么问题</h2><p>可以用更通俗的方式来说明。我们知道,项目开发不仅仅是写写代码而已,期间会伴随着各种必不可少的事情要做,下面列举几个感受一下:</p>
+<p>1、我们需要引用各种 jar 包,尤其是比较大的工程,引用的 jar 包往往有几十个乃至上百个, 每用到一种 jar 包,都需要手动引入工程目录,而且经常遇到各种让人抓狂的 jar 包冲突,版本冲突。</p>
+<p>2、我们辛辛苦苦写好了 Java 文件,可是只懂 0 和 1 的白痴电脑却完全读不懂,需要将它编译成二进制字节码。好歹现在这项工作可以由各种集成开发工具帮我们完成,Eclipse、IDEA 等都可以将代码即时编译。当然,如果你嫌生命漫长,何不铺张,也可以用记事本来敲代码,然后用 javac 命令一个个地去编译,逗电脑玩。</p>
+<p>3、世界上没有不存在 bug 的代码,计算机喜欢 bug 就和人们总是喜欢美女帅哥一样。为了追求美为了减少 bug,因此写完了代码,我们还要写一些单元测试,然后一个个的运行来检验代码质量。</p>
+<p>4、再优雅的代码也是要出来卖的。们后面还需要把代码与各种配置文件、资源整合到一起,定型打包,如果是 web 项目,还需要将之发布到服务器,供人蹂躏。</p>
+<p>试想,如果现在有一种工具,可以把你从上面的繁琐工作中解放出来,能帮你构建工程,管理 jar包,编译代码,还能帮你自动运行单元测试,打包,生成报表,甚至能帮你部署项目,生成 Web 站点,你会心动吗?Maven 就可以解决上面所提到的这些问题。</p>
+<h2 id="Maven-的优势"><a href="#Maven-的优势" class="headerlink" title="Maven 的优势"></a>Maven 的优势</h2><p>前面我们通过 Web 阶段项目,要能够将项目运行起来,就必须将该项目所依赖的一些 jar 包添加到工程中,否则项目就不能运行。试想如果具有相同架构的项目有十个,那么我们就需要将这一份 jar包复制到十个不同的工程中。我们一起来看一个 CRM 项目的工程大小。原因主要是因为上面的 WEB 程序要运行,我们必须将项目运行所需的 Jar 包复制到工程目录中,从而导致了工程很大。</p>
+<p><strong>同样的项目,如果我们使用 Maven 工程来构建,会发现总体上工程的大小会少很多。</strong></p>
+<h2 id="Maven的典型作用"><a href="#Maven的典型作用" class="headerlink" title="Maven的典型作用"></a>Maven的典型作用</h2><h3 id="依赖管理"><a href="#依赖管理" class="headerlink" title="依赖管理"></a>依赖管理</h3><p>Maven 的一个核心特性就是依赖管理。当我们涉及到多模块的项目(包含成百个模块或者子项目),管理依赖就变成一项困难的任务。Maven 展示出了它对处理这种情形的高度控制。<br>传统的 WEB 项目中,我们必须将工程所依赖的 jar 包复制到工程中,导致了工程的变得很大。那么maven 工程是如何使得工程变得很少呢?</p>
+<p>分析如下:</p>
+<p><img src="1585563404016.png" alt="1585563404016"></p>
+<p>通过分析发现: maven 工程中不直接将 jar 包导入到工程中,而是通过在 pom.xml 文件中添加所需 jar包的坐标,这样就很好的避免了 jar 直接引入进来,在需要用到 jar 包的时候,只要查找 pom.xml 文件,再通过 pom.xml 文件中的坐标,到一个专门用于”存放 jar 包的仓库”(maven 仓库)中根据坐标从而找到这些 jar 包,再把这些 jar 包拿去运行。</p>
+<p>那么问题来了：<br>第一:”存放 jar 包的仓库”长什么样?<br>第二:通过读取 pom.xml 文件中的坐标,再到仓库中找到 jar 包,会不会很慢?从而导致这种方式不可行!</p>
+<p>第一个问题:存放 jar 包的仓库长什么样,这一点我们后期会分析仓库的分类,也会带大家去看我们的本地的仓库长什么样。<br>第二个问题:通过 pom.xml 文件配置要引入的 jar 包的坐标,再读取坐标并到仓库中加载 jar 包,这样我们就可以直接使用 jar 包了,为了解决这个过程中速度慢的问题,maven 中也有索引的概念,通过建立索引,可以大大提高加载 jar 包的速度,使得我们认为 jar 包基本跟放在本地的工程文件中再读取出来的速度是一样的。这个过程就好比我们查阅字典时,为了能够加快查找到内容,书前面的目录就好比是索引,有了这个目录我们就可以方便找到内容了,一样的在Maven 仓库中有了索引我们就可以认为可以快速找到 jar 包。</p>
+<h3 id="项目的一键构建"><a href="#项目的一键构建" class="headerlink" title="项目的一键构建"></a>项目的一键构建</h3><p><img src="1585563508558.png" alt="1585563508558"></p>
+<p>一键构建——指的是整个构建过程,使用 maven 一个命令可以轻松完成整个工作。</p>
+<h1 id="Maven使用"><a href="#Maven使用" class="headerlink" title="Maven使用"></a>Maven使用</h1><h2 id="Maven安装"><a href="#Maven安装" class="headerlink" title="Maven安装"></a>Maven安装</h2><p>下载安装找百度；下简介Maven的目录结构：</p>
+<p><img src="1585563603797.png" alt="1585563603797"></p>
+<p>bin:存放了 maven 的命令,比如我们前面用到的<code>mvn tomcat:run</code><br>boot:存放了一些 maven 本身的引导程序,如类加载器等<br>conf:存放了 maven 的一些配置文件,如<code>setting.xml</code>文件<br>lib:存放了 maven 本身运行所需的一些 jar 包</p>
+<h2 id="Maven仓库"><a href="#Maven仓库" class="headerlink" title="Maven仓库"></a>Maven仓库</h2><p>maven 的工作需要从仓库下载一些 jar 包,如下图所示,本地的项目 A、项目 B 等都会通过 maven软件从远程仓库(可以理解为互联网上的仓库)下载 jar 包并存在本地仓库,本地仓库 就是本地文件夹,当第二次需要此 jar 包时则不再从远程仓库下载,因为本地仓库已经存在了,可以将本地仓库理解为缓存,有了本地仓库就不用每次从远程仓库下载了。</p>
+<h3 id="仓库分类"><a href="#仓库分类" class="headerlink" title="仓库分类"></a>仓库分类</h3><p><img src="1585563784277.png" alt="1585563784277"></p>
+<h4 id="本地仓库"><a href="#本地仓库" class="headerlink" title="本地仓库"></a>本地仓库</h4><p>用来存储从远程仓库或中央仓库下载的插件和 jar 包,项目使用一些插件或 jar 包,优先从本地仓库查找默认本地仓库位置在 <code>${user.dir}/.m2/repository</code>,<code>${user.dir}</code>表示 windows 用户目录。</p>
+<h4 id="远程仓库"><a href="#远程仓库" class="headerlink" title="远程仓库"></a>远程仓库</h4><p>如果本地需要插件或者 jar 包,本地仓库没有,默认去远程仓库下载。远程仓库可以在互联网内也可以在局域网内。</p>
+<h4 id="中央仓库"><a href="#中央仓库" class="headerlink" title="中央仓库"></a>中央仓库</h4><p>在 maven 软件中内置一个远程仓库地址 <a href="http://repo1.maven.org/maven2" target="_blank" rel="noopener">http://repo1.maven.org/maven2</a> ,它是中央仓库,服务于整个互联网,它是由 Maven 团队自己维护,里面存储了非常全的 jar 包,它包含了世界上大部分流行的开源项目构件。</p>
+<h3 id="本地仓库配置"><a href="#本地仓库配置" class="headerlink" title="本地仓库配置"></a>本地仓库配置</h3><p>在<code>MAVE_HOME/conf/settings.xml</code> 文件中配置本地仓库位置(maven 的安装目录下):</p>
+<p><img src="1585563974211.png" alt="1585563974211"></p>
+<h3 id="全局-setting-与用户-setting"><a href="#全局-setting-与用户-setting" class="headerlink" title="全局 setting 与用户 setting"></a>全局 setting 与用户 setting</h3><p>maven 仓库地址、私服等配置信息需要在 setting.xml 文件中配置,分为全局配置和用户配置。<br>在 maven 安装目录下的有<code>conf/setting.xml</code>文件,此<code>setting.xml</code>文件用于 maven 的所有 project项目,它作为 maven 的全局配置。<br>如需要个性配置则需要在用户配置中设置,用户配置的 <code>setting.xml</code>文件默认的位置在: <code>${user.dir}/.m2/settings.xml</code> 目录中,<code>${user.dir}</code> 指 windows 中的用户目录。<br>maven 会先找用户配置,如果找到则以用户配置文件为准,否则使用全局配置文件。</p>
+<p><img src="1585564083896.png" alt="1585564083896"></p>
+<h2 id="Maven工程"><a href="#Maven工程" class="headerlink" title="Maven工程"></a>Maven工程</h2><h3 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h3><p><img src="1585564141905.png" alt="1585564141905"></p>
+<p>作为一个 maven 工程,它的 src 目录和 pom.xml 是必备的。<br>进入 src 目录后,我们发现它里面的目录结构如下:</p>
+<p><img src="1585564169257.png" alt="1585564169257"></p>
+<p><code>src/main/java</code> —— 存放项目的.java 文件<br><code>src/main/resources</code> —— 存放项目资源文件,如 <code>spring</code>, <code>hibernate</code> 配置文件<br><code>src/test/java</code> —— 存放所有单元测试<code>.java</code>文件,如 <code>JUnit</code> 测试类<br><code>src/test/resources</code> —— 测试资源文件<br><code>target</code> —— 项目输出位置,编译后的 class 文件会输出到此目录<br><code>pom.xml</code>——maven 项目核心配置文件<br>注意:如果是普通的 java 项目,那么就没有 <code>webapp</code> 目录。</p>
+<h3 id="工程的运行"><a href="#工程的运行" class="headerlink" title="工程的运行"></a>工程的运行</h3><p>进入 maven 工程目录(当前目录有<code>pom.xml</code>文件),运行 <code>tomcat:run</code> 命令。</p>
+<p><img src="1585564254101.png" alt="1585564254101"></p>
+<p>根据上边的提示信息,通过浏览器访问:<a href="http://localhost:8080/maven-helloworld/" target="_blank" rel="noopener">http://localhost:8080/maven-helloworld/</a></p>
+<p><img src="1585564273857.png" alt="1585564273857"></p>
+<h3 id="问题处理"><a href="#问题处理" class="headerlink" title="问题处理"></a>问题处理</h3><p>如果本地仓库配置错误会报下边的错误</p>
+<p><img src="1585564392080.png" alt="1585564392080"></p>
+<p><strong>分析:</strong><br>maven 工程运行先从本地仓库找 jar 包,本地仓库没有再从中央仓库找,上边提示 downloading…表示 从中央仓库下载 jar,由于本地没有联网,报错。<br><strong>解决:</strong><br>在 maven 安装目录的 <code>conf/setting.xml</code>文件中配置本地仓库,<br> <strong>参考:</strong><br> “maven 仓库/配置本地仓库章节”。</p>
+<h1 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h1><h2 id="compile"><a href="#compile" class="headerlink" title="compile"></a>compile</h2><p><code>mvn compile</code>：compile 是 maven 工程的编译命令,作用是将<code>src/main/java</code>下的文件编译为 class 文件输出到 target目录下。</p>
+<p>查看 target 目录,class 文件已生成,编译完成。</p>
+<h2 id="test"><a href="#test" class="headerlink" title="test"></a>test</h2><p><code>mvn test</code>：会执行 src/test/java 下的单元测试类。</p>
+<h2 id="clean"><a href="#clean" class="headerlink" title="clean"></a>clean</h2><p><code>mvn clean</code>： 是 maven 工程的清理命令,执行 clean 会删除 target 目录及内容。</p>
+<h2 id="package"><a href="#package" class="headerlink" title="package"></a>package</h2><p><code>mvn package</code>：package 是 maven 工程的打包命令,对于 java 工程执行 package 打成 jar 包,对于 web 工程打成 war包。</p>
+<h3 id="install"><a href="#install" class="headerlink" title="install"></a>install</h3><p><code>mvn install</code>：install 是 maven 工程的安装命令,执行 install 将 maven 打成 jar 包或 war 包发布到本地仓库。</p>
+<h2 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h2><p>maven 对项目构建过程分为三套相互独立的生命周期,请注意这里说的是“三套”,而且“相互独立”,这三套生命周期分别是:</p>
+<p><code>Clean Lifecycle</code> 在进行真正的构建之前进行一些清理工作。<br><code>Default Lifecycle</code>构建的核心部分,编译,测试,打包,部署等等。<br><code>Site Lifecycle</code> 生成项目报告,站点,发布站点。</p>
+<h2 id="概念模型"><a href="#概念模型" class="headerlink" title="概念模型"></a>概念模型</h2><p>Maven 包含了一个<code>项目对象模型 (Project Object Model)</code>,一组<code>标准集合</code>,一个<code>项目生命周期(Project Lifecycle)</code>,一个<code>依赖管理系统(Dependency Management System)</code>,和用来运行定义在生命周期阶段(phase)中插件(plugin)目标(goal)的<code>逻辑</code>。</p>
+<p><img src="1585564740507.png" alt="1585564740507"></p>
+<h3 id="项目对象模型-Project-Object-Model"><a href="#项目对象模型-Project-Object-Model" class="headerlink" title="项目对象模型 (Project Object Model)"></a>项目对象模型 (Project Object Model)</h3><p>一个 maven 工程都有一个 pom.xml 文件,通过 pom.xml 文件定义项目的坐标、项目依赖、项目信息、<br>插件目标等。</p>
+<h3 id="依赖管理系统-Dependency-Management-System"><a href="#依赖管理系统-Dependency-Management-System" class="headerlink" title="依赖管理系统(Dependency Management System)"></a>依赖管理系统(Dependency Management System)</h3><p>通过 maven 的依赖管理对项目所依赖的 jar 包进行统一管理。<br>比如:项目依赖 junit4.9,通过在 pom.xml 中定义 junit4.9 的依赖即使用 junit4.9,如下所示是 junit4.9<br>的依赖定义:</p>
+<pre class="line-numbers language-xml"><code class="language-xml"><span class="token comment" spellcheck="true">&lt;!-- 依赖关系 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependencies</span><span class="token punctuation">></span></span>
+    <span class="token comment" spellcheck="true">&lt;!-- 此项目运行使用 junit,所以此项目依赖 junit --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+        <span class="token comment" spellcheck="true">&lt;!-- junit 的项目名称 --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>junit<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+        <span class="token comment" spellcheck="true">&lt;!-- junit 的模块名称 --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>junit<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+        <span class="token comment" spellcheck="true">&lt;!-- junit 版本 --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>4.9<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token comment" spellcheck="true">&lt;!-- 依赖范围:单元测试时使用 junit --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>test<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="项目生命周期-Project-Lifecycle"><a href="#项目生命周期-Project-Lifecycle" class="headerlink" title="项目生命周期(Project Lifecycle)"></a>项目生命周期(Project Lifecycle)</h3><p>使用 maven 完成项目的构建,项目构建包括:清理、编译、测试、部署等过程,maven 将这些<br>过程规范为一个生命周期,如下所示是生命周期的各各阶段:</p>
+<p><img src="1585564902672.png" alt="1585564902672"></p>
+<p>maven 通过执行一些简单命令即可实现上边生命周期的各各过程,比如执行 mvn compile 执行编译、执行 mvn clean 执行清理。</p>
+<h3 id="标准集合"><a href="#标准集合" class="headerlink" title="标准集合"></a>标准集合</h3><p>maven 将整个项目管理过程定义一组标准,比如:通过 maven 构建工程有标准的目录结构,有标准的生命周期阶段、依赖管理有标准的坐标定义等。</p>
+<h3 id="插件-plugin-和目标-goal"><a href="#插件-plugin-和目标-goal" class="headerlink" title="插件(plugin)和目标(goal)"></a>插件(plugin)和目标(goal)</h3><p>maven 管理项目生命周期过程都是基于插件完成的。</p>
+<h1 id="idea开发maven项目"><a href="#idea开发maven项目" class="headerlink" title="idea开发maven项目"></a>idea开发maven项目</h1><p>先贴我写webapp时的<code>pox.xml</code>再细讲:</p>
+<pre class="line-numbers language-xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>project</span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>http://maven.apache.org/POM/4.0.0<span class="token punctuation">"</span></span> <span class="token attr-name"><span class="token namespace">xmlns:</span>xsi</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>http://www.w3.org/2001/XMLSchema-instance<span class="token punctuation">"</span></span>
+  <span class="token attr-name"><span class="token namespace">xsi:</span>schemaLocation</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>modelVersion</span><span class="token punctuation">></span></span>4.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>modelVersion</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>zhangkx<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>XXZtravel<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.0-SNAPSHOT<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>packaging</span><span class="token punctuation">></span></span>war<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>packaging</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>XXZtravel Maven Webapp<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+  <span class="token comment" spellcheck="true">&lt;!-- FIXME change it to the project's website --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>http://www.example.com<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>properties</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>project.build.sourceEncoding</span><span class="token punctuation">></span></span>UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>project.build.sourceEncoding</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>maven.compiler.source</span><span class="token punctuation">></span></span>1.7<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>maven.compiler.source</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>maven.compiler.target</span><span class="token punctuation">></span></span>1.7<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>maven.compiler.target</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>properties</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependencies</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>junit<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>junit<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>4.11<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>test<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+    <span class="token comment" spellcheck="true">&lt;!--这次servlet和jstl、el我只引入了这一个包 试试可行不，下面三个才是应该引入的包--></span>
+    <span class="token comment" spellcheck="true">&lt;!-- JSTL --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>javax.servlet<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>jstl<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token comment" spellcheck="true">&lt;!-- Servlet核心包 --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>javax.servlet<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>javax.servlet-api<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>4.0.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>provided<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token comment" spellcheck="true">&lt;!--JSP --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>javax.servlet.jsp<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>jsp-api<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>provided<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+    <span class="token comment" spellcheck="true">&lt;!--servlet\jsp\jstl--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>javax.servlet.jsp.jstl<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>javax.servlet.jsp.jstl-api<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.2.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>provided<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+    <span class="token comment" spellcheck="true">&lt;!--mysql--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>mysql<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>mysql-connector-java<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>8.0.19<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>compile<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+    <span class="token comment" spellcheck="true">&lt;!--jdbcTemplate--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.springframework<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>spring-jdbc<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>4.3.26.RELEASE<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+    <span class="token comment" spellcheck="true">&lt;!--beanUtils--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>commons-beanutils<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>commons-beanutils<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.9.4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+    <span class="token comment" spellcheck="true">&lt;!--jackson--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.fasterxml.jackson.core<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>jackson-databind<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2.9.10.3<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+    <span class="token comment" spellcheck="true">&lt;!--mail接口为啥两个？--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>javax.mail<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>mail<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.4.7<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.sun.mail<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>javax.mail<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.6.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+
+      <span class="token comment" spellcheck="true">&lt;!--jedis--></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>redis.clients<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>jedis<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.2.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+    <span class="token comment" spellcheck="true">&lt;!--druid--></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.alibaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>druid<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.1.21<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependencies</span><span class="token punctuation">></span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>finalName</span><span class="token punctuation">></span></span>XXZtravel<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>finalName</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>pluginManagement</span><span class="token punctuation">></span></span><span class="token comment" spellcheck="true">&lt;!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) --></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugins</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-clean-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.1.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+        <span class="token comment" spellcheck="true">&lt;!-- see http://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_war_packaging --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-resources-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.0.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-compiler-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.8.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-surefire-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2.22.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-war-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.2.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-install-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2.5.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-deploy-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2.8.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugins</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>pluginManagement</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>project</span><span class="token punctuation">></span></span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="添加坐标"><a href="#添加坐标" class="headerlink" title="添加坐标"></a>添加坐标</h2><p>每个 maven 工程都需要定义本工程的坐标,坐标是 maven 对 jar 包的身份定义,入门程序的坐标定义如下:</p>
+<pre class="line-numbers language-xml"><code class="language-xml"><span class="token comment" spellcheck="true">&lt;!--项目名称,定义为组织名+项目名,类似包名--></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>zhangkx<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+<span class="token comment" spellcheck="true">&lt;!-- 模块名称 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>XXZtravel<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+<span class="token comment" spellcheck="true">&lt;!-- 当前项目版本号,snapshot 为快照版本即非正式版本,release 为正式发布版本 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>0.0.1-SNAPSHOT<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>packaging</span><span class="token punctuation">></span></span>war<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>packaging</span><span class="token punctuation">></span></span>
+<span class="token comment" spellcheck="true">&lt;!-- jar:执行 package 会打成 jar 包 --></span>
+<span class="token comment" spellcheck="true">&lt;!-- war:执行 package 会打成 war 包 --></span>
+<span class="token comment" spellcheck="true">&lt;!-- pom:用于 maven 工程的继承,通常父工程设置为 pom --></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="依赖范围"><a href="#依赖范围" class="headerlink" title="依赖范围"></a>依赖范围</h2><p>A 依赖 B,需要在 A 的 pom.xml 文件中添加 B 的坐标,添加坐标时需要指定依赖范围,依赖范围包括:</p>
+<p><code>compile</code>:编译范围,指 A 在编译时依赖 B,此范围为默认依赖范围。编译范围的依赖会用在编译、测试、运行,由于运行时需要所以编译范围的依赖会被打包。</p>
+<p><code>provided</code>:provided 依赖只有在当 JDK 或者一个容器已提供该依赖之后才使用, provided 依赖在编译和测试时需要,在运行时不需要,比如:servlet api 被 tomcat 容器提供。</p>
+<p><code>runtime</code>:runtime 依赖在运行和测试系统的时候需要,但在编译的时候不需要。比如:jdbc的驱动包。由于运行时需要所以 runtime 范围的依赖会被打包。</p>
+<p><code>test</code>:test 范围依赖 在编译和运行时都不需要,它们只有在测试编译和测试运行阶段可用, 比如:junit。由于运行时不需要所以 test 范围依赖不会被打包。</p>
+<p><code>system</code>:system 范围依赖与 provided 类似,但是你必须显式的提供一个对于本地系统中 JAR文件的路径,需要指定 systemPath 磁盘路径,system 依赖不推荐使用。</p>
+<p><img src="1585565910350.png" alt="1585565910350"></p>
+<p>在 maven-web 工程中测试各 scop。</p>
+<p>依赖范围由强到弱的顺序是:compile&gt;provided&gt;runtime&gt;test</p>
+<table>
+<thead>
+<tr>
+<th>scop</th>
+<th>exp</th>
+<th>useful</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>compile(默认值)</td>
+<td>默认引入 的 jar 包</td>
+<td>编译、测试、运行 都有效</td>
+</tr>
+<tr>
+<td>provided</td>
+<td>servlet-api 、 jsp-api</td>
+<td>编译、测试 有效, 运行时无效-&gt;防止和 tomcat 下 jar 冲突</td>
+</tr>
+<tr>
+<td>runtime</td>
+<td>jdbc 驱动 jar 包</td>
+<td>测试、运行 有效</td>
+</tr>
+<tr>
+<td>test</td>
+<td>junit</td>
+<td>测试 有效</td>
+</tr>
+</tbody></table>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><h2 id="maven-仓库"><a href="#maven-仓库" class="headerlink" title="maven 仓库"></a>maven 仓库</h2><p>1、maven 仓库的类型有哪些?<br>2、maven 工程查找仓库的流程是什么?<br>3、本地仓库如何配置?</p>
+<h2 id="常用的-maven-命令"><a href="#常用的-maven-命令" class="headerlink" title="常用的 maven 命令"></a>常用的 maven 命令</h2><p>compile:编译<br>clean:清理<br>test:测试<br>package:打包<br>install:安装</p>
+<h2 id="坐标定义"><a href="#坐标定义" class="headerlink" title="坐标定义"></a>坐标定义</h2><p>在 pom.xml 中定义坐标,内容包括:groupId、artifactId、version,详细内容如下:</p>
+<pre class="line-numbers language-xml"><code class="language-xml"><span class="token comment" spellcheck="true">&lt;!--项目名称,定义为组织名+项目名,类似包名--></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>zhangkx<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+<span class="token comment" spellcheck="true">&lt;!-- 模块名称 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>XXZtravel<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+<span class="token comment" spellcheck="true">&lt;!-- 当前项目版本号,snapshot 为快照版本即非正式版本,release 为正式发布版本 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>0.0.1-SNAPSHOT<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>packaging</span><span class="token punctuation">></span></span>war<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>packaging</span><span class="token punctuation">></span></span>
+<span class="token comment" spellcheck="true">&lt;!-- jar:执行 package 会打成 jar 包 --></span>
+<span class="token comment" spellcheck="true">&lt;!-- war:执行 package 会打成 war 包 --></span>
+<span class="token comment" spellcheck="true">&lt;!-- pom:用于 maven 工程的继承,通常父工程设置为 pom --></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="pom-基本配置"><a href="#pom-基本配置" class="headerlink" title="pom 基本配置"></a>pom 基本配置</h2><p>pom.xml 是 Maven 项目的核心配置文件,位于每个工程的根目录,基本配置如下:</p>
+<pre class="line-numbers language-xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>project</span> <span class="token punctuation">></span></span> :文件的根节点 .
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>modelversion</span> <span class="token punctuation">></span></span> : pom.xml 使用的对象模型版本
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span> <span class="token punctuation">></span></span> :项目名称,一般写项目的域名
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span> <span class="token punctuation">></span></span> :模块名称,子项目名或模块名称
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span> <span class="token punctuation">></span></span> :产品的版本号 .
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>packaging</span> <span class="token punctuation">></span></span> :打包类型,一般有 jar、war、pom 等
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span> <span class="token punctuation">></span></span> :项目的显示名,常用于 Maven 生成的文档。
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span> <span class="token punctuation">></span></span> :项目描述,常用于 Maven 生成的文档
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependencies</span><span class="token punctuation">></span></span> :项目依赖构件配置,配置项目依赖构件的坐标
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build</span><span class="token punctuation">></span></span> :项目构建配置,配置编译、运行插件等。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/javaweb/" rel="tag"># javaweb</a>
+              <a href="/tags/Maven/" rel="tag"># Maven</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/22/old/java-19-redis/" rel="prev" title="java#19-redis">
+      <i class="fa fa-chevron-left"></i> java#19-redis
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/24/old/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/" rel="next" title="设计模式之工厂模式">
+      设计模式之工厂模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#介绍"><span class="nav-text">介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是Maven"><span class="nav-text">什么是Maven</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven能解决什么问题"><span class="nav-text">Maven能解决什么问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven-的优势"><span class="nav-text">Maven 的优势</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven的典型作用"><span class="nav-text">Maven的典型作用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖管理"><span class="nav-text">依赖管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#项目的一键构建"><span class="nav-text">项目的一键构建</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Maven使用"><span class="nav-text">Maven使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven安装"><span class="nav-text">Maven安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven仓库"><span class="nav-text">Maven仓库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#仓库分类"><span class="nav-text">仓库分类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#本地仓库"><span class="nav-text">本地仓库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#远程仓库"><span class="nav-text">远程仓库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中央仓库"><span class="nav-text">中央仓库</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地仓库配置"><span class="nav-text">本地仓库配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#全局-setting-与用户-setting"><span class="nav-text">全局 setting 与用户 setting</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven工程"><span class="nav-text">Maven工程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#目录结构"><span class="nav-text">目录结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#工程的运行"><span class="nav-text">工程的运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#问题处理"><span class="nav-text">问题处理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#常用命令"><span class="nav-text">常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#compile"><span class="nav-text">compile</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#test"><span class="nav-text">test</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#clean"><span class="nav-text">clean</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#package"><span class="nav-text">package</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#install"><span class="nav-text">install</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生命周期"><span class="nav-text">生命周期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#概念模型"><span class="nav-text">概念模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#项目对象模型-Project-Object-Model"><span class="nav-text">项目对象模型 (Project Object Model)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖管理系统-Dependency-Management-System"><span class="nav-text">依赖管理系统(Dependency Management System)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#项目生命周期-Project-Lifecycle"><span class="nav-text">项目生命周期(Project Lifecycle)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标准集合"><span class="nav-text">标准集合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#插件-plugin-和目标-goal"><span class="nav-text">插件(plugin)和目标(goal)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#idea开发maven项目"><span class="nav-text">idea开发maven项目</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#添加坐标"><span class="nav-text">添加坐标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖范围"><span class="nav-text">依赖范围</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#maven-仓库"><span class="nav-text">maven 仓库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用的-maven-命令"><span class="nav-text">常用的 maven 命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#坐标定义"><span class="nav-text">坐标定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pom-基本配置"><span class="nav-text">pom 基本配置</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>

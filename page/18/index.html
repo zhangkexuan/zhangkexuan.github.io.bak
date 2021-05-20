@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="generator" content="Hexo 4.2.1">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -72,7 +72,8 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -183,7 +184,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/03/mybatis-7-%E6%B3%A8%E8%A7%A3%E5%BC%80%E5%8F%91/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/23/old/springMVC-3-%E5%93%8D%E5%BA%94%E4%BA%A4%E4%BA%92&%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0&%E5%BC%82%E5%B8%B8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -197,7 +198,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/04/03/mybatis-7-%E6%B3%A8%E8%A7%A3%E5%BC%80%E5%8F%91/" class="post-title-link" itemprop="url">mybatis#7-注解开发</a>
+            <a href="/2020/04/23/old/springMVC-3-%E5%93%8D%E5%BA%94%E4%BA%A4%E4%BA%92&%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0&%E5%BC%82%E5%B8%B8/" class="post-title-link" itemprop="url">springMVC#3-响应交互&文件上传&异常</a>
         </h2>
 
         <div class="post-meta">
@@ -207,7 +208,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-04-03 22:31:55" itemprop="dateCreated datePublished" datetime="2020-04-03T22:31:55+08:00">2020-04-03</time>
+              <time title="创建时间：2020-04-23 22:25:21" itemprop="dateCreated datePublished" datetime="2020-04-23T22:25:21+08:00">2020-04-23</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -215,7 +216,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -230,10 +231,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>这几年来注解开发越来越流行,Mybatis 也可以使用注解开发方式,这样我们就可以减少编写 Mapper 映射文件了。先围绕一些基本的 CRUD 来学习,再学习复杂映射关系及延迟加载。</p>
+          <p>简单讲解springMVC中和web的交互响应、文件上传以及异常跳转的设置。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/04/03/mybatis-7-%E6%B3%A8%E8%A7%A3%E5%BC%80%E5%8F%91/#more" rel="contents">
+              <a class="btn" href="/2020/04/23/old/springMVC-3-%E5%93%8D%E5%BA%94%E4%BA%A4%E4%BA%92&%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0&%E5%BC%82%E5%B8%B8/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -257,7 +258,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/02/mybatis-6-%E5%BB%B6%E8%BF%9F%E5%8A%A0%E8%BD%BD%E5%92%8C%E7%BC%93%E5%AD%98/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/22/old/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91%E4%B9%8BCAS%E5%92%8CUnsafe%E7%B1%BB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -271,7 +272,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/04/02/mybatis-6-%E5%BB%B6%E8%BF%9F%E5%8A%A0%E8%BD%BD%E5%92%8C%E7%BC%93%E5%AD%98/" class="post-title-link" itemprop="url">mybatis#6-延迟加载和缓存</a>
+            <a href="/2020/04/22/old/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91%E4%B9%8BCAS%E5%92%8CUnsafe%E7%B1%BB/" class="post-title-link" itemprop="url">深入并发之CAS和Unsafe类</a>
         </h2>
 
         <div class="post-meta">
@@ -281,7 +282,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-04-02 22:31:55" itemprop="dateCreated datePublished" datetime="2020-04-02T22:31:55+08:00">2020-04-02</time>
+              <time title="创建时间：2020-04-22 16:08:44" itemprop="dateCreated datePublished" datetime="2020-04-22T16:08:44+08:00">2020-04-22</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -289,7 +290,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
                 </span>
             </span>
 
@@ -304,10 +305,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>实际开发过程中很多时候我们并不需要总是在加载用户信息时就一定要加载他的账户信息。<br>像大多数的持久化框架一样,Mybatis 也提供了缓存策略,通过缓存策略来减少数据库的查询次数,从而提高性能。<br>Mybatis 中缓存分为一级缓存,二级缓存。</p>
+          <p>有锁并发的典型代表synchronized关键字，通过该关键字可以控制并发执行过程中有且只有一个线程可以访问共享资源，其原理是通过当前线程持有当前对象锁，从而拥有访问权限，而其他没有持有当前对象锁的线程无法拥有访问权限，也就保证了线程安全。但在本篇中，我们将会详聊另外一种反向而行的并发策略，即无锁并发，即不加锁也能保证并发执行的安全性。<br>本篇的思路是先阐明无锁执行者CAS的核心算法原理然后分析Java执行CAS的实践者Unsafe类，该类中的方法都是native修饰的，因此我们会以说明方法作用为主介绍Unsafe类，最后再介绍并发包中的Atomic系统使用CAS原理实现的并发类。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/04/02/mybatis-6-%E5%BB%B6%E8%BF%9F%E5%8A%A0%E8%BD%BD%E5%92%8C%E7%BC%93%E5%AD%98/#more" rel="contents">
+              <a class="btn" href="/2020/04/22/old/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91%E4%B9%8BCAS%E5%92%8CUnsafe%E7%B1%BB/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -331,7 +332,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/01/mybatis-5-%E5%8A%A8%E6%80%81sql%E5%92%8C%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/21/old/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91%E4%B9%8Bsynchronized/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -345,7 +346,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/04/01/mybatis-5-%E5%8A%A8%E6%80%81sql%E5%92%8C%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/" class="post-title-link" itemprop="url">mybatis#5-动态sql和多表查询</a>
+            <a href="/2020/04/21/old/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91%E4%B9%8Bsynchronized/" class="post-title-link" itemprop="url">深入并发之synchronized</a>
         </h2>
 
         <div class="post-meta">
@@ -355,7 +356,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-04-01 09:34:33" itemprop="dateCreated datePublished" datetime="2020-04-01T09:34:33+08:00">2020-04-01</time>
+              <time title="创建时间：2020-04-21 18:19:02" itemprop="dateCreated datePublished" datetime="2020-04-21T18:19:02+08:00">2020-04-21</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -363,7 +364,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
                 </span>
             </span>
 
@@ -378,10 +379,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>Mybatis 的映射文件中,有些时候业务逻辑复杂时,我们就需要用到动态sql语句结合多表查询的技巧。</p>
+          <p>线程安全是并发编程中的重要关注点，应该注意到的是，造成线程安全问题的主要诱因有两点，一是存在共享数据(也称临界资源)，二是存在多条线程共同操作共享数据。因此为了解决这个问题，我们可能需要这样一个方案，当存在多个线程操作共享数据时，需要保证同一时刻有且只有一个线程在操作共享数据，其他线程必须等到该线程处理完数据后再进行，这种方式有个高尚的名称叫互斥锁，即能达到互斥访问目的的锁，也就是说当一个共享数据被当前正在访问的线程加上互斥锁后，在同一个时刻，其他线程只能处于等待的状态，直到当前线程处理完毕释放该锁。在 Java 中，关键字 synchronized可以保证在同一个时刻，只有一个线程可以执行某个方法或者某个代码块(主要是对方法或者代码块中存在共享数据的操作)，同时我们还应该注意到synchronized另外一个重要的作用，synchronized可保证一个线程的变化(主要是共享数据的变化)被其他线程所看到（保证可见性，完全可以替代Volatile功能），这点确实也是很重要的。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/04/01/mybatis-5-%E5%8A%A8%E6%80%81sql%E5%92%8C%E5%A4%9A%E8%A1%A8%E6%9F%A5%E8%AF%A2/#more" rel="contents">
+              <a class="btn" href="/2020/04/21/old/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91%E4%B9%8Bsynchronized/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -405,7 +406,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/31/java%E5%9F%BA%E7%A1%80-roundOne/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/20/old/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B9%8B%E7%BE%8E/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -419,7 +420,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/31/java%E5%9F%BA%E7%A1%80-roundOne/" class="post-title-link" itemprop="url">java基础_roundOne</a>
+            <a href="/2020/04/20/old/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B9%8B%E7%BE%8E/" class="post-title-link" itemprop="url">Java并发编程之美</a>
         </h2>
 
         <div class="post-meta">
@@ -429,7 +430,81 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-31 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-31T09:34:33+08:00">2020-03-31</time>
+              <time title="创建时间：2020-04-20 15:39:19" itemprop="dateCreated datePublished" datetime="2020-04-20T15:39:19+08:00">2020-04-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">读书笔记</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p> 读书笔记<br>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/20/old/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B9%8B%E7%BE%8E/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/19/old/JAVA-io/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/19/old/JAVA-io/" class="post-title-link" itemprop="url">JAVA-io</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-19 13:19:31" itemprop="dateCreated datePublished" datetime="2020-04-19T13:19:31+08:00">2020-04-19</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -452,10 +527,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>java基础中常见的面试问题。</p>
+          <p>java io 相关总结</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/31/java%E5%9F%BA%E7%A1%80-roundOne/#more" rel="contents">
+              <a class="btn" href="/2020/04/19/old/JAVA-io/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -479,7 +554,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/18/old/headFirstJava%E7%AC%94%E8%AE%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -493,7 +568,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/" class="post-title-link" itemprop="url">mybatis#4-连接池</a>
+            <a href="/2020/04/18/old/headFirstJava%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">headFirstJava笔记</a>
         </h2>
 
         <div class="post-meta">
@@ -503,7 +578,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-30 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-30T09:34:33+08:00">2020-03-30</time>
+              <time title="创建时间：2020-04-18 13:12:40" itemprop="dateCreated datePublished" datetime="2020-04-18T13:12:40+08:00">2020-04-18</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -511,7 +586,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
+                  <a href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">读书笔记</span></a>
                 </span>
             </span>
 
@@ -526,11 +601,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>我之前也学过连接池技术,而在 Mybatis 中也有连接池技术,但是它采用的是自己的连接池技术。在 Mybatis 的 <code>SqlMapConfig.xml </code>配置文件中,通过<code>\&lt;dataSource type=”pooled”&gt;</code>来实现 Mybatis 中连接池的配置。</p>
-<p>另外谈论一下Mybatis的事务控制。</p>
+          <p>Head First Java读书笔记。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/30/mybatis-4-%E8%BF%9E%E6%8E%A5%E6%B1%A0/#more" rel="contents">
+              <a class="btn" href="/2020/04/18/old/headFirstJava%E7%AC%94%E8%AE%B0/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -554,7 +628,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/29/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/17/old/springMVC-2-%E5%85%A5%E9%97%A8%E5%88%86%E6%9E%90%E5%92%8C%E5%8F%82%E6%95%B0%E7%BB%91%E5%AE%9A/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -568,7 +642,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/29/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/" class="post-title-link" itemprop="url">跳表的介绍与使用</a>
+            <a href="/2020/04/17/old/springMVC-2-%E5%85%A5%E9%97%A8%E5%88%86%E6%9E%90%E5%92%8C%E5%8F%82%E6%95%B0%E7%BB%91%E5%AE%9A/" class="post-title-link" itemprop="url">springMVC#2-入门分析和参数绑定</a>
         </h2>
 
         <div class="post-meta">
@@ -578,7 +652,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-29 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-29T09:34:33+08:00">2020-03-29</time>
+              <time title="创建时间：2020-04-17 00:45:51" itemprop="dateCreated datePublished" datetime="2020-04-17T00:45:51+08:00">2020-04-17</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -586,7 +660,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -601,11 +675,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>今天我们来学习一种可以快速查找、插入、删除的数据结构，据说可以代替红黑树。就是本文的标题——跳表(SkipList)。跳表还有一个优点是实现起来简单。</p>
-<p>redis中的有序集合，其实就是基于跳表实现的。</p>
+          <p>在入门案例的基础上，进一步学习参数的绑定和注解！</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/29/%E8%B7%B3%E8%A1%A8%E7%9A%84%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/#more" rel="contents">
+              <a class="btn" href="/2020/04/17/old/springMVC-2-%E5%85%A5%E9%97%A8%E5%88%86%E6%9E%90%E5%92%8C%E5%8F%82%E6%95%B0%E7%BB%91%E5%AE%9A/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -629,7 +702,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/28/mybatis-3-parameter%E5%92%8Cresult%E8%AE%BE%E7%BD%AE/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/16/old/debug%E6%97%A5%E8%AE%B0-1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -643,7 +716,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/28/mybatis-3-parameter%E5%92%8Cresult%E8%AE%BE%E7%BD%AE/" class="post-title-link" itemprop="url">mybatis#3-parameter和result设置</a>
+            <a href="/2020/04/16/old/debug%E6%97%A5%E8%AE%B0-1/" class="post-title-link" itemprop="url">debug日记#1</a>
         </h2>
 
         <div class="post-meta">
@@ -653,7 +726,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-28 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-28T09:34:33+08:00">2020-03-28</time>
+              <time title="创建时间：2020-04-16 16:31:56" itemprop="dateCreated datePublished" datetime="2020-04-16T16:31:56+08:00">2020-04-16</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -661,7 +734,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
+                  <a href="/categories/debug%E6%97%A5%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">debug日记</span></a>
                 </span>
             </span>
 
@@ -676,10 +749,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>基于代理Dao的CRUD实现和源码分析，传统Dao实体类在Mybatis中的使用。以及Mybatis中输入参数的深入和输出结果的封装。</p>
+          <p>记录debug</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/28/mybatis-3-parameter%E5%92%8Cresult%E8%AE%BE%E7%BD%AE/#more" rel="contents">
+              <a class="btn" href="/2020/04/16/old/debug%E6%97%A5%E8%AE%B0-1/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -703,7 +776,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/27/mybatis-2-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E3%80%81%E8%87%AA%E5%AE%9A%E4%B9%89mybatis/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -717,7 +790,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/27/mybatis-2-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E3%80%81%E8%87%AA%E5%AE%9A%E4%B9%89mybatis/" class="post-title-link" itemprop="url">mybatis#2-源码分析、自定义mybatis</a>
+            <a href="/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" class="post-title-link" itemprop="url">springMVC#1-快速入门</a>
         </h2>
 
         <div class="post-meta">
@@ -727,7 +800,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-27 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-27T09:34:33+08:00">2020-03-27</time>
+              <time title="创建时间：2020-04-15 13:19:49" itemprop="dateCreated datePublished" datetime="2020-04-15T13:19:49+08:00">2020-04-15</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -735,7 +808,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -750,10 +823,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>分析上文中的测试类，将其功能解析并且复现，我们将使用前面所学的基础知识来构建一个属于自己的持久层框架,将会涉及到的一些知识点:工厂模式(Factory 工厂模式)、构造者模式(Builder 模式)、代理模式,反射,自定义注解,注解的反射,xml 解析,数据库元数据,元数据的反射等。</p>
+          <p>介绍springMVC的概念，并且建立快速入门案例。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/27/mybatis-2-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E3%80%81%E8%87%AA%E5%AE%9A%E4%B9%89mybatis/#more" rel="contents">
+              <a class="btn" href="/2020/04/15/old/springMVC-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -777,7 +850,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/26/mybatis-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8mybatis/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/14/old/spring-8-spring%E4%BA%8B%E5%8A%A1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -791,7 +864,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/26/mybatis-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8mybatis/" class="post-title-link" itemprop="url">mybatis#1-快速入门mybatis</a>
+            <a href="/2020/04/14/old/spring-8-spring%E4%BA%8B%E5%8A%A1/" class="post-title-link" itemprop="url">spring#8-spring事务</a>
         </h2>
 
         <div class="post-meta">
@@ -801,7 +874,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-26 09:34:33" itemprop="dateCreated datePublished" datetime="2020-03-26T09:34:33+08:00">2020-03-26</time>
+              <time title="创建时间：2020-04-14 22:43:18" itemprop="dateCreated datePublished" datetime="2020-04-14T22:43:18+08:00">2020-04-14</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -809,7 +882,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/mybatis/" itemprop="url" rel="index"><span itemprop="name">mybatis</span></a>
+                  <a href="/categories/spring/" itemprop="url" rel="index"><span itemprop="name">spring</span></a>
                 </span>
             </span>
 
@@ -824,84 +897,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>介绍mybatis框架在持久层上的作用，并且构建快速入门的mybatis案例。</p>
+          <p>spring在<code>spring-framework:spring-tx</code>中官方支持事务，本文对其做简要介绍。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/26/mybatis-1-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8mybatis/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="摘星">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="摘星">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/03/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">设计模式之抽象工厂模式</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-03-25 23:58:08" itemprop="dateCreated datePublished" datetime="2020-03-25T23:58:08+08:00">2020-03-25</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>抽象工厂模式（Abstract Factory Pattern）是围绕一个超级工厂创建其他工厂。该超级工厂又称为其他工厂的工厂。这种类型的设计模式属于创建型模式，它提供了一种创建对象的最佳方式。<br>在抽象工厂模式中，接口是负责创建一个相关对象的工厂，不需要显式指定它们的类。每个生成的工厂都能按照工厂模式提供对象。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/03/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E6%8A%BD%E8%B1%A1%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/#more" rel="contents">
+              <a class="btn" href="/2020/04/14/old/spring-8-spring%E4%BA%8B%E5%8A%A1/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -924,7 +923,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/17/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><a class="extend next" rel="next" href="/page/19/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/17/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/19/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -992,20 +991,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">241</span>
+          <span class="site-state-item-count">261</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">25</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">139</span>
+        <span class="site-state-item-count">142</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

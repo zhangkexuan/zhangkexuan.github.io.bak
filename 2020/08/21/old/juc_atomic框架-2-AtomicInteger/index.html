@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="AtomicInteger，应该是atomic框架中用得最多的原子类了。顾名思义，AtomicInteger是Integer类型的线程安全原子类，可以在应用程序中以原子的方式更新int值。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="juc_atomic框架#2-AtomicInteger">
+<meta property="og:url" content="http://yoursite.com/2020/08/21/old/juc_atomic%E6%A1%86%E6%9E%B6-2-AtomicInteger/index.html">
+<meta property="og:site_name" content="摘星">
+<meta property="og:description" content="AtomicInteger，应该是atomic框架中用得最多的原子类了。顾名思义，AtomicInteger是Integer类型的线程安全原子类，可以在应用程序中以原子的方式更新int值。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/08/21/old/juc_atomic%E6%A1%86%E6%9E%B6-2-AtomicInteger/image-20200923100422910.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/21/old/juc_atomic%E6%A1%86%E6%9E%B6-2-AtomicInteger/image-20200923100519187.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/21/old/juc_atomic%E6%A1%86%E6%9E%B6-2-AtomicInteger/image-20200923100630632.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/21/old/juc_atomic%E6%A1%86%E6%9E%B6-2-AtomicInteger/image-20200923100901126.png">
+<meta property="og:image" content="http://yoursite.com/2020/08/21/old/juc_atomic%E6%A1%86%E6%9E%B6-2-AtomicInteger/image-20200923100918714.png">
+<meta property="article:published_time" content="2020-08-21T01:34:33.000Z">
+<meta property="article:modified_time" content="2020-08-21T01:34:33.000Z">
+<meta property="article:author" content="摘星">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="深入并发">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/08/21/old/juc_atomic%E6%A1%86%E6%9E%B6-2-AtomicInteger/image-20200923100422910.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/08/21/old/juc_atomic%E6%A1%86%E6%9E%B6-2-AtomicInteger/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>juc_atomic框架#2-AtomicInteger | 摘星</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css">
+<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">摘星</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/08/21/old/juc_atomic%E6%A1%86%E6%9E%B6-2-AtomicInteger/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="摘星">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="摘星">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          juc_atomic框架#2-AtomicInteger
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-21 09:34:33" itemprop="dateCreated datePublished" datetime="2020-08-21T09:34:33+08:00">2020-08-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">深入并发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>AtomicInteger，应该是atomic框架中用得最多的原子类了。顾名思义，AtomicInteger是Integer类型的线程安全原子类，可以在应用程序中以原子的方式更新int值。</p>
+<a id="more"></a>
+
+<h1 id="一、AtomicInteger简介"><a href="#一、AtomicInteger简介" class="headerlink" title="一、AtomicInteger简介"></a>一、AtomicInteger简介</h1><h3 id="1-创建AtomicInteger对象"><a href="#1-创建AtomicInteger对象" class="headerlink" title="1. 创建AtomicInteger对象"></a>1. 创建AtomicInteger对象</h3><p>先来看下AtomicInteger对象的创建。</p>
+<p>AtomicInteger提供了两个构造器，使用默认构造器时，内部int类型的value值为0：<br><code>AtomicInteger atomicInt = new AtomicInteger();</code></p>
+<p>AtomicInteger类的内部并不复杂，所有的操作都针对内部的int值——value，并通过Unsafe类来实现线程安全的CAS操作：<br><img src="image-20200923100422910.png" alt="image-20200923100422910"></p>
+<h3 id="2-AtomicInteger的使用"><a href="#2-AtomicInteger的使用" class="headerlink" title="2. AtomicInteger的使用"></a>2. AtomicInteger的使用</h3><p>来看下面这个示例程序：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">{</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span>String<span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> InterruptedException <span class="token punctuation">{</span>
+        AtomicInteger ai <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AtomicInteger</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        List<span class="token operator">&lt;</span>Thread<span class="token operator">></span> list <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token operator">&lt;</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            Thread t <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Thread</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Accumlator</span><span class="token punctuation">(</span>ai<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"thread-"</span> <span class="token operator">+</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            list<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            t<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token keyword">for</span> <span class="token punctuation">(</span>Thread t <span class="token operator">:</span> list<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            t<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>ai<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Accumlator</span> <span class="token keyword">implements</span> <span class="token class-name">Runnable</span> <span class="token punctuation">{</span>
+        <span class="token keyword">private</span> AtomicInteger ai<span class="token punctuation">;</span>
+
+        <span class="token function">Accumlator</span><span class="token punctuation">(</span>AtomicInteger ai<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">this</span><span class="token punctuation">.</span>ai <span class="token operator">=</span> ai<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> len <span class="token operator">=</span> <span class="token number">1000</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> len<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                ai<span class="token punctuation">.</span><span class="token function">incrementAndGet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上述代码使用了AtomicInteger的<strong>incrementAndGet</strong>方法，以原子的操作对int值进行自增，该段程序执行的最终结果为10000（10个线程，每个线程对AtomicInteger增加1000），如果不使用AtomicInteger，使用原始的int或Integer，最终结果值可能会小于10000（并发时读到了过时的数据或存在值覆盖的问题）。</p>
+<p>我们来看下<strong>incrementAndGet</strong>内部：<br><img src="image-20200923100519187.png" alt="image-20200923100519187"></p>
+<p>内部调用了Unsafe类的<strong>getAndAddInt</strong>方法，以原子方式将value值增加1，然后返回增加前的原始值。</p>
+<p><strong>注意，上述是JDK1.8的实现，在JDK1.8之前，上述方法采用了自旋+CAS操作的方式：</strong></p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">final</span> <span class="token keyword">int</span> <span class="token function">getAndIncrement</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">int</span> current <span class="token operator">=</span> <span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> next <span class="token operator">=</span> current <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">compareAndSet</span><span class="token punctuation">(</span>current<span class="token punctuation">,</span> next<span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> current<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="3-AtomicInteger的特殊方法说明"><a href="#3-AtomicInteger的特殊方法说明" class="headerlink" title="3. AtomicInteger的特殊方法说明"></a>3. AtomicInteger的特殊方法说明</h3><p>AtomicInteger中有一个比较特殊的方法——<strong>lazySet</strong>：<br><img src="image-20200923100630632.png" alt="image-20200923100630632"></p>
+<p><strong>lazySet</strong>方法是<strong>set</strong>方法的不可见版本。什么意思呢？</p>
+<p>我们知道通过volatile修饰的变量，可以保证在多处理器环境下的“可见性”。也就是说当一个线程修改一个共享变量时，其它线程能立即读到这个修改的值。volatile的实现最终是加了内存屏障：</p>
+<ol>
+<li><strong>保证写volatile变量会强制把CPU写缓存区的数据刷新到内存</strong></li>
+<li><strong>读volatile变量时，使缓存失效，强制从内存中读取最新的值</strong></li>
+<li><strong>由于内存屏障的存在，volatile变量还能阻止重排序</strong></li>
+</ol>
+<p><strong>lazySet</strong>内部调用了Unsafe类的<strong>putOrderedInt</strong>方法，通过该方法对共享变量值的改变，不一定能被其他线程立即看到。也就是说以普通变量的操作方式来写变量。</p>
+<p>为什么会有这种奇怪方法？什么情况下需要使用lazySet呢？</p>
+<p>考虑下面这样一个场景：</p>
+<pre class="line-numbers language-java"><code class="language-java"><span class="token keyword">private</span> AtomicInteger ai <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AtomicInteger</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+lock<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">try</span>
+<span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">// ai.set(1);</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">finally</span>
+<span class="token punctuation">{</span>
+    lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>由于锁的存在：</p>
+<ul>
+<li><strong>lock()</strong>方法获取锁时，和volatile变量的读操作一样，会强制使CPU缓存失效，强制从内存读取变量。</li>
+<li><strong>unlock()</strong>方法释放锁时，和volatile变量的写操作一样，会强制刷新CPU写缓冲区，把缓存数据写到主内存</li>
+</ul>
+<p>所以，上述<code>ai.set(1)</code>可以用<code>ai.lazySet(1)</code>方法替换：</p>
+<p>由锁来保证共享变量的可见性，以设置普通变量的方式来修改共享变量，减少不必要的内存屏障，从而提高程序执行的效率。</p>
+<h2 id="二、类-接口说明"><a href="#二、类-接口说明" class="headerlink" title="二、类/接口说明"></a>二、类/接口说明</h2><h3 id="类声明"><a href="#类声明" class="headerlink" title="类声明"></a>类声明</h3><p><img src="image-20200923100901126.png" alt="image-20200923100901126"></p>
+<h3 id="构造器"><a href="#构造器" class="headerlink" title="构造器"></a>构造器</h3><p><img src="image-20200923100918714.png" alt="image-20200923100918714"></p>
+<h3 id="接口声明"><a href="#接口声明" class="headerlink" title="接口声明"></a>接口声明</h3><table>
+<thead>
+<tr>
+<th>方法声明</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>int accumulateAndGet(int x, IntBinaryOperator accumulatorFunction)</td>
+<td>使用IntBinaryOperator 对当前值和x进行计算，并更新当前值，返回计算后的新值</td>
+</tr>
+<tr>
+<td>int addAndGet(int delta)</td>
+<td>以原子方式将给定值与当前值相加，返回相加后的新值</td>
+</tr>
+<tr>
+<td>boolean compareAndSet(int expect, int update)</td>
+<td>如果当前值 == expect，则以原子方式将该值设置为给定的更新值（update）</td>
+</tr>
+<tr>
+<td>int decrementAndGet()</td>
+<td>以原子方式将当前值减 1，返回新值</td>
+</tr>
+<tr>
+<td>int get()</td>
+<td>获取当前值</td>
+</tr>
+<tr>
+<td>int getAndAccumulate(int x, IntBinaryOperator accumulatorFunction)</td>
+<td>使用IntBinaryOperator 对当前值和x进行计算，并更新当前值，返回计算前的旧值</td>
+</tr>
+<tr>
+<td>int getAndAdd(int delta)</td>
+<td>以原子方式将给定值与当前值相加，返回旧值</td>
+</tr>
+<tr>
+<td>int getAndDecrement()</td>
+<td>以原子方式将当前值减 1，返回旧值</td>
+</tr>
+<tr>
+<td>int getAndIncrement()</td>
+<td>以原子方式将当前值加 1，返回旧值</td>
+</tr>
+<tr>
+<td>int getAndSet(int newValue)</td>
+<td>以原子方式设置为给定值，并返回旧值</td>
+</tr>
+<tr>
+<td>int getAndUpdate(IntUnaryOperator updateFunction)</td>
+<td>使用IntBinaryOperator 对当前值进行计算，并更新当前值，返回计算前的旧值</td>
+</tr>
+<tr>
+<td>int incrementAndGet()</td>
+<td>以原子方式将当前值加 1，返回新值</td>
+</tr>
+<tr>
+<td>void lazySet(int newValue)</td>
+<td>设置为给定值，但不保证值的改变被其他线程立即看到</td>
+</tr>
+<tr>
+<td>void set(int newValue)</td>
+<td>设置为给定值</td>
+</tr>
+<tr>
+<td>int updateAndGet(IntUnaryOperator updateFunction)</td>
+<td>使用IntBinaryOperator 对当前值进行计算，并更新当前值，返回计算后的新值</td>
+</tr>
+<tr>
+<td>boolean weakCompareAndSet(int expect, int update)</td>
+<td>weakCompareAndSet无法保证除操作目标外的其他变量的执行顺序( 编译器和处理器为了优化程序性能而对指令序列进行重新排序 )，同时也无法保证这些变量的可见性。</td>
+</tr>
+</tbody></table>
+<h2 id="三、其它原子类"><a href="#三、其它原子类" class="headerlink" title="三、其它原子类"></a>三、其它原子类</h2><p>与<strong>AtomicInteger</strong>类似的原子类还有<strong>AtomicBoolean</strong>和<strong>AtomicLong</strong>，底层都是通过Unsafe类做CAS操作，来原子的更新状态值。可以参考Oracle官方文档：<a href="https://docs.oracle.com/javase/8/docs/api/" target="_blank" rel="noopener">https://docs.oracle.com/javas…</a>，不再赘述。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+              <a href="/tags/%E6%B7%B1%E5%85%A5%E5%B9%B6%E5%8F%91/" rel="tag"># 深入并发</a>
+              <a href="/tags/juc/" rel="tag"># juc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/20/old/juc_atomic%E6%A1%86%E6%9E%B6-1-Unsase%E7%B1%BB/" rel="prev" title="juc_atomic框架#1-Unsase类">
+      <i class="fa fa-chevron-left"></i> juc_atomic框架#1-Unsase类
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/22/old/juc_atomic%E6%A1%86%E6%9E%B6-3-AtomicReference/" rel="next" title="juc_atomic框架#3-AtomicReference">
+      juc_atomic框架#3-AtomicReference <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、AtomicInteger简介"><span class="nav-text">一、AtomicInteger简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-创建AtomicInteger对象"><span class="nav-text">1. 创建AtomicInteger对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-AtomicInteger的使用"><span class="nav-text">2. AtomicInteger的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-AtomicInteger的特殊方法说明"><span class="nav-text">3. AtomicInteger的特殊方法说明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、类-接口说明"><span class="nav-text">二、类&#x2F;接口说明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#类声明"><span class="nav-text">类声明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构造器"><span class="nav-text">构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口声明"><span class="nav-text">接口声明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、其它原子类"><span class="nav-text">三、其它原子类</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="摘星"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">摘星</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">261</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">142</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/zhangkexuan" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;zhangkexuan" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/kexuan_zhang@qq.com" title="E-Mail → kexuan_zhang@qq.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">摘星</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
+
+<!-- ҳ����С���� -->
+<script type="text/javascript" src="/js/clicklove.js"></script>
